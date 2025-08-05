@@ -53,11 +53,12 @@ const dockerComponent = async (cpath: string) => {
 };
 
 // Builders
+type MobyTrace = { id: string; error?: string; aux: any };
 
 const buildDockerImage = async (
   cmp: DockerComponentBuild,
-  progress?: (status: { stream: string }) => void,
-): Promise<DockerComponentBuild & { logs: unknown[] }> => {
+  progress?: (trace: MobyTrace) => void,
+): Promise<DockerComponentBuild & { traces: Array<MobyTrace> }> => {
   const docker = new Docker();
   const files = ((cmp.prerequisites || []) as Array<File>).map((f) =>
     f.path.substring(cmp.context.length),
@@ -80,11 +81,15 @@ const buildDockerImage = async (
   return new Promise((resolve, reject) => {
     docker.modem.followProgress(
       stream,
-      (err, logs) => {
-        return err ? reject(err) : resolve({ ...cmp, logs });
+      (err, traces) => {
+        return err ? reject(err) : resolve({ ...cmp, traces });
       },
-      (obj) => {
-        progress?.(obj);
+      (trace: MobyTrace) => {
+        if (trace.error) {
+          reject(new Error(trace.error));
+        } else {
+          progress?.(trace);
+        }
       },
     );
   });
@@ -121,25 +126,20 @@ class MyMainClass {
   private logger = new ListrLogger({ useIcons: false });
 
   public async run(): Promise<void> {
-    const frontend = await dockerComponent('frontend');
+    const frontend = await dockerComponent('examples/simple/frontend');
 
     this.tasks.add(
       [
         {
           title: 'Building frontend-dev',
           task: async (ctx, task): Promise<void> => {
-            await buildDockerImage(
+            const res = await buildDockerImage(
               {
                 ...frontend,
                 name: 'frontend-dev',
                 target: 'dev',
               },
-              (progress) => {
-                if (typeof progress.stream !== 'string') {
-                  return;
-                }
-                task.output = (task.output || '') + progress.stream + '\n';
-              },
+              (progress) => {},
             );
           },
         },
@@ -152,17 +152,8 @@ class MyMainClass {
                 name: 'frontend-production',
                 target: 'production',
               },
-              (progress) => {
-                if (typeof progress.stream !== 'string') {
-                  return;
-                }
-                task.output = (task.output || '') + progress.stream + '\n';
-              },
+              (progress) => {},
             );
-            task.output = res.logs
-              .map((r) => (r as { stream?: string }).stream)
-              .filter(Boolean)
-              .join('\n');
           },
         },
       ],
