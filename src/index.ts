@@ -21,6 +21,7 @@ export interface DockerComponentBuild extends Task {
   context: string;
   dockerfile: string;
   buildArgs?: Record<string, string>;
+  target?: string;
 }
 
 const loadFilePrerequisites = async (
@@ -70,6 +71,8 @@ const buildDockerImage = async (cmp: DockerComponentBuild) => {
     {
       t: cmp.name,
       dockerfile: cmp.dockerfile,
+      buildargs: cmp.buildArgs,
+      target: cmp.target,
     },
   );
 
@@ -84,8 +87,25 @@ const buildDockerImage = async (cmp: DockerComponentBuild) => {
 
 const main = async () => {
   const frontend = await dockerComponent('example/frontend');
-  const res = await buildDockerImage(frontend);
-  console.log(res);
+  const images = [];
+
+  images.push(
+    buildDockerImage({
+      ...frontend,
+      name: 'frontend-dev',
+      target: 'dev',
+    }),
+  );
+
+  images.push(
+    buildDockerImage({
+      ...frontend,
+      name: 'frontend-production',
+      target: 'production',
+    }),
+  );
+
+  console.log(await Promise.all(images));
 };
 
 main();
