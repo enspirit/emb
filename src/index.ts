@@ -74,6 +74,7 @@ const buildDockerImage = async (
       dockerfile: cmp.dockerfile,
       buildargs: cmp.buildArgs,
       target: cmp.target,
+      version: '2',
     },
   );
 
@@ -95,9 +96,9 @@ const buildDockerImage = async (
 import { Manager } from '@listr2/manager';
 
 import type { ListrBaseClassOptions } from 'listr2';
-import { ListrLogger } from 'listr2';
+import { ListrLogger, ListrLogLevels } from 'listr2';
 
-function TaskManagerFactory<T = any>(
+function TaskManagerFactory<T = unknown>(
   override?: ListrBaseClassOptions,
 ): Manager<T> {
   return new Manager({
@@ -121,7 +122,7 @@ class MyMainClass {
   private logger = new ListrLogger({ useIcons: false });
 
   public async run(): Promise<void> {
-    const frontend = await dockerComponent('example/frontend');
+    const frontend = await dockerComponent('frontend');
 
     this.tasks.add(
       [
@@ -135,27 +136,35 @@ class MyMainClass {
                 target: 'dev',
               },
               (progress) => {
+                if (typeof progress.stream !== 'string') {
+                  return;
+                }
                 task.output = (task.output || '') + progress.stream + '\n';
               },
             );
           },
-          rendererOptions: { persistentOutput: true },
         },
         {
           title: 'Building frontend-production',
           task: async (ctx, task): Promise<void> => {
-            await buildDockerImage(
+            const res = await buildDockerImage(
               {
                 ...frontend,
                 name: 'frontend-production',
                 target: 'production',
               },
               (progress) => {
+                if (typeof progress.stream !== 'string') {
+                  return;
+                }
                 task.output = (task.output || '') + progress.stream + '\n';
               },
             );
+            task.output = res.logs
+              .map((r) => (r as { stream?: string }).stream)
+              .filter(Boolean)
+              .join('\n');
           },
-          rendererOptions: { persistentOutput: true },
         },
       ],
       {
@@ -164,7 +173,13 @@ class MyMainClass {
       },
     );
 
-    await this.tasks.runAll();
+    this.logger.log(ListrLogLevels.STARTED, 'Building all docker images.');
+
+    try {
+      await this.tasks.runAll();
+    } catch (err: any) {
+      this.logger.log(ListrLogLevels.FAILED, err);
+    }
   }
 }
 
