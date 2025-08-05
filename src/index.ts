@@ -55,7 +55,9 @@ const dockerComponent = async (cpath: string) => {
 
 // Builders
 
-const buildDockerImage = async (cmp: DockerComponentBuild) => {
+const buildDockerImage = async (
+  cmp: DockerComponentBuild,
+): Promise<DockerComponentBuild & { logs: unknown[] }> => {
   console.log('Building image', cmp);
 
   const docker = new Docker();
@@ -77,9 +79,18 @@ const buildDockerImage = async (cmp: DockerComponentBuild) => {
   );
 
   return new Promise((resolve, reject) => {
-    docker.modem.followProgress(stream, (err, res) => {
-      return err ? reject(err) : resolve(res);
-    });
+    docker.modem.followProgress(
+      stream,
+      (err, logs) => {
+        return err ? reject(err) : resolve({ ...cmp, logs });
+      },
+      (obj) => {
+        if (!obj.stream) {
+          return;
+        }
+        console.log(`[${cmp.name}]`, obj.stream);
+      },
+    );
   });
 };
 
