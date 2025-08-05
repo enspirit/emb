@@ -1,5 +1,5 @@
 import { basename } from 'node:path';
-import { pathspec, simpleGit } from 'simple-git';
+import { simpleGit } from 'simple-git';
 import Docker from 'dockerode';
 
 export type Prerequisite = File | EnvVariable;
