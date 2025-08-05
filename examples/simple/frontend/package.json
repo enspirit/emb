@@ -1,0 +1,14 @@
+{
+  "name": "simple",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+
+  },
+  "dependencies": {
+    "cowsay": "^1.6.0"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
