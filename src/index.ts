@@ -28,6 +28,7 @@ const loadFilePrerequisites = async (
   component: string,
 ): Promise<Array<File>> => {
   const repo = simpleGit('./');
+
   return (await repo.raw('ls-files', component))
     .split('\n')
     .map((s) => s.trim())
@@ -35,8 +36,6 @@ const loadFilePrerequisites = async (
     .map((path) => {
       return { path };
     });
-
-  return [];
 };
 
 const dockerComponent = async (cpath: string) => {
