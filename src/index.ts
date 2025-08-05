@@ -100,7 +100,7 @@ const buildDockerImage = async (
 import { Manager } from '@listr2/manager';
 
 import type { ListrBaseClassOptions } from 'listr2';
-import { ListrLogger, ListrLogLevels } from 'listr2';
+import { delay, ListrLogger, ListrLogLevels } from 'listr2';
 
 function TaskManagerFactory<T = unknown>(
   override?: ListrBaseClassOptions,
@@ -128,31 +128,45 @@ class MyMainClass {
   public async run(): Promise<void> {
     const frontend = await dockerComponent('examples/simple/frontend');
 
+    await this.tasks.run(
+      [
+        {
+          title: 'Discover components',
+          task: async () => {
+            await delay(2000);
+          },
+        },
+      ],
+      {
+        exitOnError: true,
+      },
+    );
+
     this.tasks.add(
       [
         {
           title: 'Building frontend-dev',
           task: async (ctx, task): Promise<void> => {
-            const res = await buildDockerImage(
+            await buildDockerImage(
               {
                 ...frontend,
                 name: 'frontend-dev',
                 target: 'dev',
               },
-              (progress) => {},
+              (_progress) => {},
             );
           },
         },
         {
           title: 'Building frontend-production',
           task: async (ctx, task): Promise<void> => {
-            const res = await buildDockerImage(
+            await buildDockerImage(
               {
                 ...frontend,
                 name: 'frontend-production',
                 target: 'production',
               },
-              (progress) => {},
+              (_progress) => {},
             );
           },
         },
@@ -162,8 +176,6 @@ class MyMainClass {
         concurrent: false,
       },
     );
-
-    this.logger.log(ListrLogLevels.STARTED, 'Building all docker images.');
 
     try {
       await this.tasks.runAll();
