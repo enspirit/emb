@@ -1,6 +1,6 @@
 FROM node:22 as dev
 
-WORKDIR /home/app/
+WORKDIR /home/app
 
 COPY ./ ./
 

@@ -153,9 +153,14 @@ class MyMainClass {
                 name: 'frontend-dev',
                 target: 'dev',
               },
-              (_progress) => {},
+              (progress) => {
+                if (progress.id === 'moby.image.id') {
+                  task.output = progress.aux.ID + '\n';
+                }
+              },
             );
           },
+          rendererOptions: { persistentOutput: true },
         },
         {
           title: 'Building frontend-production',
@@ -166,9 +171,14 @@ class MyMainClass {
                 name: 'frontend-production',
                 target: 'production',
               },
-              (_progress) => {},
+              (progress) => {
+                if (progress.id === 'moby.image.id') {
+                  task.output = progress.aux.ID + '\n';
+                }
+              },
             );
           },
+          rendererOptions: { persistentOutput: true },
         },
       ],
       {
