@@ -57,9 +57,8 @@ const dockerComponent = async (cpath: string) => {
 
 const buildDockerImage = async (
   cmp: DockerComponentBuild,
+  progress?: (status: { stream: string }) => void,
 ): Promise<DockerComponentBuild & { logs: unknown[] }> => {
-  console.log('Building image', cmp);
-
   const docker = new Docker();
   const files = ((cmp.prerequisites || []) as Array<File>).map((f) =>
     f.path.substring(cmp.context.length),
@@ -85,10 +84,7 @@ const buildDockerImage = async (
         return err ? reject(err) : resolve({ ...cmp, logs });
       },
       (obj) => {
-        if (!obj.stream) {
-          return;
-        }
-        console.log(`[${cmp.name}]`, obj.stream);
+        progress?.(obj);
       },
     );
   });
@@ -96,27 +92,80 @@ const buildDockerImage = async (
 
 // Main
 
-const main = async () => {
-  const frontend = await dockerComponent('example/frontend');
-  const images = [];
+import { Manager } from '@listr2/manager';
 
-  images.push(
-    buildDockerImage({
-      ...frontend,
-      name: 'frontend-dev',
-      target: 'dev',
-    }),
-  );
+import type { ListrBaseClassOptions } from 'listr2';
+import { ListrLogger } from 'listr2';
 
-  images.push(
-    buildDockerImage({
-      ...frontend,
-      name: 'frontend-production',
-      target: 'production',
-    }),
-  );
+function TaskManagerFactory<T = any>(
+  override?: ListrBaseClassOptions,
+): Manager<T> {
+  return new Manager({
+    concurrent: false,
+    exitOnError: true,
+    rendererOptions: {
+      collapseSubtasks: false,
+      collapseSkips: false,
+    },
+    ...override,
+  });
+}
 
-  console.log(await Promise.all(images));
-};
+interface Ctx {
+  injected?: boolean;
+  runTime?: number;
+}
 
-main();
+class MyMainClass {
+  private tasks = TaskManagerFactory<Ctx>();
+  private logger = new ListrLogger({ useIcons: false });
+
+  public async run(): Promise<void> {
+    const frontend = await dockerComponent('example/frontend');
+
+    this.tasks.add(
+      [
+        {
+          title: 'Building frontend-dev',
+          task: async (ctx, task): Promise<void> => {
+            await buildDockerImage(
+              {
+                ...frontend,
+                name: 'frontend-dev',
+                target: 'dev',
+              },
+              (progress) => {
+                task.output = (task.output || '') + progress.stream + '\n';
+              },
+            );
+          },
+          rendererOptions: { persistentOutput: true },
+        },
+        {
+          title: 'Building frontend-production',
+          task: async (ctx, task): Promise<void> => {
+            await buildDockerImage(
+              {
+                ...frontend,
+                name: 'frontend-production',
+                target: 'production',
+              },
+              (progress) => {
+                task.output = (task.output || '') + progress.stream + '\n';
+              },
+            );
+          },
+          rendererOptions: { persistentOutput: true },
+        },
+      ],
+      {
+        exitOnError: true,
+        concurrent: false,
+      },
+    );
+
+    await this.tasks.runAll();
+  }
+}
+
+await new MyMainClass().run();

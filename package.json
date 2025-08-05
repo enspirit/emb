@@ -13,6 +13,8 @@
   "description": "",
   "dependencies": {
     "simple-git": "^3.28.0",
+    "listr2": "^9.0.1",
+    "@listr2/manager": "^3.0.1",
     "dockerode": "^4.0.7"
   },
   "devDependencies": {
