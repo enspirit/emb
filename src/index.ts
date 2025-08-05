@@ -25,14 +25,17 @@ export interface DockerComponentBuild extends Task {
 
 const loadFilePrerequisites = async (
   component: string,
-  modified = false,
 ): Promise<Array<File>> => {
   const repo = simpleGit('./');
-  const result = await repo.status([pathspec(component)]);
+  return (await repo.raw('ls-files', component))
+    .split('\n')
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .map((path) => {
+      return { path };
+    });
 
-  return modified
-    ? result.files.filter((f) => result.modified.includes(f.path))
-    : result.files.filter((f) => f.index != '?');
+  return [];
 };
 
 const dockerComponent = async (cpath: string) => {
@@ -71,9 +74,9 @@ const buildDockerImage = async (cmp: DockerComponentBuild) => {
   );
 
   return new Promise((resolve, reject) => {
-    docker.modem.followProgress(stream, (err, res) =>
-      err ? reject(err) : resolve(res),
-    );
+    docker.modem.followProgress(stream, (err, res) => {
+      return err ? reject(err) : resolve(res);
+    });
   });
 };
 
@@ -82,7 +85,7 @@ const buildDockerImage = async (cmp: DockerComponentBuild) => {
 const main = async () => {
   const frontend = await dockerComponent('example/frontend');
   const res = await buildDockerImage(frontend);
-  console.log('--->', res);
+  console.log(res);
 };
 
 main();
