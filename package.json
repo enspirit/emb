@@ -58,8 +58,8 @@
   ],
   "main": "dist/index.js",
   "oclif": {
-    "bin": "meb",
-    "dirname": "meb",
+    "bin": "emb",
+    "dirname": "emb",
     "commands": "./dist/commands",
     "plugins": [
       "@oclif/plugin-help",
