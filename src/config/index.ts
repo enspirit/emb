@@ -68,7 +68,6 @@ export const loadConfig = async (force = false) => {
     return config;
   }
 
-  const ajv = new Ajv();
   const path = await findUp('.emb.yml');
 
   if (!path) {

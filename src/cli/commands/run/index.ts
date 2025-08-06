@@ -2,9 +2,6 @@ import { Args, Command } from '@oclif/core';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
-import { getConfig } from '../../../config/index.js';
-import { discoverComponents } from '../../../monorepo/discovery.js';
-
 const componentsList: Array<string> = [];
 
 export default class RunComponentScript extends Command {
@@ -24,7 +21,7 @@ export default class RunComponentScript extends Command {
   }
 
   async run() {
-    const { args, argv } = await this.parse(RunComponentScript);
+    const { args } = await this.parse(RunComponentScript);
     const { component, script } = args;
 
     const componentPath = path.resolve(component);
