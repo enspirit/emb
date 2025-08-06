@@ -24,6 +24,7 @@
     "@oclif/plugin-help": "^6.2.32",
     "@oclif/plugin-plugins": "^5.4.46",
     "@oclif/plugin-autocomplete": "^3.2.34",
+    "ajv": "^8.17.1",
     "dockerode": "^4.0.7",
     "find-up": "^7.0.0",
     "glob": "^11.0.3",
@@ -50,7 +51,8 @@
     "oclif": "^4",
     "prettier": "^3.6.2",
     "rimraf": "^6.0.1",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "ts-node": "^10.9.2"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -66,7 +68,7 @@
     "dirname": "emb",
     "commands": "./dist/cli/commands",
     "hooks": {
-      "init": ["./dist/cli/hooks/init"]
+      "init": "./dist/cli/hooks/init"
     },
     "plugins": [
       "@oclif/plugin-help",
