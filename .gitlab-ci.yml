@@ -22,6 +22,8 @@ before_script:
 
 build:
   stage: build
+  tags:
+    - docker
   script:
     - npm run build
   artifacts:
