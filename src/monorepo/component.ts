@@ -1,7 +1,6 @@
 import { ComponentConfig } from '../config/index.js';
 import { DockerComponentBuild, Prerequisite } from '../docker/index.js';
 import { loadFilePrerequisites } from '../git/index.js';
-import { expand } from '../utils/expand.js';
 import { Monorepo } from './index.js';
 
 export class Component {
@@ -37,31 +36,13 @@ export class Component {
   }
 
   async toDockerBuild(): Promise<DockerComponentBuild> {
-    const buildArgs = await this.expandBuildArgs();
-
     return {
-      buildArgs,
+      buildArgs: await this.monorepo.expand(this.config.buildArgs || {}),
       context: this.rootdir,
-      dockerfile: 'Dockerfile',
+      dockerfile: this.config.dockerfile || 'Dockerfile',
       name: this.config.name,
       prerequisites: await this.getPrerequisites(),
+      target: this.config.target || this.monorepo.defaults?.docker?.target,
     };
-  }
-
-  private async expandBuildArgs(): Promise<Record<PropertyKey, string>> {
-    return Object.entries(this.config.buildArgs || {}).reduce(
-      async (vars, [name, str]) => {
-        const previous = await vars;
-
-        previous[name] = await expand(str, {
-          sources: {
-            env: process.env as Record<string, string>,
-          },
-        });
-
-        return previous;
-      },
-      Promise.resolve({}) as Promise<Record<PropertyKey, string>>,
-    );
   }
 }

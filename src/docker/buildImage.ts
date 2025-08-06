@@ -6,11 +6,12 @@ import { decode } from './protobuf/index.js';
 export type MobyTrace = { aux: unknown; error?: string; id: string };
 export type Progress = { error?: string; name?: string };
 
+const docker = new Docker();
+
 export const buildDockerImage = async (
   cmp: DockerComponentBuild,
   progress?: (progress: Progress) => void,
 ): Promise<DockerComponentBuild & { traces: Array<MobyTrace> }> => {
-  const docker = new Docker();
   const files = (cmp.prerequisites || []).map((f) => f.path);
 
   const stream = await docker.buildImage(

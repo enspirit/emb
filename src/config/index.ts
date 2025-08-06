@@ -16,7 +16,9 @@ export type Service = {
 
 type UserConfig = {
   components: Array<string | { name: string }>;
+  defaults?: DefaultSettings;
   project: string | { name: string };
+  vars?: Record<string, string>;
 };
 
 export type ProjectConfig = {
@@ -26,12 +28,24 @@ export type ProjectConfig = {
 
 export type ComponentConfig = {
   buildArgs?: Record<PropertyKey, string>;
+  dockerfile?: string;
   name: string;
+  target?: string;
+};
+
+export type DefaultSettings = {
+  docker?: {
+    buildArgs?: Record<string, string>;
+    tag?: string;
+    target?: string;
+  };
 };
 
 export type Config = {
   components: Array<ComponentConfig>;
+  defaults?: DefaultSettings;
   project: ProjectConfig;
+  vars?: Record<string, string>;
 };
 
 export const toProjectConfig = (config: UserConfig): Config => {
@@ -50,11 +64,15 @@ export const toProjectConfig = (config: UserConfig): Config => {
     },
   );
 
+  const { defaults, vars } = config;
+
   return {
     components,
+    defaults,
     project: {
       ...project,
     } as ProjectConfig,
+    vars,
   };
 };
 

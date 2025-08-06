@@ -34,3 +34,19 @@ export const expand = async (str: string, options: ExpandOptions = {}) => {
       .replaceAll('\\${', '${')
   );
 };
+
+export const expandRecord = (
+  record: Record<string, string>,
+  options: ExpandOptions = {},
+): Promise<Record<PropertyKey, string>> => {
+  return Object.entries(record).reduce(
+    async (vars, [name, str]) => {
+      const previous = await vars;
+
+      previous[name] = await expand(str, options);
+
+      return previous;
+    },
+    Promise.resolve({}) as Promise<Record<PropertyKey, string>>,
+  );
+};

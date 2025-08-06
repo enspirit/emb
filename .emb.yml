@@ -3,9 +3,19 @@ project:
   name: emb
   rootDir: examples
 
+# Some default vars available everywhere
+vars:
+  dockerTag: ${env:DOCKER_TAG:-latest}
+
+# Some default for every docker build
+defaults:
+  docker:
+    tag: ${dockerTag}
+
 components:
   - simple
   - frontend
   - name: buildargs
     buildArgs:
+      # Inject some env var as build arg
       GREETING: Hello ${env:USER}

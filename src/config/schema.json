@@ -29,6 +29,33 @@
         }
       ]
     },
+    "vars": {
+      "type": "object",
+      "description": "Variables that will be accessible for string expansion",
+      "additionalProperties": true
+    },
+    "defaults": {
+      "type": "object",
+      "description": "Default settings for build aspects",
+      "properties": {
+        "docker": {
+          "type": "object",
+          "description": "Default docker build settings",
+          "properties": {
+            "tag": {
+              "type": "string"
+            },
+            "target": {
+              "type": "string"
+            },
+            "buildArgs": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
     "components": {
       "type": "array",
       "items": {
@@ -56,6 +83,14 @@
                 "type": "object",
                 "properties": {},
                 "additionalProperties": true
+              },
+              "target": {
+                "type": "string",
+                "description": "The stage to target for the build"
+              },
+              "dockerfile": {
+                "type": "string",
+                "description": "The Dockerfile to use"
               }
             },
             "additionalProperties": false
