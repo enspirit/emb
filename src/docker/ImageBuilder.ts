@@ -62,15 +62,14 @@ export class ImageBuilder {
                 .map((cmp) => {
                   return {
                     rendererOptions: { persistentOutput: true },
-                    async task(_ctx, _task) {
+                    async task(_ctx, task) {
                       await buildDockerImage(
                         await cmp.toDockerBuild(),
-                        (_prog) => {
-                          // if (prog.id === 'moby.image.id') {
-                          //   task.output = prog.aux.ID + '\n';
-                          // }
+                        (progress) => {
+                          task.output = progress?.error || progress?.name || '';
                         },
                       );
+                      task.output = '';
                     },
                     title: `Build ${cmp.name}`,
                   };

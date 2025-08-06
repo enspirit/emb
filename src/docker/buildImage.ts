@@ -1,18 +1,17 @@
 import Docker from 'dockerode';
 
-import { File } from '../git/index.js';
 import { DockerComponentBuild } from './index.js';
+import { decode } from './protobuf/index.js';
 
 export type MobyTrace = { aux: unknown; error?: string; id: string };
+export type Progress = { error?: string; name?: string };
 
 export const buildDockerImage = async (
   cmp: DockerComponentBuild,
-  progress?: (trace: MobyTrace) => void,
+  progress?: (progress: Progress) => void,
 ): Promise<DockerComponentBuild & { traces: Array<MobyTrace> }> => {
   const docker = new Docker();
-  const files = ((cmp.prerequisites || []) as Array<File>).map((f) =>
-    f.path.slice(cmp.context.length),
-  );
+  const files = (cmp.prerequisites || []).map((f) => f.path);
 
   const stream = await docker.buildImage(
     {
@@ -34,11 +33,18 @@ export const buildDockerImage = async (
       (err, traces) => {
         return err ? reject(err) : resolve({ ...cmp, traces });
       },
-      (trace: MobyTrace) => {
+      async (trace: MobyTrace) => {
         if (trace.error) {
           reject(new Error(trace.error));
         } else {
-          progress?.(trace);
+          try {
+            const { vertexes } = await decode(trace.aux as string);
+            vertexes.forEach((v: { name: string }) => {
+              progress?.(v);
+            });
+          } catch (error) {
+            console.error(error);
+          }
         }
       },
     );

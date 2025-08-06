@@ -1,3 +1,4 @@
+import { relative } from 'node:path';
 import { simpleGit } from 'simple-git';
 
 export type File = {
@@ -14,6 +15,6 @@ export const loadFilePrerequisites = async (
     .map((s) => s.trim())
     .filter(Boolean)
     .map((path) => {
-      return { path };
+      return { path: relative(component, path) };
     });
 };

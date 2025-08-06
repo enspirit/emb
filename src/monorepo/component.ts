@@ -1,3 +1,5 @@
+import { relative } from 'node:path';
+
 import { ComponentConfig } from '../config/index.js';
 import { DockerComponentBuild, Prerequisite } from '../docker/index.js';
 import { loadFilePrerequisites } from '../git/index.js';
@@ -17,7 +19,7 @@ export class Component {
     return this.monorepo.join(this.name);
   }
 
-  getPrerequisites(): Promise<Array<Prerequisite>> {
+  async getPrerequisites(): Promise<Array<Prerequisite>> {
     return loadFilePrerequisites(this.rootdir);
   }
 

@@ -1,6 +1,6 @@
 import type { File } from '../git/index.js';
 
-export type Prerequisite = EnvVariable | File;
+export type Prerequisite = File;
 
 export type EnvVariable = {
   name: string;

@@ -10,7 +10,7 @@
     "emb": "./bin/run.js"
   },
   "scripts": {
-    "build": "rimraf dist && tsc -b",
+    "build": "rimraf dist && tsc -b && cp -r src/docker/protobuf/*.proto dist/docker/protobuf/",
     "lint": "eslint",
     "postpack": "shx rm -f oclif.manifest.json",
     "posttest": "npm run lint",
@@ -30,6 +30,7 @@
     "find-up": "^7.0.0",
     "glob": "^11.0.3",
     "listr2": "^9.0.1",
+    "protobufjs": "^7.5.3",
     "simple-git": "^3.28.0",
     "yaml": "^2.8.1"
   },
