@@ -1,6 +1,7 @@
 import { Manager } from '@listr2/manager';
 import { ListrLogger, ListrLogLevels } from 'listr2';
 
+import { getContext } from '../cli/context.js';
 import { discoverComponents } from '../monorepo/discovery.js';
 import { EmbContext } from '../types.js';
 import { buildDockerImage } from './buildImage.js';
@@ -36,36 +37,23 @@ export class ImageBuilder {
   }
 
   public async run(): Promise<void> {
+    // Set context
     this.manager.add(
       [
         {
-          async task(ctx) {
-            const folders = await discoverComponents();
-            ctx.components = await Promise.all(
-              folders.map((f) => dockerComponent(f)),
-            );
+          task(ctx) {
+            Object.assign(ctx, getContext());
           },
-          title: 'Discover components',
+          title: 'Load monorepo config',
         },
-      ],
-      {
-        collectErrors: 'minimal',
-        exitOnError: true,
-      },
-    );
-
-    const context = await this.manager.runAll();
-
-    this.manager.add(
-      [
         {
-          task(_, task) {
+          task(context, task) {
             return task.newListr(
-              (context.components || [])?.map((cmp) => {
+              (context.monorepo.components || [])?.map((cmp) => {
                 return {
                   rendererOptions: { persistentOutput: true },
                   async task(_ctx, _task) {
-                    await buildDockerImage(cmp, (_prog) => {
+                    await buildDockerImage(cmp.toDockerBuild(), (_prog) => {
                       // if (prog.id === 'moby.image.id') {
                       //   task.output = prog.aux.ID + '\n';
                       // }

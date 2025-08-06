@@ -1,10 +1,19 @@
 import { Hook } from '@oclif/core';
 
 import { loadConfig } from '../../config/index.js';
+import { Monorepo } from '../../monorepo/index.js';
+import { setContext } from '../context.js';
 
 const hook: Hook.Init = async function (options) {
   try {
-    const _config = await loadConfig();
+    const config = await loadConfig();
+    const monorepo = new Monorepo(config);
+
+    await monorepo.init();
+
+    setContext({
+      monorepo,
+    });
   } catch (error) {
     options.context.error(error as Error);
   }

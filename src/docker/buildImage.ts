@@ -14,6 +14,8 @@ export const buildDockerImage = async (
     f.path.slice(cmp.context.length),
   );
 
+  console.log('GONNA BUILD', cmp.context, files, cmp.dockerfile);
+
   const stream = await docker.buildImage(
     {
       context: cmp.context,

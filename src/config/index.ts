@@ -1,6 +1,7 @@
 import { Ajv } from 'ajv';
 import { findUp } from 'find-up';
 import { readFile, stat } from 'node:fs/promises';
+import { cwd } from 'node:process';
 import yaml from 'yaml';
 
 import configSchema from './schema.json' with { type: 'json' };
@@ -20,7 +21,7 @@ type UserConfig = {
 
 export type ProjectConfig = {
   name: string;
-  rootDir?: string;
+  rootDir: string;
 };
 
 export type ComponentConfig = {
@@ -33,10 +34,14 @@ export type Config = {
 };
 
 export const toProjectConfig = (config: UserConfig): Config => {
-  const project: ProjectConfig =
+  const project: Partial<ProjectConfig> =
     typeof config.project === 'string'
       ? { name: config.project }
       : (config.project as ProjectConfig);
+
+  if (!project.rootDir) {
+    project.rootDir = cwd();
+  }
 
   const components: Array<ComponentConfig> = (config.components || []).map(
     (cmp) => {
@@ -48,7 +53,7 @@ export const toProjectConfig = (config: UserConfig): Config => {
     components,
     project: {
       ...project,
-    },
+    } as ProjectConfig,
   };
 };
 
