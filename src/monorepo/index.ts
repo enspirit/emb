@@ -1,105 +1,12 @@
-import Docker from 'dockerode';
-import { basename } from 'node:path';
-import { simpleGit } from 'simple-git';
-
-export type Prerequisite = EnvVariable | File;
-
-export interface Task {
-  prerequisites?: Array<Prerequisite>;
-}
-
-export type File = {
-  path: string;
-};
-
-export type EnvVariable = {
-  name: string;
-};
-
-export interface DockerComponentBuild extends Task {
-  buildArgs?: Record<string, string>;
-  context: string;
-  dockerfile: string;
-  name: string;
-  target?: string;
-}
-
-const loadFilePrerequisites = async (
-  component: string,
-): Promise<Array<File>> => {
-  const repo = simpleGit('./');
-
-  return (await repo.raw('ls-files', component))
-    .split('\n')
-    .map((s) => s.trim())
-    .filter(Boolean)
-    .map((path) => {
-      return { path };
-    });
-};
-
-const dockerComponent = async (cpath: string) => {
-  const name = basename(cpath);
-  const prerequisites = await loadFilePrerequisites(cpath);
-
-  const image: DockerComponentBuild = {
-    context: cpath,
-    dockerfile: 'Dockerfile',
-    name,
-    prerequisites,
-  };
-
-  return image;
-};
-
-// Builders
-type MobyTrace = { aux: unknown; error?: string; id: string };
-
-const buildDockerImage = async (
-  cmp: DockerComponentBuild,
-  progress?: (trace: MobyTrace) => void,
-): Promise<DockerComponentBuild & { traces: Array<MobyTrace> }> => {
-  const docker = new Docker();
-  const files = ((cmp.prerequisites || []) as Array<File>).map((f) =>
-    f.path.slice(cmp.context.length),
-  );
-
-  const stream = await docker.buildImage(
-    {
-      context: cmp.context,
-      src: [...files],
-    },
-    {
-      buildargs: cmp.buildArgs,
-      dockerfile: cmp.dockerfile,
-      t: cmp.name,
-      target: cmp.target,
-      version: '2',
-    },
-  );
-
-  return new Promise((resolve, reject) => {
-    docker.modem.followProgress(
-      stream,
-      (err, traces) => {
-        return err ? reject(err) : resolve({ ...cmp, traces });
-      },
-      (trace: MobyTrace) => {
-        if (trace.error) {
-          reject(new Error(trace.error));
-        } else {
-          progress?.(trace);
-        }
-      },
-    );
-  });
-};
-
-// Main
-
 import { Manager } from '@listr2/manager';
 import { ListrLogger, ListrLogLevels } from 'listr2';
+// Main
 
+import {
+  buildDockerImage,
+  dockerComponent,
+  DockerComponentBuild,
+} from '../docker/index.js';
 import { discoverComponents } from './discovery.js';
 
 export type BuildOptions = {
