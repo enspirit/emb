@@ -1,9 +1,14 @@
-import { Command, Flags } from '@oclif/core';
+import { Args, Command, Flags } from '@oclif/core';
 
 import { ImageBuilder } from '../../../docker/ImageBuilder.js';
 
 export default class Build extends Command {
-  static args = {};
+  static args = {
+    component: Args.string({
+      description: 'List of components to build',
+      required: false,
+    }),
+  };
   static description = 'Build the docker images of the monorepo';
   static examples = [
     `<%= config.bin %> <%= command.id %> build --flavour development`,
@@ -27,11 +32,18 @@ export default class Build extends Command {
       required: false,
     }),
   };
+  static strict = false;
 
   async run(): Promise<void> {
-    const { flags } = await this.parse(Build);
+    const { args, flags } = await this.parse(Build);
+    const components = args.component
+      ? Array.isArray(args.component)
+        ? args.component
+        : [args.component]
+      : undefined;
 
     await new ImageBuilder({
+      components,
       concurreny: flags.concurrency,
       failfast: flags.failfast,
     }).run();

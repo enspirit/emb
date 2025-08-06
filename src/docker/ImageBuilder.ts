@@ -6,6 +6,7 @@ import { EmbContext } from '../types.js';
 import { buildDockerImage } from './buildImage.js';
 
 export type BuildOptions = {
+  components?: Array<string>;
   concurreny?: number;
   failfast?: boolean;
 };
@@ -35,6 +36,8 @@ export class ImageBuilder {
   }
 
   public async run(): Promise<void> {
+    const { logger, options } = this;
+
     // Set context
     this.manager.add(
       [
@@ -47,22 +50,28 @@ export class ImageBuilder {
         {
           task(context, task) {
             return task.newListr(
-              (context.monorepo.components || [])?.map((cmp) => {
-                return {
-                  rendererOptions: { persistentOutput: true },
-                  async task(_ctx, _task) {
-                    await buildDockerImage(
-                      await cmp.toDockerBuild(),
-                      (_prog) => {
-                        // if (prog.id === 'moby.image.id') {
-                        //   task.output = prog.aux.ID + '\n';
-                        // }
-                      },
-                    );
-                  },
-                  title: `Build ${cmp.name}`,
-                };
-              }),
+              context.monorepo.components
+                .filter((cmp) =>
+                  options.components
+                    ? options.components.includes(cmp.name)
+                    : true,
+                )
+                .map((cmp) => {
+                  return {
+                    rendererOptions: { persistentOutput: true },
+                    async task(_ctx, _task) {
+                      await buildDockerImage(
+                        await cmp.toDockerBuild(),
+                        (_prog) => {
+                          // if (prog.id === 'moby.image.id') {
+                          //   task.output = prog.aux.ID + '\n';
+                          // }
+                        },
+                      );
+                    },
+                    title: `Build ${cmp.name}`,
+                  };
+                }),
             );
           },
           title: 'Build components',
