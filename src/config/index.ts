@@ -77,7 +77,7 @@ export const validateConfig = async (pathOrObject: string | unknown) => {
   return config;
 };
 
-let config: UserConfig;
+let config: Config;
 export const loadConfig = async (force = false) => {
   if (config && !force) {
     return config;

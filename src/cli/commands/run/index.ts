@@ -16,10 +16,6 @@ export default class RunComponentScript extends Command {
   static description = 'Run an npm script from a component’s package.json';
   static strict = false;
 
-  async init() {
-    console.log('INITNINTI ');
-  }
-
   async run() {
     const { args } = await this.parse(RunComponentScript);
     const { component, script } = args;
