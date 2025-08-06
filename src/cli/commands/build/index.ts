@@ -1,6 +1,6 @@
 import { Command, Flags } from '@oclif/core';
 
-import { build } from '../../monorepo/index.js';
+import { build } from '../../../monorepo/index.js';
 
 export default class Build extends Command {
   static args = {};
@@ -29,7 +29,7 @@ export default class Build extends Command {
   };
 
   async run(): Promise<void> {
-    const { args, flags } = await this.parse(Build);
+    const { flags } = await this.parse(Build);
 
     build({
       concurreny: flags.concurrency,

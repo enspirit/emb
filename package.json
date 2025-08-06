@@ -25,6 +25,7 @@
     "@oclif/plugin-plugins": "^5.4.46",
     "@oclif/plugin-autocomplete": "^3.2.34",
     "dockerode": "^4.0.7",
+    "find-up": "^7.0.0",
     "glob": "^11.0.3",
     "listr2": "^9.0.1",
     "simple-git": "^3.28.0"
@@ -60,7 +61,7 @@
   "oclif": {
     "bin": "emb",
     "dirname": "emb",
-    "commands": "./dist/commands",
+    "commands": "./dist/cli/commands",
     "plugins": [
       "@oclif/plugin-help",
       "@oclif/plugin-autocomplete",

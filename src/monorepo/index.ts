@@ -53,7 +53,7 @@ const dockerComponent = async (cpath: string) => {
 };
 
 // Builders
-type MobyTrace = { aux: any; error?: string; id: string };
+type MobyTrace = { aux: unknown; error?: string; id: string };
 
 const buildDockerImage = async (
   cmp: DockerComponentBuild,
@@ -166,8 +166,8 @@ class ImageBuilder {
               (context.components || [])?.map((cmp) => {
                 return {
                   rendererOptions: { persistentOutput: true },
-                  async task(_ctx, task) {
-                    await buildDockerImage(cmp, (prog) => {
+                  async task(_ctx, _task) {
+                    await buildDockerImage(cmp, (_prog) => {
                       // if (prog.id === 'moby.image.id') {
                       //   task.output = prog.aux.ID + '\n';
                       // }
@@ -194,8 +194,12 @@ class ImageBuilder {
       if (this.manager.errors.length > 0) {
         throw new Error('Build failed');
       }
-    } catch (error: any) {
-      this.logger.log(ListrLogLevels.FAILED, error);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        this.logger.log(ListrLogLevels.FAILED, error.message);
+      } else {
+        this.logger.log(ListrLogLevels.FAILED, error as string);
+      }
     }
   }
 }

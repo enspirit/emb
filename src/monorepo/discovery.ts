@@ -1,5 +1,5 @@
 import { glob } from 'glob';
-import { basename, dirname } from 'node:path';
+import { dirname } from 'node:path';
 
 export type ComponentDiscoveryOptions = {
   glob: Array<string> | string;
