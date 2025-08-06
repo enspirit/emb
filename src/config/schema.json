@@ -18,11 +18,45 @@
               "type": "string",
               "minLength": 3,
               "description": "The name of the project."
+            },
+            "rootDir": {
+              "type": "string",
+              "minLength": 1,
+              "description": "The root directory of the project."
             }
           },
           "additionalProperties": false
         }
       ]
+    },
+    "components": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "string",
+            "minLength": 3,
+            "description": "Shortcut for specifying the component name."
+          },
+          {
+            "type": "object",
+            "required": ["name"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 3,
+                "description": "The name of the component."
+              },
+              "dir": {
+                "type": "string",
+                "minLength": 1,
+                "description": "The directory of the component."
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      }
     }
   },
   "required": ["project"],

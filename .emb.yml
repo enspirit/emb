@@ -2,3 +2,7 @@
 
 project:
   name: emb
+  rootDir: examples
+
+components:
+  - frontend

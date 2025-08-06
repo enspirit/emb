@@ -1,5 +1,5 @@
 import { Ajv } from 'ajv';
-import { JTDDataType } from 'ajv/dist/core.js';
+import { JSONSchemaType, JTDDataType } from 'ajv/dist/core.js';
 import { findUp } from 'find-up';
 import { readFile, stat } from 'node:fs/promises';
 import yaml from 'yaml';
@@ -14,25 +14,41 @@ export type Service = {
   name: string;
 };
 
-export type Config = {
+type UserConfig = {
+  components: Array<string | { name: string }>;
   project: string | { name: string };
 };
 
-type UserConfig = JTDDataType<typeof configSchema>;
-
 export type ProjectConfig = {
-  project: {
-    name: string;
-  };
+  name: string;
+  rootDir?: string;
 };
 
-export const toProjectConfig = (config: UserConfig): ProjectConfig => {
+export type ComponentConfig = {
+  name: string;
+};
+
+export type Config = {
+  components: Array<ComponentConfig>;
+  project: ProjectConfig;
+};
+
+export const toProjectConfig = (config: UserConfig): Config => {
+  const project: ProjectConfig =
+    typeof config.project === 'string'
+      ? { name: config.project }
+      : (config.project as ProjectConfig);
+
+  const components: Array<ComponentConfig> = (config.components || []).map(
+    (cmp) => {
+      return typeof cmp === 'string' ? { name: cmp } : (cmp as ComponentConfig);
+    },
+  );
+
   return {
+    components,
     project: {
-      name:
-        typeof config.project === 'string'
-          ? config.project
-          : (config.project as { name: string }).name,
+      ...project,
     },
   };
 };
