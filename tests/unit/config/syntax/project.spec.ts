@@ -1,7 +1,7 @@
 import { cwd } from 'node:process';
 import { describe, expect, test, vi } from 'vitest';
 
-import { validateUserConfig } from '../../../src/config';
+import { validateUserConfig } from '../../../../src/config';
 
 describe('Config syntax - Project', () => {
   const vConfig = vi.fn(validateUserConfig);

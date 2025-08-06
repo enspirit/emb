@@ -47,5 +47,5 @@ export default defineConfig([
       'unicorn/no-array-for-each': 'off',
     },
   },
-  globalIgnores(['**/dist', 'examples/**']),
+  globalIgnores(['**/dist', 'examples/**', 'tests/**']),
 ]);

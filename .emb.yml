@@ -9,4 +9,4 @@ components:
   - frontend
   - name: buildargs
     buildArgs:
-      GREETING: Hello EMB
+      GREETING: Hello ${env:USER}

@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from 'vitest';
-import { expand, ExpandOptions } from '../../src/utils/expand';
+import { expand } from '../../../src/utils/expand';
 
 describe('Utils / expand', () => {
   const expandFn = vi.fn((str, opts) => expand(str, opts));
