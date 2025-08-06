@@ -33,7 +33,7 @@ describe('Utils / expand', () => {
         }
       },
       default: 'env'
-    } satisfies ExpandOptions<typeof options.sources>;
+    };
 
     await expandFn('Test ${VAR}', options);
     expect(expandFn).to.toHaveResolvedWith(('Test 42'));
@@ -52,7 +52,7 @@ describe('Utils / expand', () => {
           LONG_VAR_NAME: 84
         }
       }
-    } satisfies ExpandOptions<typeof options.sources>;
+    };
 
     await expandFn('Test ${env:VAR}', options);
     expect(expandFn).to.toHaveResolvedWith(('Test 42'));

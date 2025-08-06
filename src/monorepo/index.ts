@@ -1,27 +1,27 @@
 import { basename, join } from 'node:path';
 
-import { ComponentConfig, Config, DefaultSettings } from '../config/index.js';
+import {
+  ComponentConfig,
+  Config,
+  DefaultSettings,
+  ProjectConfig,
+} from '../config/index.js';
 import { expandRecord } from '../utils/expand.js';
 import { Component } from './component.js';
 import { discoverComponents } from './discovery.js';
 export * from './discovery.js';
 
 export class Monorepo {
-  public components: Array<Component>;
-  public defaults: DefaultSettings;
-  public vars: Record<string, string>;
+  public components!: Array<Component>;
+  public defaults!: DefaultSettings;
+  public project!: ProjectConfig;
+  public vars!: Record<string, string>;
   private initialized = false;
 
-  constructor(protected config: Config) {
-    this.components = config.components.map((c) => new Component(c, this));
-    this.vars = config.vars || {};
-    this.defaults = config.defaults || {};
-  }
+  constructor(protected config: Config) {}
 
   // Helper to expand a record of strings
-  async expand(
-    record: Record<string, string>,
-  ): Promise<Record<string, string>> {
+  async expand<R extends Record<string, unknown>>(record: R): Promise<R> {
     return expandRecord(record, {
       default: 'vars',
       sources: {
@@ -36,6 +36,11 @@ export class Monorepo {
     if (this.initialized) {
       throw new Error('Monorepo already initialized');
     }
+
+    this.project = this.config.project;
+    this.components = this.config.components.map((c) => new Component(c, this));
+    this.vars = await this.expand(this.config.vars || {});
+    this.defaults = await this.expand(this.config.defaults || {});
 
     const discovered = await discoverComponents({
       glob: this.join('*/Dockerfile'),

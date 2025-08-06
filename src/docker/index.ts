@@ -15,5 +15,6 @@ export interface DockerComponentBuild extends Task {
   context: string;
   dockerfile: string;
   name: string;
+  tag?: string;
   target?: string;
 }

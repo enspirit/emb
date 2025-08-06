@@ -35,18 +35,21 @@ export const expand = async (str: string, options: ExpandOptions = {}) => {
   );
 };
 
-export const expandRecord = (
-  record: Record<string, string>,
+export const expandRecord = <R extends Record<string, unknown>>(
+  record: R,
   options: ExpandOptions = {},
-): Promise<Record<PropertyKey, string>> => {
+): Promise<R> => {
   return Object.entries(record).reduce(
     async (vars, [name, str]) => {
       const previous = await vars;
 
-      previous[name] = await expand(str, options);
+      // @ts-expect-error dunno
+      previous[name] = await (typeof str === 'object'
+        ? expandRecord(str as Record<string, unknown>, options)
+        : expand(str as string, options));
 
       return previous;
     },
-    Promise.resolve({}) as Promise<Record<PropertyKey, string>>,
+    Promise.resolve({}) as Promise<R>,
   );
 };

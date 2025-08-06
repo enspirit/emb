@@ -1,3 +1,5 @@
+import { join } from 'node:path';
+
 import { ComponentConfig } from '../config/index.js';
 import { DockerComponentBuild, Prerequisite } from '../docker/index.js';
 import { loadFilePrerequisites } from '../git/index.js';
@@ -8,6 +10,14 @@ export class Component {
     protected config: ComponentConfig,
     protected monorepo: Monorepo,
   ) {}
+
+  get imageName() {
+    return join(this.monorepo.project.name, this.name);
+  }
+
+  get imageTag() {
+    return this.monorepo.defaults.docker?.tag || 'latest';
+  }
 
   get name() {
     return this.config.name;
@@ -40,8 +50,9 @@ export class Component {
       buildArgs: await this.monorepo.expand(this.config.buildArgs || {}),
       context: this.rootdir,
       dockerfile: this.config.dockerfile || 'Dockerfile',
-      name: this.config.name,
+      name: this.imageName,
       prerequisites: await this.getPrerequisites(),
+      tag: this.imageTag,
       target: this.config.target || this.monorepo.defaults?.docker?.target,
     };
   }
