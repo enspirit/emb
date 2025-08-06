@@ -1,5 +1,4 @@
 import { Ajv } from 'ajv';
-import { JSONSchemaType, JTDDataType } from 'ajv/dist/core.js';
 import { findUp } from 'find-up';
 import { readFile, stat } from 'node:fs/promises';
 import yaml from 'yaml';
