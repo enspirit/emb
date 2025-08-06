@@ -52,7 +52,7 @@ export const toProjectConfig = (config: UserConfig): Config => {
   };
 };
 
-export const validateConfig = async (pathOrObject: string | unknown) => {
+export const validateUserConfig = async (pathOrObject: string | unknown) => {
   const ajv = new Ajv();
   let userConfig: UserConfig;
 
@@ -89,7 +89,7 @@ export const loadConfig = async (force = false) => {
     throw new Error('Could not find EMB config anywhere');
   }
 
-  config = toProjectConfig(await validateConfig(path));
+  config = toProjectConfig(await validateUserConfig(path));
 
   return config;
 };

@@ -1,6 +1,6 @@
 import { Command, Flags } from '@oclif/core';
 
-import { build } from '../../../monorepo/index.js';
+import { ImageBuilder } from '../../../docker/ImageBuilder.js';
 
 export default class Build extends Command {
   static args = {};
@@ -31,9 +31,9 @@ export default class Build extends Command {
   async run(): Promise<void> {
     const { flags } = await this.parse(Build);
 
-    build({
+    await new ImageBuilder({
       concurreny: flags.concurrency,
       failfast: flags.failfast,
-    });
+    }).run();
   }
 }

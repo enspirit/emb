@@ -43,6 +43,7 @@ export default defineConfig([
         },
       ],
       'no-unused-vars': 'off',
+      'unicorn/filename-case': 'off',
       'unicorn/no-array-for-each': 'off',
     },
   },
