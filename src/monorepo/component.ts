@@ -1,5 +1,3 @@
-import { join } from 'node:path';
-
 import { ComponentConfig } from '../config/index.js';
 import { DockerComponentBuild, Prerequisite } from '../docker/index.js';
 import { loadFilePrerequisites } from '../git/index.js';
