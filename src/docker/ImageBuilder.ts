@@ -1,5 +1,5 @@
 import { Manager } from '@listr2/manager';
-import { ListrLogger, ListrLogLevels } from 'listr2';
+import { ListrLogger, ListrLogLevels, PRESET_TIMER } from 'listr2';
 
 import { getContext } from '../cli/context.js';
 import { EmbContext } from '../types.js';
@@ -31,6 +31,9 @@ export class ImageBuilder {
         collapseErrors: false,
         collapseSkips: false,
         collapseSubtasks: false,
+        timer: {
+          ...PRESET_TIMER,
+        },
       },
     });
   }
