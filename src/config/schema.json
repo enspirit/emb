@@ -4,16 +4,24 @@
   "type": "object",
   "properties": {
     "project": {
-      "type": "object",
-      "required": ["name"],
-      "properties": {
-        "name": {
+      "oneOf": [
+        {
           "type": "string",
-          "minLength": 1,
-          "description": "The name of the project."
+          "description": "Shortcut for specifying the project name."
+        },
+        {
+          "type": "object",
+          "required": ["name"],
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "description": "The name of the project."
+            }
+          },
+          "additionalProperties": false
         }
-      },
-      "additionalProperties": false
+      ]
     }
   },
   "required": ["project"],
