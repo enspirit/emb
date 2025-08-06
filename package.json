@@ -15,15 +15,15 @@
     "postpack": "shx rm -f oclif.manifest.json",
     "posttest": "npm run lint",
     "prepack": "oclif manifest && oclif readme",
-    "test": "mocha --forbid-only \"tests/**/*.spec.ts\"",
+    "test": "vitest",
     "version": "oclif readme && git add README.md"
   },
   "dependencies": {
     "@listr2/manager": "^3.0.1",
     "@oclif/core": "^4.5.2",
+    "@oclif/plugin-autocomplete": "^3.2.34",
     "@oclif/plugin-help": "^6.2.32",
     "@oclif/plugin-plugins": "^5.4.46",
-    "@oclif/plugin-autocomplete": "^3.2.34",
     "ajv": "^8.17.1",
     "dockerode": "^4.0.7",
     "find-up": "^7.0.0",
@@ -33,12 +33,12 @@
     "yaml": "^2.8.1"
   },
   "devDependencies": {
-    "@oclif/prettier-config": "^0.2.1",
-    "@oclif/test": "^4",
-    "@types/dockerode": "^3.3.42",
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.32.0",
+    "@oclif/prettier-config": "^0.2.1",
+    "@oclif/test": "^4",
     "@tsconfig/node20": "^20.1.6",
+    "@types/dockerode": "^3.3.42",
     "@types/node": "^24.2.0",
     "@typescript-eslint/eslint-plugin": "^8.39.0",
     "@typescript-eslint/parser": "^8.39.0",
@@ -46,13 +46,12 @@
     "eslint-config-oclif": "^6",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.3",
-    "mocha": "^11.7.1",
-    "chai": "^5.2.1",
     "oclif": "^4",
     "prettier": "^3.6.2",
     "rimraf": "^6.0.1",
+    "ts-node": "^10.9.2",
     "typescript": "^5.9.2",
-    "ts-node": "^10.9.2"
+    "vitest": "^3.2.4"
   },
   "engines": {
     "node": ">=18.0.0"

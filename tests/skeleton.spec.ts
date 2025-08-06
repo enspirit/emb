@@ -1,7 +1,7 @@
-import { expect } from 'chai';
+import { describe, expect, test } from 'vitest';
 
 describe('Skeleton', () => {
-  it('works', async () => {
+  test('works', async () => {
     expect(2).to.equal(2);
   });
 });

@@ -4,7 +4,8 @@ import { loadConfig } from '../../config/index.js';
 
 const hook: Hook.Init = async function (options) {
   try {
-    await loadConfig();
+    const config = await loadConfig();
+    console.log('->', config);
   } catch (error) {
     options.context.error(error as Error);
   }

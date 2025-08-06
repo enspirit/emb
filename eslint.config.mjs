@@ -43,6 +43,7 @@ export default defineConfig([
         },
       ],
       'no-unused-vars': 'off',
+      'unicorn/no-array-for-each': 'off',
     },
   },
   globalIgnores(['**/dist', 'examples/**']),
