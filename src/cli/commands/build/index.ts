@@ -35,15 +35,10 @@ export default class Build extends Command {
   static strict = false;
 
   async run(): Promise<void> {
-    const { args, flags } = await this.parse(Build);
-    const components = args.component
-      ? Array.isArray(args.component)
-        ? args.component
-        : [args.component]
-      : undefined;
+    const { argv, flags } = await this.parse(Build);
 
     await new ImageBuilder({
-      components,
+      components: argv.length > 0 ? (argv as string[]) : undefined,
       concurreny: flags.concurrency,
       failfast: flags.failfast,
     }).run();

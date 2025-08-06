@@ -36,7 +36,7 @@ export class ImageBuilder {
   }
 
   public async run(): Promise<void> {
-    const { logger, options } = this;
+    const { options } = this;
 
     // Set context
     this.manager.add(

@@ -13,7 +13,7 @@ export default class RunComponentScript extends Command {
     }),
     script: Args.string({ description: 'NPM script to run', required: true }),
   };
-  static description = 'Run an npm script from a component’s package.json';
+  static description = "Run an npm script from a component's package.json";
   static strict = false;
 
   async run() {
