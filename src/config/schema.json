@@ -7,6 +7,7 @@
       "oneOf": [
         {
           "type": "string",
+          "minLength": 3,
           "description": "Shortcut for specifying the project name."
         },
         {
@@ -15,7 +16,7 @@
           "properties": {
             "name": {
               "type": "string",
-              "minLength": 1,
+              "minLength": 3,
               "description": "The name of the project."
             }
           },
