@@ -19,7 +19,6 @@ export const discoverComponents = async (
   };
 
   const globs = Array.isArray(opts.glob) ? [...opts.glob] : [opts.glob];
-  console.log('hue', globs);
   const files = await glob(globs, opts);
 
   return files.map((path) => {

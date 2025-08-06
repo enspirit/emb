@@ -1,16 +1,11 @@
-type SourceMap = Record<string, Record<string, (() => string) | string>>;
-
-type ExpandOptions<TSources extends SourceMap> = {
-  default?: keyof TSources;
-  sources?: TSources;
+type ExpandOptions = {
+  default?: string;
+  sources?: Record<string, Record<string, string>>;
 };
 
 const TPL_REGEX = /(?<!\\)\${(?:(\w+):)?(\w+)(?::-(.*?))?}/g;
 
-export const expand = async <S extends SourceMap>(
-  str: string,
-  options: ExpandOptions<S> = {},
-) => {
+export const expand = async (str: string, options: ExpandOptions = {}) => {
   return (
     str
       // Expand variables
@@ -25,10 +20,7 @@ export const expand = async <S extends SourceMap>(
           throw new Error(`Invalid expand provider '${source}' ('${match}')`);
         }
 
-        const val =
-          typeof provider[key] === 'function'
-            ? provider[key]?.()
-            : provider[key];
+        const val = provider[key as keyof typeof provider];
 
         if (!val && !fallback) {
           throw new Error(
