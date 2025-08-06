@@ -32,10 +32,8 @@ export const loadConfig = async (force = false) => {
 
   const cfgYaml = await readFile(path);
   config = yaml.parse(cfgYaml.toString()) as Config;
-  console.log('WITH SCHEMA', configSchema);
-  const valid = ajv.validate(configSchema, config);
 
-  if (!valid) {
+  if (!ajv.validate(configSchema, config)) {
     throw new Error(`Your .emb.yml is incorrect`);
   }
 
