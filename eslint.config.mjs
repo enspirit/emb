@@ -1,21 +1,23 @@
-import { defineConfig, globalIgnores } from 'eslint/config';
-import tsParser from '@typescript-eslint/parser';
-import typescriptEslint from '@typescript-eslint/eslint-plugin';
-import js from '@eslint/js';
 import { FlatCompat } from '@eslint/eslintrc';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import js from '@eslint/js';
+import typescriptEslint from '@typescript-eslint/eslint-plugin';
+import tsParser from '@typescript-eslint/parser';
+import oclif from 'eslint-config-oclif';
+import { defineConfig, globalIgnores } from 'eslint/config';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const compat = new FlatCompat({
+  allConfig: js.configs.all,
   baseDirectory: __dirname,
   recommendedConfig: js.configs.recommended,
-  allConfig: js.configs.all,
 });
 
 export default defineConfig([
+  ...oclif,
   {
     extends: compat.extends(
       'eslint:recommended',
@@ -27,21 +29,21 @@ export default defineConfig([
       parser: tsParser,
     },
 
+    plugins: {
+      '@typescript-eslint': typescriptEslint,
+    },
+
     rules: {
-      'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': [
         'warn', // or "error"
         {
           argsIgnorePattern: '^_',
-          varsIgnorePattern: '^_',
           caughtErrorsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
         },
       ],
-    },
-
-    plugins: {
-      '@typescript-eslint': typescriptEslint,
+      'no-unused-vars': 'off',
     },
   },
-  globalIgnores(['**/dist']),
+  globalIgnores(['**/dist', 'examples/**']),
 ]);

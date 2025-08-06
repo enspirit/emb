@@ -1,23 +1,32 @@
 {
   "name": "emb",
-  "version": "1.0.0",
-  "main": "index.js",
+  "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/index.js"
+    "build": "rimraf dist && tsc -b",
+    "lint": "eslint",
+    "postpack": "shx rm -f oclif.manifest.json",
+    "posttest": "npm run lint",
+    "prepack": "oclif manifest && oclif readme",
+    "test": "mocha --forbid-only \"test/**/*.test.ts\"",
+    "version": "oclif readme && git add README.md"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "simple-git": "^3.28.0",
-    "listr2": "^9.0.1",
     "@listr2/manager": "^3.0.1",
-    "dockerode": "^4.0.7"
+    "@oclif/core": "^4.5.2",
+    "@oclif/plugin-help": "^6.2.32",
+    "@oclif/plugin-plugins": "^5.4.46",
+    "dockerode": "^4.0.7",
+    "listr2": "^9.0.1",
+    "simple-git": "^3.28.0"
   },
   "devDependencies": {
+    "@oclif/prettier-config": "^0.2.1",
+    "@oclif/test": "^4",
     "@types/dockerode": "^3.3.42",
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.32.0",
@@ -26,9 +35,36 @@
     "@typescript-eslint/eslint-plugin": "^8.39.0",
     "@typescript-eslint/parser": "^8.39.0",
     "eslint": "^9.32.0",
+    "eslint-config-oclif": "^6",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.3",
+    "oclif": "^4",
     "prettier": "^3.6.2",
+    "rimraf": "^6.0.1",
     "typescript": "^5.9.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "./bin",
+    "./dist",
+    "./oclif.manifest.json"
+  ],
+  "main": "dist/index.js",
+  "oclif": {
+    "bin": "new-cli",
+    "dirname": "new-cli",
+    "commands": "./dist/commands",
+    "plugins": [
+      "@oclif/plugin-help",
+      "@oclif/plugin-plugins"
+    ],
+    "topicSeparator": " ",
+    "topics": {
+      "hello": {
+        "description": "Say hello to the world and others"
+      }
+    }
   }
 }
