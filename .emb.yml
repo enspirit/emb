@@ -1,0 +1,4 @@
+# yaml-language-server: $schema=./src/config/schema.json
+
+project:
+  name: emb

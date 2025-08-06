@@ -28,7 +28,8 @@
     "find-up": "^7.0.0",
     "glob": "^11.0.3",
     "listr2": "^9.0.1",
-    "simple-git": "^3.28.0"
+    "simple-git": "^3.28.0",
+    "yaml": "^2.8.1"
   },
   "devDependencies": {
     "@oclif/prettier-config": "^0.2.1",
