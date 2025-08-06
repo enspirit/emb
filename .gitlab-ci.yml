@@ -1,25 +1,5 @@
 # .gitlab-ci.yml
 
-stages:
-  - setup
-  - build
-  - test
-
-variables:
-  NODE_ENV: test
-
-# Use an official node image with a high version, override with nvm
-default:
-  image: node:22
-  before_script:
-    - apt-get update -qq && apt-get install -y curl
-    - curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-    - export NVM_DIR="$HOME/.nvm"
-    - source "$NVM_DIR/nvm.sh"
-    - nvm install # this reads from .nvmrc
-    - nvm use
-    - node -va# .gitlab-ci.yml
-
 image: node:22
 
 stages:
@@ -36,27 +16,6 @@ cache:
 
 before_script:
   - npm ci
-
-build:
-  stage: build
-  script:
-    - npm run build
-  artifacts:
-    paths:
-      - dist/
-    expire_in: 1h
-
-test:
-  stage: test
-  script:
-    - npm run test
-
-    - npm ci
-
-cache:
-  key: ${CI_COMMIT_REF_SLUG}
-  paths:
-    - node_modules/
 
 build:
   stage: build
