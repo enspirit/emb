@@ -19,6 +19,16 @@ export class Component {
     return this.monorepo.join(this.name);
   }
 
+  cloneWith(config: Partial<ComponentConfig>) {
+    return new Component(
+      {
+        ...this.config,
+        ...config,
+      },
+      this.monorepo,
+    );
+  }
+
   async getPrerequisites(): Promise<Array<Prerequisite>> {
     return loadFilePrerequisites(this.rootdir);
   }

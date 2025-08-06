@@ -1,11 +1,12 @@
-import { join } from 'node:path';
+import { basename, dirname, join } from 'node:path';
 
-import { Config } from '../config/index.js';
+import { ComponentConfig, Config } from '../config/index.js';
 import { Component } from './component.js';
+import { discoverComponents } from './discovery.js';
 export * from './discovery.js';
 
 export class Monorepo {
-  public readonly components: Array<Component>;
+  public components: Array<Component>;
   private initialized = false;
 
   constructor(protected config: Config) {
@@ -17,6 +18,21 @@ export class Monorepo {
     if (this.initialized) {
       throw new Error('Monorepo already initialized');
     }
+
+    const discovered = await discoverComponents({
+      glob: this.join('*/Dockerfile'),
+    });
+
+    this.components = discovered.map((path) => {
+      const name = basename(path);
+      const component = this.components.find((cmp) => cmp.name === name);
+
+      const cfg: ComponentConfig = {
+        name,
+      };
+
+      return component ? component.cloneWith(cfg) : new Component(cfg, this);
+    });
 
     this.initialized = true;
   }

@@ -1,8 +1,5 @@
 import { glob } from 'glob';
-import { dirname, join } from 'node:path';
-import { cwd } from 'node:process';
-
-import { getConfig } from '../config/index.js';
+import { dirname } from 'node:path';
 
 export type ComponentDiscoveryOptions = {
   glob: Array<string> | string;
@@ -16,18 +13,14 @@ export const DefaultDiscoverOptions: ComponentDiscoveryOptions = {
 export const discoverComponents = async (
   options?: ComponentDiscoveryOptions,
 ) => {
-  const config = await getConfig();
-  const rootDir = config.project.rootDir || cwd();
   const opts = {
     ...DefaultDiscoverOptions,
     ...options,
   };
 
   const globs = Array.isArray(opts.glob) ? [...opts.glob] : [opts.glob];
-  const files = await glob(
-    globs.map((g) => join(rootDir, g)),
-    opts,
-  );
+  console.log('hue', globs);
+  const files = await glob(globs, opts);
 
   return files.map((path) => {
     return dirname(path);
