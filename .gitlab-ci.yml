@@ -2,6 +2,8 @@
 
 default:
   image: node:22 # Node + npm available in all jobs
+  tags:
+    - docker
 
 stages:
   - build
@@ -22,8 +24,6 @@ before_script:
 
 build:
   stage: build
-  tags:
-    - docker
   script:
     - npm run build
   artifacts:
