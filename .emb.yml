@@ -12,6 +12,7 @@ defaults:
   docker:
     tag: ${dockerTag}
 
+# Overrides per components
 components:
   - simple
   - frontend
@@ -19,3 +20,12 @@ components:
     buildArgs:
       # Inject some env var as build arg
       GREETING: Hello ${env:USER}
+
+flavours:
+  production:
+    defaults:
+      docker:
+        tag: production
+    components:
+      - name: frontend
+        target: production

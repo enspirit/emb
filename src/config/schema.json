@@ -1,4 +1,5 @@
 {
+  "$id": "/schemas/config",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "EMB Config Schema",
   "type": "object",
@@ -35,19 +36,48 @@
       "additionalProperties": true
     },
     "defaults": {
+      "$ref": "#/$defs/defaults"
+    },
+    "components": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/component"
+      }
+    },
+    "flavours": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "components": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/component"
+            }
+          },
+          "defaults": {
+            "$ref": "#/$defs/defaults"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["project"],
+  "additionalProperties": false,
+
+  "$defs": {
+    "defaults": {
       "type": "object",
       "description": "Default settings for build aspects",
+      "additionalProperties": false,
       "properties": {
         "docker": {
           "type": "object",
           "description": "Default docker build settings",
           "properties": {
-            "tag": {
-              "type": "string"
-            },
-            "target": {
-              "type": "string"
-            },
+            "tag": { "type": "string" },
+            "target": { "type": "string" },
             "buildArgs": {
               "type": "object",
               "additionalProperties": true
@@ -56,49 +86,44 @@
         }
       }
     },
-    "components": {
-      "type": "array",
-      "items": {
-        "oneOf": [
-          {
-            "type": "string",
-            "minLength": 3,
-            "description": "Shortcut for specifying the component name."
-          },
-          {
-            "type": "object",
-            "required": ["name"],
-            "properties": {
-              "name": {
-                "type": "string",
-                "minLength": 3,
-                "description": "The name of the component."
-              },
-              "dir": {
-                "type": "string",
-                "minLength": 1,
-                "description": "The directory of the component."
-              },
-              "buildArgs": {
-                "type": "object",
-                "properties": {},
-                "additionalProperties": true
-              },
-              "target": {
-                "type": "string",
-                "description": "The stage to target for the build"
-              },
-              "dockerfile": {
-                "type": "string",
-                "description": "The Dockerfile to use"
-              }
+    "component": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 3,
+          "description": "Shortcut for specifying the component name."
+        },
+        {
+          "type": "object",
+          "required": ["name"],
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 3,
+              "description": "The name of the component."
             },
-            "additionalProperties": false
-          }
-        ]
-      }
+            "dir": {
+              "type": "string",
+              "minLength": 1,
+              "description": "The directory of the component."
+            },
+            "buildArgs": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": true
+            },
+            "target": {
+              "type": "string",
+              "description": "The stage to target for the build"
+            },
+            "dockerfile": {
+              "type": "string",
+              "description": "The Dockerfile to use"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
     }
-  },
-  "required": ["project"],
-  "additionalProperties": false
+  }
 }
