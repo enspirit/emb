@@ -1,6 +1,7 @@
 # .gitlab-ci.yml
 
-image: node:22
+default:
+  image: node:22 # Node + npm available in all jobs
 
 stages:
   - build
@@ -15,6 +16,8 @@ cache:
     - node_modules/
 
 before_script:
+  - node -v
+  - npm -v
   - npm ci
 
 build:
