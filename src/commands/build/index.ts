@@ -11,8 +11,14 @@ export default class Build extends Command {
   static flags = {
     concurrency: Flags.integer({
       char: 'c',
-      default: 3,
+      default: 1,
       description: 'Number of concurrent builds',
+      required: false,
+    }),
+    failfast: Flags.boolean({
+      default: true,
+      description: 'Stop on first error',
+      name: 'failfast',
       required: false,
     }),
     flavour: Flags.string({
@@ -25,6 +31,9 @@ export default class Build extends Command {
   async run(): Promise<void> {
     const { args, flags } = await this.parse(Build);
 
-    build({ concurreny: flags.concurrency });
+    build({
+      concurreny: flags.concurrency,
+      failfast: flags.failfast,
+    });
   }
 }

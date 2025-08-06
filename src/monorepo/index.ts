@@ -97,15 +97,14 @@ const buildDockerImage = async (
 
 // Main
 
-import type { ListrBaseClassOptions } from 'listr2';
-
 import { Manager } from '@listr2/manager';
-import { delay, Listr, ListrLogger, ListrLogLevels } from 'listr2';
+import { ListrLogger, ListrLogLevels } from 'listr2';
 
 import { discoverComponents } from './discovery.js';
 
 export type BuildOptions = {
-  concurreny: number;
+  concurreny?: number;
+  failfast?: boolean;
 };
 
 interface Ctx {
@@ -121,7 +120,8 @@ class ImageBuilder {
 
   constructor(options?: BuildOptions) {
     this.options = {
-      concurreny: 3,
+      concurreny: 1,
+      failfast: false,
       ...options,
     };
 
@@ -130,6 +130,7 @@ class ImageBuilder {
       concurrent: false,
       exitOnError: true,
       rendererOptions: {
+        collapseErrors: false,
         collapseSkips: false,
         collapseSubtasks: false,
       },
@@ -157,27 +158,32 @@ class ImageBuilder {
 
     const context = await this.manager.runAll();
 
-    const buildTasks = (context.components || [])?.map((cmp) => {
-      return {
-        async task() {
-          await buildDockerImage(cmp);
-        },
-        title: `Build ${cmp.name}`,
-      };
-    });
-
     this.manager.add(
       [
         {
           task(_, task) {
-            return task.newListr(buildTasks);
+            return task.newListr(
+              (context.components || [])?.map((cmp) => {
+                return {
+                  rendererOptions: { persistentOutput: true },
+                  async task(_ctx, task) {
+                    await buildDockerImage(cmp, (prog) => {
+                      // if (prog.id === 'moby.image.id') {
+                      //   task.output = prog.aux.ID + '\n';
+                      // }
+                    });
+                  },
+                  title: `Build ${cmp.name}`,
+                };
+              }),
+            );
           },
           title: 'Build components',
         },
       ],
       {
         concurrent: this.options.concurreny,
-        exitOnError: this.options.concurreny === 1,
+        exitOnError: this.options.failfast,
         rendererOptions: { collapseSubtasks: false },
       },
     );
