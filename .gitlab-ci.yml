@@ -18,7 +18,39 @@ default:
     - source "$NVM_DIR/nvm.sh"
     - nvm install # this reads from .nvmrc
     - nvm use
-    - node -v
+    - node -va# .gitlab-ci.yml
+
+image: node:22
+
+stages:
+  - build
+  - test
+
+variables:
+  NODE_ENV: test
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - node_modules/
+
+before_script:
+  - npm ci
+
+build:
+  stage: build
+  script:
+    - npm run build
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 1h
+
+test:
+  stage: test
+  script:
+    - npm run test
+
     - npm ci
 
 cache:
