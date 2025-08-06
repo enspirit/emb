@@ -1,31 +1,30 @@
-import { Args, Command, Flags } from '@oclif/core';
+import { Command, Flags } from '@oclif/core';
 
-export default class Hello extends Command {
-  static args = {
-    person: Args.string({
-      description: 'Person to say hello to',
-      required: true,
-    }),
-  };
-  static description = 'Say hello';
+import { build } from '../../monorepo/index.js';
+
+export default class Build extends Command {
+  static args = {};
+  static description = 'Build the docker images of the monorepo';
   static examples = [
-    `<%= config.bin %> <%= command.id %> friend --from oclif
-hello friend from oclif! (./src/commands/hello/index.ts)
-`,
+    `<%= config.bin %> <%= command.id %> build --flavour development`,
   ];
   static flags = {
-    from: Flags.string({
+    concurrency: Flags.integer({
+      char: 'c',
+      default: 3,
+      description: 'Number of concurrent builds',
+      required: false,
+    }),
+    flavour: Flags.string({
       char: 'f',
-      description: 'Who is saying hello',
-      required: true,
+      description: 'Flavour to build (dev, production, ...)',
+      required: false,
     }),
   };
 
   async run(): Promise<void> {
-    const { args, flags } = await this.parse(Hello);
+    const { args, flags } = await this.parse(Build);
 
-    this.log(
-      `hello ${args.person} from ${flags.from}! (./src/commands/hello/index.ts)`,
-    );
+    build({ concurreny: flags.concurrency });
   }
 }

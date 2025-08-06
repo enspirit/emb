@@ -1,7 +1,14 @@
 {
-  "name": "emb",
-  "version": "0.0.1",
+  "name": "@enspirit/emb",
   "type": "module",
+  "version": "0.0.1",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "bin": {
+    "emb": "./bin/run.js"
+  },
   "scripts": {
     "build": "rimraf dist && tsc -b",
     "lint": "eslint",
@@ -11,16 +18,14 @@
     "test": "mocha --forbid-only \"test/**/*.test.ts\"",
     "version": "oclif readme && git add README.md"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
     "@listr2/manager": "^3.0.1",
     "@oclif/core": "^4.5.2",
     "@oclif/plugin-help": "^6.2.32",
     "@oclif/plugin-plugins": "^5.4.46",
+    "@oclif/plugin-autocomplete": "^3.2.34",
     "dockerode": "^4.0.7",
+    "glob": "^11.0.3",
     "listr2": "^9.0.1",
     "simple-git": "^3.28.0"
   },
@@ -53,11 +58,12 @@
   ],
   "main": "dist/index.js",
   "oclif": {
-    "bin": "new-cli",
-    "dirname": "new-cli",
+    "bin": "meb",
+    "dirname": "meb",
     "commands": "./dist/commands",
     "plugins": [
       "@oclif/plugin-help",
+      "@oclif/plugin-autocomplete",
       "@oclif/plugin-plugins"
     ],
     "topicSeparator": " ",
