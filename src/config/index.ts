@@ -1,8 +1,9 @@
 import { Ajv } from 'ajv';
 import { findUp } from 'find-up';
+import { readFile } from 'node:fs/promises';
 import yaml from 'yaml';
 
-import configSchema from './schema.json';
+import configSchema from './schema.json' with { type: 'json' };
 
 export type Component = {
   name: string;
@@ -29,17 +30,14 @@ export const loadConfig = async (force = false) => {
     throw new Error('Could not find EMB config anywhere');
   }
 
-  const cfgYaml = yaml.parse(path) as Config;
-  const validate = ajv.compile(configSchema);
-  const valid = validate(cfgYaml);
+  const cfgYaml = await readFile(path);
+  config = yaml.parse(cfgYaml.toString()) as Config;
+  console.log('WITH SCHEMA', configSchema);
+  const valid = ajv.validate(configSchema, config);
 
   if (!valid) {
     throw new Error(`Your .emb.yml is incorrect`);
   }
-
-  console.log('------>', validate);
-
-  config = cfgYaml;
 
   return config;
 };
