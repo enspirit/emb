@@ -1,1 +1,1 @@
-{"root":["./src/index.ts","./src/cli/commands/build/index.ts","./src/config/index.ts","./src/monorepo/discovery.ts","./src/monorepo/index.ts"],"version":"5.9.2"}
+{"root":["./src/index.ts","./src/cli/commands/build/index.ts","./src/cli/hooks/init.ts","./src/config/index.ts","./src/monorepo/discovery.ts","./src/monorepo/index.ts"],"version":"5.9.2"}

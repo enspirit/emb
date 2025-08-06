@@ -62,6 +62,9 @@
     "bin": "emb",
     "dirname": "emb",
     "commands": "./dist/cli/commands",
+    "hooks": {
+      "init": ["./dist/cli/hooks/init"]
+    },
     "plugins": [
       "@oclif/plugin-help",
       "@oclif/plugin-autocomplete",
