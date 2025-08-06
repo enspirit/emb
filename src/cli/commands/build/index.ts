@@ -41,6 +41,7 @@ export default class Build extends Command {
       components: argv.length > 0 ? (argv as string[]) : undefined,
       concurreny: flags.concurrency,
       failfast: flags.failfast,
+      flavour: flags.flavour,
     }).run();
   }
 }

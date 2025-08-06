@@ -9,6 +9,7 @@ export type BuildOptions = {
   components?: Array<string>;
   concurreny?: number;
   failfast?: boolean;
+  flavour?: string;
 };
 
 export class ImageBuilder {
