@@ -2,10 +2,8 @@ import { Manager } from '@listr2/manager';
 import { ListrLogger, ListrLogLevels } from 'listr2';
 
 import { getContext } from '../cli/context.js';
-import { discoverComponents } from '../monorepo/discovery.js';
 import { EmbContext } from '../types.js';
 import { buildDockerImage } from './buildImage.js';
-import { dockerComponent } from './index.js';
 
 export type BuildOptions = {
   concurreny?: number;
@@ -53,11 +51,14 @@ export class ImageBuilder {
                 return {
                   rendererOptions: { persistentOutput: true },
                   async task(_ctx, _task) {
-                    await buildDockerImage(cmp.toDockerBuild(), (_prog) => {
-                      // if (prog.id === 'moby.image.id') {
-                      //   task.output = prog.aux.ID + '\n';
-                      // }
-                    });
+                    await buildDockerImage(
+                      await cmp.toDockerBuild(),
+                      (_prog) => {
+                        // if (prog.id === 'moby.image.id') {
+                        //   task.output = prog.aux.ID + '\n';
+                        // }
+                      },
+                    );
                   },
                   title: `Build ${cmp.name}`,
                 };

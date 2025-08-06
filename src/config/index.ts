@@ -25,6 +25,7 @@ export type ProjectConfig = {
 };
 
 export type ComponentConfig = {
+  buildArgs?: Record<PropertyKey, string>;
   name: string;
 };
 

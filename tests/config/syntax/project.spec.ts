@@ -1,9 +1,10 @@
+import { cwd } from 'node:process';
 import { describe, expect, test, vi } from 'vitest';
 
-import { validateConfig } from '../../../src/config';
+import { validateUserConfig } from '../../../src/config';
 
 describe('Config syntax - Project', () => {
-  const vConfig = vi.fn(validateConfig);
+  const vConfig = vi.fn(validateUserConfig);
 
   test('allows for the simplest shortcut', async () => {
     await vConfig({ project: 'test1' });
@@ -12,6 +13,7 @@ describe('Config syntax - Project', () => {
       components: [],
       project: {
         name: 'test1',
+        rootDir: cwd(),
       },
     });
   });
@@ -23,6 +25,7 @@ describe('Config syntax - Project', () => {
       components: [],
       project: {
         name: 'test2',
+        rootDir: cwd(),
       },
     });
   });

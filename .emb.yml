@@ -5,4 +5,8 @@ project:
   rootDir: examples
 
 components:
+  - simple
   - frontend
+  - name: buildargs
+    buildArgs:
+      GREETING: Hello EMB
