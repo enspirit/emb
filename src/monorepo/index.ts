@@ -5,11 +5,13 @@ import { TemplateExpander } from '../utils/TemplateExpander.js';
 import { Component } from './component.js';
 import { MonorepoConfig } from './config.js';
 import { ComponentDiscoverPlugin } from './plugins/ComponentsDiscover.js';
+import { EMBStore } from './store/index.js';
 
 export * from './config.js';
 
 export class Monorepo {
   private _config: MonorepoConfig;
+  private _store!: EMBStore;
   private initialized = false;
 
   constructor(config: IMonorepoConfig) {
@@ -74,6 +76,9 @@ export class Monorepo {
     if (this.initialized) {
       throw new Error('Monorepo already initialized');
     }
+
+    this._store = new EMBStore(this);
+    await this._store.init();
 
     // TODO: Introduce way to register plugins
     const discover = new ComponentDiscoverPlugin();
