@@ -46,6 +46,7 @@ export default defineConfig([
       'unicorn/filename-case': 'off',
       'unicorn/no-array-for-each': 'off',
       'unicorn/no-array-reduce': 'off',
+      'unicorn/prefer-array-some': 'off',
     },
   },
   globalIgnores(['**/dist', 'examples/**', 'tests/**']),

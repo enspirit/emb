@@ -1,12 +1,15 @@
 import { glob } from 'glob';
-import { dirname } from 'node:path';
+import { dirname, join } from 'node:path';
+import { cwd } from 'node:process';
 
 export type ComponentDiscoveryOptions = {
+  cwd?: string;
   glob: Array<string> | string;
   ignore?: string;
 };
 
 export const DefaultDiscoverOptions: ComponentDiscoveryOptions = {
+  cwd: cwd(),
   glob: '*/Dockerfile',
 };
 

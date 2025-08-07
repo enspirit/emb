@@ -10,6 +10,7 @@ export type BuildOptions = {
   concurreny?: number;
   failfast?: boolean;
   flavour?: string;
+  retry?: number;
 };
 
 export class ImageBuilder {
@@ -40,16 +41,17 @@ export class ImageBuilder {
   }
 
   public async run(): Promise<void> {
-    const { options } = this;
+    const { logger, options } = this;
 
     // Set context
     this.manager.add(
       [
         {
-          task(ctx) {
+          task(ctx, task) {
             Object.assign(ctx, getContext());
+            task.title = `Load monorepo config (${ctx.monorepo.project.name})`;
           },
-          title: 'Load monorepo config',
+          title: 'Loading monorepo config',
         },
         {
           task(context, task) {
@@ -63,6 +65,7 @@ export class ImageBuilder {
                 .map((cmp) => {
                   return {
                     rendererOptions: { persistentOutput: true },
+                    retry: options.retry,
                     async task(_ctx, task) {
                       const buildConfig = await cmp.toDockerBuild();
 

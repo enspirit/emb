@@ -21,7 +21,7 @@ export default class Build extends Command {
       required: false,
     }),
     failfast: Flags.boolean({
-      default: true,
+      default: false,
       description: 'Stop on first error',
       name: 'failfast',
       required: false,
@@ -29,6 +29,12 @@ export default class Build extends Command {
     flavour: Flags.string({
       char: 'f',
       description: 'Flavour to build (dev, production, ...)',
+      required: false,
+    }),
+    retry: Flags.integer({
+      char: 'r',
+      default: 1,
+      description: 'Retry on build fail',
       required: false,
     }),
   };
@@ -42,6 +48,7 @@ export default class Build extends Command {
       concurreny: flags.concurrency,
       failfast: flags.failfast,
       flavour: flags.flavour,
+      retry: flags.retry,
     }).run();
   }
 }

@@ -39,14 +39,16 @@ export class Monorepo {
 
     this.project = this.config.project;
     this.components = this.config.components.map((c) => new Component(c, this));
+
     this.vars = await this.expand(this.config.vars || {});
     this.defaults = await this.expand(this.config.defaults || {});
 
     const discovered = await discoverComponents({
+      cwd: this.project.rootDir,
       glob: this.join('*/Dockerfile'),
     });
 
-    this.components = discovered.map((path) => {
+    const overrides = discovered.map((path) => {
       const name = basename(path);
       const component = this.components.find((cmp) => cmp.name === name);
 
@@ -57,6 +59,15 @@ export class Monorepo {
       return component ? component.cloneWith(cfg) : new Component(cfg, this);
     });
 
+    const untouched = this.components.filter(
+      (c) =>
+        !overrides.find((o) => {
+          return o.name === c.name;
+        }),
+    );
+
+    this.components = [...overrides, ...untouched];
+
     this.initialized = true;
   }
 
@@ -64,4 +75,6 @@ export class Monorepo {
   join(...paths: string[]) {
     return join(this.config.project.rootDir, ...paths);
   }
+
+  private discoverComponents() {}
 }

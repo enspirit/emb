@@ -1,6 +1,7 @@
 import { Ajv } from 'ajv';
 import { findUp } from 'find-up';
 import { readFile, stat } from 'node:fs/promises';
+import { dirname, join, resolve } from 'node:path';
 import { cwd } from 'node:process';
 import yaml from 'yaml';
 
@@ -48,14 +49,21 @@ export type Config = {
   vars?: Record<string, string>;
 };
 
-export const toProjectConfig = (config: UserConfig): Config => {
+export const toProjectConfig = (
+  config: UserConfig,
+  rootDir?: string,
+): Config => {
   const project: Partial<ProjectConfig> =
     typeof config.project === 'string'
       ? { name: config.project }
       : (config.project as ProjectConfig);
 
-  if (!project.rootDir) {
-    project.rootDir = cwd();
+  if (project.rootDir) {
+    project.rootDir = rootDir
+      ? resolve(rootDir, project.rootDir)
+      : project.rootDir;
+  } else {
+    project.rootDir = rootDir || cwd();
   }
 
   const components: Array<ComponentConfig> = (config.components || []).map(
@@ -113,7 +121,7 @@ export const loadConfig = async (force = false) => {
     throw new Error('Could not find EMB config anywhere');
   }
 
-  config = toProjectConfig(await validateUserConfig(path));
+  config = toProjectConfig(await validateUserConfig(path), dirname(path));
 
   return config;
 };
