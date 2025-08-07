@@ -1,8 +1,7 @@
-import { Command, Flags } from '@oclif/core';
-import { PruneImagesInfo } from 'dockerode';
-import { delay, Listr } from 'listr2';
+import { Command } from '@oclif/core';
+import { Listr } from 'listr2';
 
-import { deleteImage, listImages, pruneImages } from '../../../docker/index.js';
+import { deleteImage, listImages } from '../../../docker/index.js';
 import { getContext } from '../../context.js';
 
 export default class ImagesDelete extends Command {

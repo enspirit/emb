@@ -1,28 +1,25 @@
-import { basename, join } from 'node:path';
+import { join } from 'node:path';
 
-import {
-  ComponentConfig,
-  DefaultSettings,
-  IMonorepoConfig,
-  IProjectConfig,
-  MonorepoConfig,
-} from '../config/index.js';
-import { expandRecord } from '../utils/expand.js';
+import { IMonorepoConfig, MonorepoConfig } from '../config/index.js';
+import { expand, expandRecord } from '../utils/expand.js';
 import { Component } from './component.js';
-import { discoverComponents } from './discovery.js';
-export * from './discovery.js';
+import { ComponentDiscoverPlugin } from './plugins/ComponentsDiscover.js';
 
 export class Monorepo {
-  private config: MonorepoConfig;
+  private _config: MonorepoConfig;
   private initialized = false;
 
   constructor(config: IMonorepoConfig) {
-    this.config = new MonorepoConfig(config);
+    this._config = new MonorepoConfig(config);
   }
 
   // TODO: cache/improve
   get components() {
     return this.config.components.map((c) => new Component(c, this));
+  }
+
+  get config() {
+    return structuredClone(this._config);
   }
 
   get defaults() {
@@ -37,15 +34,27 @@ export class Monorepo {
     return this.config.project.rootDir;
   }
 
+  get vars(): Record<string, string> {
+    return this.config.vars;
+  }
+
   // Helper to expand a record of strings
-  async expand<R extends Record<string, unknown>>(record: R): Promise<R> {
-    return expandRecord(record, {
+  async expand(str: string): Promise<string>;
+  async expand<R extends Record<string, unknown>>(record: R): Promise<R>;
+  async expand(strOrRecord: unknown) {
+    const options = {
       default: 'vars',
       sources: {
         env: process.env as Record<string, string>,
-        vars: this.config.vars,
+        vars: this.vars,
       },
-    });
+    };
+
+    if (typeof strOrRecord === 'string') {
+      return expand(strOrRecord as string, options);
+    }
+
+    return expandRecord(strOrRecord as Record<string, unknown>, options);
   }
 
   // Initialize
@@ -54,30 +63,13 @@ export class Monorepo {
       throw new Error('Monorepo already initialized');
     }
 
-    // const discovered = await discoverComponents({
-    //   cwd: this.project.rootDir,
-    //   glob: this.join('*/Dockerfile'),
-    // });
+    // TODO: Introduce way to register plugins
+    const discover = new ComponentDiscoverPlugin();
+    this._config = await discover.run(this);
 
-    // const overrides = discovered.map((path) => {
-    //   const name = basename(path);
-    //   const component = this.components.find((cmp) => cmp.name === name);
-
-    //   const cfg: ComponentConfig = {
-    //     name,
-    //   };
-
-    //   return component ? component.cloneWith(cfg) : new Component(cfg, this);
-    // });
-
-    // const untouched = this.components.filter(
-    //   (c) =>
-    //     !overrides.find((o) => {
-    //       return o.name === c.name;
-    //     }),
-    // );
-
-    // this.components = [...overrides, ...untouched];
+    // Find a more elegant to do this
+    // decide on an exact when
+    this._config.vars = await this.expand(this._config.vars);
 
     this.initialized = true;
   }

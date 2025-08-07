@@ -4,6 +4,7 @@ import { ListrLogger, ListrLogLevels, PRESET_TIMER } from 'listr2';
 import { getContext } from '../cli/context.js';
 import { EmbContext } from '../types.js';
 import { buildDockerImage } from './buildImage.js';
+import { DockerComponentBuild } from './index.js';
 
 export type BuildOptions = {
   components?: Array<string>;
@@ -14,7 +15,9 @@ export type BuildOptions = {
 
 export class ImageBuilder {
   private logger = new ListrLogger({ useIcons: false });
-  private manager: Manager<EmbContext>;
+  private manager: Manager<
+    EmbContext & { components: Array<DockerComponentBuild> }
+  >;
   private options: BuildOptions;
 
   constructor(options?: BuildOptions) {
@@ -46,8 +49,19 @@ export class ImageBuilder {
     this.manager.add(
       [
         {
-          task(ctx, task) {
+          async task(ctx, task) {
             Object.assign(ctx, getContext());
+            ctx.components = await Promise.all(
+              ctx.monorepo.components
+                .filter((cmp) =>
+                  options.components
+                    ? options.components.includes(cmp.name)
+                    : true,
+                )
+                .map((cmp) => {
+                  return cmp.toDockerBuild();
+                }),
+            );
             task.title = `Load monorepo config (${ctx.monorepo.name})`;
           },
           title: 'Loading monorepo config',
@@ -55,26 +69,19 @@ export class ImageBuilder {
         {
           task(context, task) {
             return task.newListr(
-              context.monorepo.components
-                .filter((cmp) =>
-                  options.components
-                    ? options.components.includes(cmp.name)
-                    : true,
-                )
-                .map((cmp) => {
-                  return {
-                    rendererOptions: { persistentOutput: true },
-                    retry: options.retry,
-                    async task(_ctx, task) {
-                      const buildConfig = await cmp.toDockerBuild();
-                      await buildDockerImage(buildConfig, (progress) => {
-                        task.output = progress?.error || progress?.name || '';
-                      });
-                      task.output = '';
-                    },
-                    title: `Build ${cmp.imageName}:${cmp.imageTag}`,
-                  };
-                }),
+              context.components.map((cmp) => {
+                return {
+                  rendererOptions: { persistentOutput: true },
+                  retry: options.retry,
+                  async task(_ctx, task) {
+                    await buildDockerImage(cmp, (progress) => {
+                      task.output = progress?.error || progress?.name || '';
+                    });
+                    task.output = '';
+                  },
+                  title: `Build ${cmp.name}:${cmp.tag}`,
+                };
+              }),
             );
           },
           title: 'Build components',

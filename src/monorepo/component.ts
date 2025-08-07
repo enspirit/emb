@@ -8,9 +8,13 @@ import { Monorepo } from './index.js';
 
 export class Component {
   constructor(
-    protected config: ComponentConfig,
+    protected _config: ComponentConfig,
     protected monorepo: Monorepo,
   ) {}
+
+  get config() {
+    return structuredClone(this._config);
+  }
 
   get imageName() {
     return join(this.monorepo.name, this.name);
@@ -59,7 +63,9 @@ export class Component {
       ),
       name: this.imageName,
       prerequisites: await this.getPrerequisites(),
-      tag: this.imageTag,
+      tag: this.imageTag
+        ? await this.monorepo.expand(this.imageTag as string)
+        : undefined,
       target: this.config.target || this.monorepo.defaults?.docker?.target,
     };
   }
