@@ -33,7 +33,7 @@ export const toProjectConfig = (
     },
   );
 
-  const { defaults, vars } = config;
+  const { defaults, env, vars } = config;
 
   return {
     components,
@@ -47,6 +47,7 @@ export const toProjectConfig = (
         },
       },
     },
+    env,
     project: {
       ...project,
     } as IProjectConfig,

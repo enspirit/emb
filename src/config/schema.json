@@ -30,6 +30,13 @@
         }
       ]
     },
+    "env": {
+      "type": "object",
+      "description": "Variables to install on the environment",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
     "vars": {
       "type": "object",
       "description": "Variables that will be accessible for string expansion",

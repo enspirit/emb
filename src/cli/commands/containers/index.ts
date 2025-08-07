@@ -9,6 +9,7 @@ import { TABLE_DEFAULTS } from '../../constant.js';
 import { getContext } from '../../context.js';
 
 export default class ContainersIndex extends Command {
+  static aliases = ['ps'];
   static description = 'List docker containers.';
   static enableJsonFlag = true;
   static examples = ['<%= config.bin %> <%= command.id %>'];
@@ -44,7 +45,17 @@ export default class ContainersIndex extends Command {
           id: shortId(c.Id),
           image: c.Image,
           name: c.Names[0] || c.Id,
-          ports: c.Ports,
+          ports: c.Ports.map((p) => {
+            const parts = [];
+
+            if (p.IP) {
+              parts.push(p.IP, ':', p.PublicPort, '->');
+            }
+
+            parts.push(p.PrivatePort, '/', p.Type);
+
+            return parts.join('');
+          }).join(', '),
           status: c.Status,
         };
       });

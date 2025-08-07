@@ -75,6 +75,10 @@ export class Monorepo {
     );
   }
 
+  getEnvVars(): Promise<Record<string, unknown>> {
+    return this.expand(this._config.env || {});
+  }
+
   // Initialize
   async init() {
     if (this.initialized) {

@@ -12,6 +12,9 @@ const hook: Hook.Init = async function (options) {
 
     await monorepo.init();
 
+    const envVars = await monorepo.getEnvVars();
+    Object.assign(process.env, envVars);
+
     setContext({
       monorepo,
     });

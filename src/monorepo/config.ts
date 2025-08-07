@@ -12,6 +12,7 @@ import { deepMergeArray } from '../utils/deepMergeArray.js';
 export class MonorepoConfig implements Required<IMonorepoConfig> {
   components: ComponentConfig[];
   defaults: DefaultSettings;
+  env: Record<string, string>;
   flavors: Record<string, FlavorConfig>;
   project: IProjectConfig;
   vars: Record<string, unknown>;
@@ -22,6 +23,7 @@ export class MonorepoConfig implements Required<IMonorepoConfig> {
     this.project = config.project;
     this.vars = config.vars || {};
     this.flavors = config.flavors || {};
+    this.env = config.env || {};
   }
 
   component(name: string): ComponentConfig {
@@ -46,6 +48,7 @@ export class MonorepoConfig implements Required<IMonorepoConfig> {
     return {
       components: this.components,
       defaults: this.defaults,
+      env: this.env,
       flavors: this.flavors,
       project: this.project,
       vars: this.vars,

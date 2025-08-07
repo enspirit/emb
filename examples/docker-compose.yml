@@ -1,0 +1,15 @@
+services:
+  autodiscover:
+    image: emb/autodiscover
+
+  buildargs:
+    image: emb/buildargs
+
+  dependent:
+    image: emb/dependent
+
+  frontend:
+    image: emb/frontend
+
+  simple:
+    image: emb/simple
