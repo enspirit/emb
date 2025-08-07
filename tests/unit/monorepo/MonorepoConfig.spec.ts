@@ -18,10 +18,12 @@ describe('Config - MonorepoConfig', () => {
       },
       components: [
         {
-          name: 'frontend'
+          name: 'frontend',
+          context: 'frontend',
         },
         {
           name: 'backend',
+          context: 'backend',
           target: 'production',
           buildArgs: {
             API_KEY: 'secret'
