@@ -34,7 +34,7 @@ export class Monorepo {
     return this._config.project.rootDir;
   }
 
-  get vars(): Record<string, string> {
+  get vars(): Record<string, unknown> {
     return this._config.vars;
   }
 
@@ -49,7 +49,7 @@ export class Monorepo {
     const options = {
       default: 'vars',
       sources: {
-        env: process.env as Record<string, string>,
+        env: process.env as Record<string, unknown>,
         vars: this.vars,
       },
     };

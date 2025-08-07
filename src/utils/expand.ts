@@ -1,6 +1,6 @@
 type ExpandOptions = {
   default?: string;
-  sources?: Record<string, Record<string, string>>;
+  sources?: Record<string, Record<string, unknown>>;
 };
 
 const TPL_REGEX = /(?<!\\)\${(?:(\w+):)?(\w+)(?::-(.*?))?}/g;

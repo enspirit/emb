@@ -24,7 +24,7 @@ export class MonorepoConfig implements IMonorepoConfig {
   defaults: DefaultSettings;
   flavors: Record<string, FlavorConfig>;
   project: IProjectConfig;
-  vars: Record<string, string>;
+  vars: Record<string, unknown>;
 
   constructor(config: IMonorepoConfig) {
     this.components = config.components;

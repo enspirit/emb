@@ -10,7 +10,10 @@
     "emb": "./bin/run.js"
   },
   "scripts": {
-    "build": "rimraf dist && tsc -b && cp -r src/docker/protobuf/*.proto dist/docker/protobuf/",
+    "build": "rimraf dist && npm run build:ts && npm run copy:proto && npm run build:types",
+    "copy:proto": "cp -r src/docker/protobuf/*.proto dist/docker/protobuf/",
+    "build:ts": "tsc -b",
+    "build:types": "json2ts src/config/schema.json > src/config/schema.ts",
     "lint": "eslint",
     "pack": "oclif pack macos",
     "postpack": "shx rm -f oclif.manifest.json",
@@ -52,6 +55,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.3",
     "eslint": "^9.32.0",
+    "json-schema-to-typescript": "^15.0.4",
     "oclif": "^4",
     "prettier": "^3.6.2",
     "rimraf": "^6.0.1",

@@ -14,7 +14,10 @@ describe('Config syntax - Components', () => {
     await vConfig({ components: ['frontend'], project: 'test1' });
 
     expect(vConfig).toHaveResolvedWith({
-      components: [{ name: 'frontend' }],
+      components: [{
+        name: 'frontend',
+        context: 'frontend'
+      }],
       defaults: {
         docker: {
           labels: {

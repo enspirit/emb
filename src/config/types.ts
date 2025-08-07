@@ -1,3 +1,5 @@
+import { EMBConfigSchema } from './schema.js';
+
 export type Component = {
   name: string;
 };
@@ -6,12 +8,7 @@ export type Service = {
   name: string;
 };
 
-export type UserConfig = {
-  components: Array<string | { name: string }>;
-  defaults?: DefaultSettings;
-  project: string | { name: string };
-  vars?: Record<string, string>;
-};
+export type UserConfig = EMBConfigSchema;
 
 export type IProjectConfig = {
   name: string;
@@ -29,7 +26,7 @@ export type ComponentConfig = {
 
 export type DefaultSettings = {
   docker?: {
-    buildArgs?: Record<string, string>;
+    buildArgs?: Record<string, unknown>;
     labels?: Record<string, string>;
     tag?: string;
     target?: string;
@@ -46,5 +43,5 @@ export type IMonorepoConfig = {
   defaults?: DefaultSettings;
   flavors?: Record<string, FlavorConfig>;
   project: IProjectConfig;
-  vars?: Record<string, string>;
+  vars?: Record<string, unknown>;
 };
