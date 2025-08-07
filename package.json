@@ -28,6 +28,7 @@
     "@oclif/plugin-not-found": "^3.2.63",
     "ajv": "^8.17.1",
     "dockerode": "^4.0.7",
+    "dotenv": "^17.2.1",
     "find-up": "^7.0.0",
     "glob": "^11.0.3",
     "listr2": "^9.0.1",
