@@ -5,6 +5,7 @@ import {
   DefaultSettings,
   IMonorepoConfig,
   IProjectConfig,
+  MonorepoConfig,
 } from '../config/index.js';
 import { expandRecord } from '../utils/expand.js';
 import { Component } from './component.js';
@@ -12,13 +13,29 @@ import { discoverComponents } from './discovery.js';
 export * from './discovery.js';
 
 export class Monorepo {
-  public components!: Array<Component>;
-  public defaults!: DefaultSettings;
-  public project!: IProjectConfig;
-  public vars!: Record<string, string>;
+  private config: MonorepoConfig;
   private initialized = false;
 
-  constructor(protected config: IMonorepoConfig) {}
+  constructor(config: IMonorepoConfig) {
+    this.config = new MonorepoConfig(config);
+  }
+
+  // TODO: cache/improve
+  get components() {
+    return this.config.components.map((c) => new Component(c, this));
+  }
+
+  get defaults() {
+    return this.config.defaults;
+  }
+
+  get name() {
+    return this.config.project.name;
+  }
+
+  get rootDir() {
+    return this.config.project.rootDir;
+  }
 
   // Helper to expand a record of strings
   async expand<R extends Record<string, unknown>>(record: R): Promise<R> {
@@ -26,7 +43,7 @@ export class Monorepo {
       default: 'vars',
       sources: {
         env: process.env as Record<string, string>,
-        vars: this.vars,
+        vars: this.config.vars,
       },
     });
   }
@@ -37,36 +54,30 @@ export class Monorepo {
       throw new Error('Monorepo already initialized');
     }
 
-    this.project = this.config.project;
-    this.components = this.config.components.map((c) => new Component(c, this));
+    // const discovered = await discoverComponents({
+    //   cwd: this.project.rootDir,
+    //   glob: this.join('*/Dockerfile'),
+    // });
 
-    this.vars = await this.expand(this.config.vars || {});
-    this.defaults = await this.expand(this.config.defaults || {});
+    // const overrides = discovered.map((path) => {
+    //   const name = basename(path);
+    //   const component = this.components.find((cmp) => cmp.name === name);
 
-    const discovered = await discoverComponents({
-      cwd: this.project.rootDir,
-      glob: this.join('*/Dockerfile'),
-    });
+    //   const cfg: ComponentConfig = {
+    //     name,
+    //   };
 
-    const overrides = discovered.map((path) => {
-      const name = basename(path);
-      const component = this.components.find((cmp) => cmp.name === name);
+    //   return component ? component.cloneWith(cfg) : new Component(cfg, this);
+    // });
 
-      const cfg: ComponentConfig = {
-        name,
-      };
+    // const untouched = this.components.filter(
+    //   (c) =>
+    //     !overrides.find((o) => {
+    //       return o.name === c.name;
+    //     }),
+    // );
 
-      return component ? component.cloneWith(cfg) : new Component(cfg, this);
-    });
-
-    const untouched = this.components.filter(
-      (c) =>
-        !overrides.find((o) => {
-          return o.name === c.name;
-        }),
-    );
-
-    this.components = [...overrides, ...untouched];
+    // this.components = [...overrides, ...untouched];
 
     this.initialized = true;
   }

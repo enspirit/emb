@@ -25,7 +25,7 @@ export default class ImagesPrune extends Command {
 
     const info = await pruneImages({
       dangling: !flags.all,
-      label: [`emb/project=${context.monorepo.project.name}`],
+      label: [`emb/project=${context.monorepo.name}`],
     });
 
     info.ImagesDeleted?.forEach((d) => {

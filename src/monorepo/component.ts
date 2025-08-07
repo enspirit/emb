@@ -13,7 +13,7 @@ export class Component {
   ) {}
 
   get imageName() {
-    return join(this.monorepo.project.name, this.name);
+    return join(this.monorepo.name, this.name);
   }
 
   get imageTag() {

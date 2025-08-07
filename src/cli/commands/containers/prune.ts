@@ -1,7 +1,7 @@
-import { Command, Flags } from '@oclif/core';
-import { PruneContainersInfo, PruneImagesInfo } from 'dockerode';
+import { Command } from '@oclif/core';
+import { PruneContainersInfo } from 'dockerode';
 
-import { pruneContainers, pruneImages } from '../../../docker/index.js';
+import { pruneContainers } from '../../../docker/index.js';
 import { getContext } from '../../context.js';
 
 export default class ContainersPrune extends Command {
@@ -14,7 +14,7 @@ export default class ContainersPrune extends Command {
     const context = await getContext();
 
     const info = await pruneContainers({
-      label: [`emb/project=${context.monorepo.project.name}`],
+      label: [`emb/project=${context.monorepo.name}`],
     });
 
     info.ContainersDeleted?.forEach((d) => {

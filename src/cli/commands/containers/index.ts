@@ -1,7 +1,7 @@
 import { Command, Flags } from '@oclif/core';
-import { ContainerInfo, ImageInfo } from 'dockerode';
+import { ContainerInfo } from 'dockerode';
 
-import { listContainers, listImages } from '../../../docker/index.js';
+import { listContainers } from '../../../docker/index.js';
 import { getContext } from '../../context.js';
 
 export default class ContainersIndex extends Command {
@@ -23,12 +23,12 @@ export default class ContainersIndex extends Command {
     const { flags } = await this.parse(ContainersIndex);
     const context = await getContext();
 
-    const { project } = context.monorepo;
+    const { monorepo } = context;
 
     const containers = await listContainers({
       all: flags.all,
       filters: {
-        label: [`emb/project=${project.name}`],
+        label: [`emb/project=${monorepo.name}`],
       },
     });
 

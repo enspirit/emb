@@ -40,7 +40,7 @@ export class ImageBuilder {
   }
 
   public async run(): Promise<void> {
-    const { logger, options } = this;
+    const { options } = this;
 
     // Set context
     this.manager.add(
@@ -48,7 +48,7 @@ export class ImageBuilder {
         {
           task(ctx, task) {
             Object.assign(ctx, getContext());
-            task.title = `Load monorepo config (${ctx.monorepo.project.name})`;
+            task.title = `Load monorepo config (${ctx.monorepo.name})`;
           },
           title: 'Loading monorepo config',
         },

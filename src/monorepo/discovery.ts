@@ -1,5 +1,5 @@
 import { glob } from 'glob';
-import { dirname, join } from 'node:path';
+import { dirname } from 'node:path';
 import { cwd } from 'node:process';
 
 export type ComponentDiscoveryOptions = {

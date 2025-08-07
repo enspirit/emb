@@ -23,18 +23,16 @@ export default class ImagesIndex extends Command {
     const { flags } = await this.parse(ImagesIndex);
     const context = await getContext();
 
-    const { project } = context.monorepo;
-
     const images = await listImages({
       all: flags.all,
       filters: {
-        label: [`emb/project=${project.name}`],
+        label: [`emb/project=${context.monorepo.name}`],
       },
     });
 
     const imageNames = images.reduce((imgs, img) => {
       const tags = (img.RepoTags || [])?.filter(
-        (tag) => tag.indexOf(project.name) === 0,
+        (tag) => tag.indexOf(context.monorepo.name) === 0,
       );
 
       return [...imgs, ...tags];

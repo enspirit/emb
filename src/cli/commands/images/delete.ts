@@ -13,13 +13,11 @@ export default class ImagesDelete extends Command {
 
   public async run(): Promise<void> {
     const { flags } = await this.parse(ImagesDelete);
-    const {
-      monorepo: { project },
-    } = await getContext();
+    const context = await getContext();
 
     const images = await listImages({
       filters: {
-        label: [`emb/project=${project.name}`],
+        label: [`emb/project=${context.monorepo.name}`],
       },
     });
 
@@ -27,7 +25,7 @@ export default class ImagesDelete extends Command {
     // TODO: move to repo/config abstraction
     const imageNames = images.reduce((imgs, img) => {
       const tags = (img.RepoTags || [])?.filter(
-        (tag) => tag.indexOf(project.name) === 0,
+        (tag) => tag.indexOf(context.monorepo.name) === 0,
       );
 
       return [...imgs, ...tags];
