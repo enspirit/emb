@@ -2,9 +2,9 @@ import { basename, join } from 'node:path';
 
 import {
   ComponentConfig,
-  Config,
   DefaultSettings,
-  ProjectConfig,
+  IMonorepoConfig,
+  IProjectConfig,
 } from '../config/index.js';
 import { expandRecord } from '../utils/expand.js';
 import { Component } from './component.js';
@@ -14,11 +14,11 @@ export * from './discovery.js';
 export class Monorepo {
   public components!: Array<Component>;
   public defaults!: DefaultSettings;
-  public project!: ProjectConfig;
+  public project!: IProjectConfig;
   public vars!: Record<string, string>;
   private initialized = false;
 
-  constructor(protected config: Config) {}
+  constructor(protected config: IMonorepoConfig) {}
 
   // Helper to expand a record of strings
   async expand<R extends Record<string, unknown>>(record: R): Promise<R> {
@@ -75,6 +75,4 @@ export class Monorepo {
   join(...paths: string[]) {
     return join(this.config.project.rootDir, ...paths);
   }
-
-  private discoverComponents() {}
 }

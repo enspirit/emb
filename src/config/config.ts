@@ -5,9 +5,9 @@ import {
   ComponentConfig,
   DefaultSettings,
   FlavorConfig,
-  Config as IMonorepoConfig,
-  ProjectConfig as IProjectConfig,
-} from './index.js';
+  IMonorepoConfig,
+  IProjectConfig,
+} from './types.js';
 
 export class ProjectConfig implements IProjectConfig {
   name: string;
