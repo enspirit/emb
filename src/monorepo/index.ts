@@ -1,9 +1,12 @@
 import { join } from 'node:path';
 
-import { IMonorepoConfig, MonorepoConfig } from '../config/index.js';
+import { IMonorepoConfig } from '../config/index.js';
 import { expand, expandRecord } from '../utils/expand.js';
 import { Component } from './component.js';
+import { MonorepoConfig } from './config.js';
 import { ComponentDiscoverPlugin } from './plugins/ComponentsDiscover.js';
+
+export * from './config.js';
 
 export class Monorepo {
   private _config: MonorepoConfig;

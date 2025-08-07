@@ -1,23 +1,13 @@
 import deepMerge from '@fastify/deepmerge';
 
-import { deepMergeArray } from '../utils/deepMergeArray.js';
 import {
   ComponentConfig,
   DefaultSettings,
   FlavorConfig,
   IMonorepoConfig,
   IProjectConfig,
-} from './types.js';
-
-export class ProjectConfig implements IProjectConfig {
-  name: string;
-  rootDir: string;
-
-  constructor(config: IProjectConfig) {
-    this.name = config.name;
-    this.rootDir = config.rootDir;
-  }
-}
+} from '../config/types.js';
+import { deepMergeArray } from '../utils/deepMergeArray.js';
 
 export class MonorepoConfig implements Required<IMonorepoConfig> {
   components: ComponentConfig[];

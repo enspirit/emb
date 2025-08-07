@@ -2,8 +2,8 @@ import deepmerge from '@fastify/deepmerge';
 import { glob } from 'glob';
 import { dirname } from 'node:path';
 
-import { MonorepoConfig } from '../../config/config.js';
 import { ComponentConfig } from '../../config/types.js';
+import { MonorepoConfig } from '../config.js';
 import { Monorepo } from '../index.js';
 import { IEMBPlugin } from './types.js';
 

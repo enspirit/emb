@@ -5,7 +5,6 @@ import { toProjectConfig } from './convert.js';
 import { IMonorepoConfig } from './types.js';
 import { validateUserConfig } from './validation.js';
 
-export * from './config.js';
 export * from './convert.js';
 export * from './types.js';
 export * from './validation.js';
