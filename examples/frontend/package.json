@@ -3,10 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "npm run cowsay"
+    "start": "node dev.js"
   },
   "dependencies": {
-    "cowsay": "^1.6.0"
   },
   "author": "",
   "license": "ISC",

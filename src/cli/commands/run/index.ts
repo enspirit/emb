@@ -1,5 +1,8 @@
 import { Args, Command } from '@oclif/core';
+import { Listr } from 'listr2';
+import { spawn } from 'node:child_process';
 import fs from 'node:fs/promises';
+import { Readable } from 'node:stream';
 
 import { getContext } from '../../context.js';
 
@@ -20,28 +23,48 @@ export default class RunComponentScript extends Command {
 
     const component = monorepo.component(args.component);
     const pkgPath = component.join('package.json');
+    const tasks = new Listr(
+      [
+        {
+          rendererOptions: {
+            persistentOutput: true,
+          },
+          async task(_ctx, _task): Promise<Readable | undefined> {
+            try {
+              const pkgRaw = await fs.readFile(pkgPath, 'utf8');
+              const pkg = JSON.parse(pkgRaw);
+
+              if (!pkg.scripts?.[args.script]) {
+                throw new Error(
+                  `Script "${args.script}" not found in ${component.name}/package.json`,
+                );
+              }
+
+              return spawn('npm', ['run', args.script], {
+                cwd: component.rootdir,
+              }).stdout;
+            } catch (error) {
+              const error_ =
+                error instanceof Error
+                  ? new TypeError(
+                      `Failed to run ${component.name}:${args.script}\n${error.message}`,
+                    )
+                  : new Error(
+                      `Failed to run ${component.name}:${args.script}\n${error as string}`,
+                    );
+              throw error_;
+            }
+          },
+          title: `Running npm script '${args.script}' on ${args.component}`,
+        },
+      ],
+      { concurrent: false },
+    );
 
     try {
-      const pkgRaw = await fs.readFile(pkgPath, 'utf8');
-      const pkg = JSON.parse(pkgRaw);
-
-      if (!pkg.scripts?.[args.script]) {
-        this.error(
-          `Script "${args.script}" not found in ${component.name}/package.json`,
-        );
-      }
-
-      this.log(`▶ Running "${args.script}" in ${component.name}`);
+      await tasks.run();
     } catch (error) {
-      if (error instanceof Error) {
-        this.error(
-          `Failed to run ${component.name}:${args.script}\n${error.message}`,
-        );
-      } else {
-        this.error(
-          `Failed to run ${component.name}:${args.script}\n${error as string}`,
-        );
-      }
+      console.error(error);
     }
   }
 }
