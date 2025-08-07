@@ -1,4 +1,4 @@
-import { Command } from '@oclif/core';
+import { Command, Flags } from '@oclif/core';
 import { Listr } from 'listr2';
 
 import { deleteImage, listImages } from '../../../docker/index.js';
@@ -8,9 +8,19 @@ export default class ImagesDelete extends Command {
   static description = 'Delete project images.';
   static enableJsonFlag = true;
   static examples = ['<%= config.bin %> <%= command.id %>'];
-  static flags = {};
+  static flags = {
+    force: Flags.boolean({
+      char: 'f',
+      default: false,
+      description:
+        'Remove the image even if it is being used by stopped containers or has other tags',
+      name: 'force',
+      required: false,
+    }),
+  };
 
   public async run(): Promise<void> {
+    const { flags } = await this.parse(ImagesDelete);
     const context = await getContext();
 
     const images = await listImages({
@@ -33,7 +43,9 @@ export default class ImagesDelete extends Command {
       imageNames.map((img) => {
         return {
           async task() {
-            await deleteImage(img);
+            await deleteImage(img, {
+              force: flags.force,
+            });
           },
           title: `Delete ${img}`,
         };
