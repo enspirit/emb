@@ -1,6 +1,7 @@
 import { Manager } from '@listr2/manager';
-import { ListrLogger, PRESET_TIMER } from 'listr2';
+import { ListrLogger, ListrTask, PRESET_TIMER } from 'listr2';
 
+import { getContext } from '../cli/context.js';
 import { Component } from '../monorepo/component.js';
 import { buildDockerImage } from './buildImage.js';
 import { DockerComponentBuild } from './index.js';
@@ -41,6 +42,7 @@ export class ImageBuilder {
 
   public async run(): Promise<void> {
     const { options } = this;
+    const { monorepo } = getContext();
 
     // Set context
     this.manager.add([
@@ -55,31 +57,43 @@ export class ImageBuilder {
       },
       {
         async task(context, task) {
-          return task.newListr(
-            context.components.map((cmp) => {
-              return {
-                rendererOptions: { persistentOutput: true },
-                retry: options.retry,
-                async task(_ctx, task) {
-                  await buildDockerImage(cmp, (progress) => {
+          const buildTasks: Array<ListrTask> = context.components.map((cmp) => {
+            const fullName = `${cmp.name}:${cmp.tag}`;
+
+            return {
+              rendererOptions: { persistentOutput: true },
+              retry: options.retry,
+
+              async task(_ctx, task) {
+                const logStream = await monorepo.store.createWriteStream(
+                  `logs/docker/build/${fullName}.log`,
+                );
+
+                await buildDockerImage(
+                  cmp,
+                  {
+                    output: logStream,
+                  },
+                  (progress) => {
                     try {
                       task.output = progress?.error || progress?.name || '';
                     } catch {
                       // if the command fails we might still try to update the output
                       // and it triggers TypeError
                     }
-                  });
-                  task.output = '';
-                },
-                title: `Build ${cmp.name}:${cmp.tag}`,
-              };
-            }),
-            {
-              concurrent: options.concurreny,
-              exitOnError: options.failfast,
-              rendererOptions: { collapseSubtasks: false },
-            },
-          );
+                  },
+                );
+                task.output = '';
+              },
+              title: `Build ${fullName}`,
+            };
+          });
+
+          return task.newListr(buildTasks, {
+            concurrent: options.concurreny,
+            exitOnError: options.failfast,
+            rendererOptions: { collapseSubtasks: false },
+          });
         },
         title: 'Build components',
       },

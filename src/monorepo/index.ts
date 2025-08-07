@@ -39,6 +39,10 @@ export class Monorepo {
     return this._config.project.rootDir;
   }
 
+  get store() {
+    return this._store;
+  }
+
   get vars(): Record<string, unknown> {
     return this._config.vars;
   }

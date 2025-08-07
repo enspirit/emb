@@ -1,5 +1,5 @@
-import { createWriteStream } from 'node:fs';
-import { mkdir, stat } from 'node:fs/promises';
+import { constants, createWriteStream } from 'node:fs';
+import { access, mkdir } from 'node:fs/promises';
 import { dirname, join, normalize } from 'node:path';
 
 import { Monorepo } from '../index.js';
@@ -20,7 +20,7 @@ export class EMBStore {
     this.path = this.monorepo.join(dirname);
   }
 
-  async createWriteStream(path: string, flags: string | undefined) {
+  async createWriteStream(path: string, flags: string | undefined = 'w') {
     await this.mkdirp(dirname(path));
 
     return createWriteStream(this.join(path), {
@@ -29,10 +29,20 @@ export class EMBStore {
   }
 
   async init() {
+    let exists: boolean;
     try {
-      if (!(await stat(this.path))) {
-        await mkdir(this.path);
-      }
+      await access(this.path, constants.F_OK);
+      exists = true;
+    } catch {
+      exists = false;
+    }
+
+    if (exists) {
+      return;
+    }
+
+    try {
+      await mkdir(this.path, { recursive: true });
     } catch (error) {
       const msg = error instanceof Error ? error.message : error;
       throw new Error(`Unable to create the emb store: ${msg}`);

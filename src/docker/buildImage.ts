@@ -1,15 +1,20 @@
 import Docker from 'dockerode';
+import { Writable } from 'node:stream';
 
 import { DockerComponentBuild } from './index.js';
 import { decode } from './protobuf/index.js';
 
 export type MobyTrace = { aux: unknown; error?: string; id: string };
 export type Progress = { error?: string; name?: string };
+export type DockerBuildExtraOptions = {
+  output?: Writable;
+};
 
 const docker = new Docker();
 
 export const buildDockerImage = async (
   cmp: DockerComponentBuild,
+  opts: DockerBuildExtraOptions = {},
   progress?: (progress: Progress) => void,
 ): Promise<DockerComponentBuild & { traces: Array<MobyTrace> }> => {
   const files = (cmp.prerequisites || []).map((f) => f.path);
@@ -28,6 +33,10 @@ export const buildDockerImage = async (
       version: '2',
     },
   );
+
+  if (opts.output) {
+    stream.pipe(opts.output);
+  }
 
   return new Promise((resolve, reject) => {
     docker.modem.followProgress(
