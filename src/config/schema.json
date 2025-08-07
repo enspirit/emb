@@ -113,6 +113,11 @@
               "minLength": 1,
               "description": "The directory of the component."
             },
+            "description": {
+              "type": "string",
+              "minLength": 1,
+              "description": "A description of the component."
+            },
             "buildArgs": {
               "type": "object",
               "properties": {},
