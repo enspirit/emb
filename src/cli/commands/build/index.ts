@@ -46,14 +46,18 @@ export default class Build extends Command {
     const { argv, flags } = await this.parse(Build);
     const { monorepo } = getContext();
 
-    await new ImageBuilder({
-      components:
-        argv.length > 0
-          ? argv.map((c) => monorepo.component(c as string))
-          : monorepo.components,
+    const components =
+      argv?.length > 0
+        ? argv.map((c) => monorepo.component(c as string))
+        : monorepo.components;
+
+    const builder = new ImageBuilder({
+      components,
       concurreny: flags.concurrency,
       failfast: flags.failfast,
       retry: flags.retry,
-    }).run();
+    });
+
+    await builder.run();
   }
 }

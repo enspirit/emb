@@ -16,6 +16,10 @@ export class Component {
     return structuredClone(this._config);
   }
 
+  get context() {
+    return this.config.context;
+  }
+
   get imageName() {
     return join(this.monorepo.name, this.name);
   }
@@ -29,7 +33,7 @@ export class Component {
   }
 
   get rootdir() {
-    return this.monorepo.join(this.name);
+    return this.monorepo.join(this.context);
   }
 
   cloneWith(config: Partial<ComponentConfig>) {
@@ -52,7 +56,12 @@ export class Component {
 
   async toDockerBuild(): Promise<DockerComponentBuild> {
     return {
-      buildArgs: await this.monorepo.expand(this.config.buildArgs || {}),
+      buildArgs: await this.monorepo.expand(
+        deepmerge()(
+          this.monorepo.defaults.docker?.buildArgs || {},
+          this.config.buildArgs || {},
+        ),
+      ),
       context: this.rootdir,
       dockerfile: this.config.dockerfile || 'Dockerfile',
       labels: deepmerge()(

@@ -1,3 +1,4 @@
+import deepmerge from '@fastify/deepmerge';
 import { glob } from 'glob';
 import { dirname } from 'node:path';
 
@@ -19,10 +20,11 @@ export class ComponentDiscoverPlugin implements IEMBPlugin {
       const component = existing.find((cmp) => cmp.name === name);
 
       const cfg: ComponentConfig = {
+        context: name,
         name,
       };
 
-      return component || cfg;
+      return component ? deepmerge()(component, cfg) : cfg;
     });
 
     const untouched = existing.filter(

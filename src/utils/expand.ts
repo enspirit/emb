@@ -7,7 +7,8 @@ const TPL_REGEX = /(?<!\\)\${(?:(\w+):)?(\w+)(?::-(.*?))?}/g;
 
 export const expand = async (str: string, options: ExpandOptions = {}) => {
   return (
-    str
+    (str || '')
+      .toString()
       // Expand variables
       .replaceAll(TPL_REGEX, (match, source, key, fallback) => {
         const provider = options.sources?.[source || options.default];

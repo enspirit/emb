@@ -27,7 +27,9 @@ export const toProjectConfig = (
 
   const components: Array<ComponentConfig> = (config.components || []).map(
     (cmp) => {
-      return typeof cmp === 'string' ? { name: cmp } : (cmp as ComponentConfig);
+      return typeof cmp === 'string'
+        ? { context: cmp, name: cmp }
+        : (cmp as ComponentConfig);
     },
   );
 

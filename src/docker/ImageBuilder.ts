@@ -43,65 +43,52 @@ export class ImageBuilder {
     const { options } = this;
 
     // Set context
-    this.manager.add(
-      [
-        {
-          async task(ctx, task) {
-            ctx.components = await Promise.all(
-              options.components.map((cmp) => {
-                return cmp.toDockerBuild();
-              }),
-            );
-
-            task.title = `Preparing build configs`;
-          },
-          title: 'Loading monorepo config',
-        },
-        {
-          task(context, task) {
-            return task.newListr(
-              context.components.map((cmp) => {
-                return {
-                  rendererOptions: { persistentOutput: true },
-                  retry: options.retry,
-                  async task(_ctx, task) {
-                    await buildDockerImage(cmp, (progress) => {
-                      try {
-                        task.output = progress?.error || progress?.name || '';
-                      } catch {
-                        // if the command fails we might still try to update the output
-                        // and it triggers TypeError
-                      }
-                    });
-                    task.output = '';
-                  },
-                  title: `Build ${cmp.name}:${cmp.tag}`,
-                };
-              }),
-            );
-          },
-          title: 'Build components',
-        },
-      ],
+    this.manager.add([
       {
-        concurrent: this.options.concurreny,
-        exitOnError: this.options.failfast,
-        rendererOptions: { collapseSubtasks: false },
+        async task(ctx, task) {
+          ctx.components = await Promise.all(
+            options.components.map((cmp) => cmp.toDockerBuild()),
+          );
+          task.title = `Preparing build configs`;
+        },
+        title: 'Loading monorepo config',
       },
-    );
+      {
+        async task(context, task) {
+          return task.newListr(
+            context.components.map((cmp) => {
+              return {
+                rendererOptions: { persistentOutput: true },
+                retry: options.retry,
+                async task(_ctx, task) {
+                  await buildDockerImage(cmp, (progress) => {
+                    try {
+                      task.output = progress?.error || progress?.name || '';
+                    } catch {
+                      // if the command fails we might still try to update the output
+                      // and it triggers TypeError
+                    }
+                  });
+                  task.output = '';
+                },
+                title: `Build ${cmp.name}:${cmp.tag}`,
+              };
+            }),
+            {
+              concurrent: options.concurreny,
+              exitOnError: options.failfast,
+              rendererOptions: { collapseSubtasks: false },
+            },
+          );
+        },
+        title: 'Build components',
+      },
+    ]);
 
-    try {
-      await this.manager.runAll();
+    await this.manager.runAll();
 
-      if (this.manager.errors.length > 0) {
-        throw new Error('Build failed');
-      }
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        this.logger.log(ListrLogLevels.FAILED, error.message);
-      } else {
-        this.logger.log(ListrLogLevels.FAILED, error as string);
-      }
+    if (this.manager.errors.length > 0) {
+      throw new Error('Build failed');
     }
   }
 }

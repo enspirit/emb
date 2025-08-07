@@ -20,6 +20,7 @@ export type IProjectConfig = {
 
 export type ComponentConfig = {
   buildArgs?: Record<PropertyKey, string>;
+  context: string;
   dockerfile?: string;
   labels?: Record<string, string>;
   name: string;
