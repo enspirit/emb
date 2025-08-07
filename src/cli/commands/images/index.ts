@@ -1,8 +1,19 @@
 import { Command, Flags } from '@oclif/core';
-import { ImageInfo } from 'dockerode';
+import { printTable } from '@oclif/table';
 
 import { listImages } from '../../../docker/index.js';
+import { shortId } from '../../../docker/utils.js';
+import { timeAgo } from '../../../utils/time.js';
+import { TABLE_DEFAULTS } from '../../constant.js';
 import { getContext } from '../../context.js';
+
+export type ImageInfo = {
+  created: Date;
+  imageId: string;
+  name: string;
+  size: number;
+  tag: string;
+};
 
 export default class ImagesIndex extends Command {
   static description = 'List available images.';
@@ -30,18 +41,38 @@ export default class ImagesIndex extends Command {
       },
     });
 
-    const imageNames = images.reduce((imgs, img) => {
-      const tags = (img.RepoTags || [])?.filter(
-        (tag) => tag.indexOf(context.monorepo.name) === 0,
-      );
+    const flatten = images.reduce((imgs, img) => {
+      const matches = (img.RepoTags || [])
+        ?.filter((tag) => tag.indexOf(context.monorepo.name) === 0)
+        .map((m) => {
+          const [name, tag] = m.split(':');
 
-      return [...imgs, ...tags];
-    }, [] as Array<string>);
+          return {
+            created: new Date(img.Created * 1000),
+            imageId: shortId(img.Id),
+            name,
+            size: img.Size,
+            tag,
+          };
+        });
 
-    imageNames.forEach((img) => {
-      this.log('*', img);
-    });
+      return [...imgs, ...matches];
+    }, [] as Array<ImageInfo>);
 
-    return images;
+    if (!flags.json) {
+      printTable({
+        ...TABLE_DEFAULTS,
+        columns: ['name', 'tag', 'imageId', 'created', 'size'],
+        data: flatten.map((f) => {
+          return {
+            ...f,
+            created: timeAgo(f.created),
+            size: Math.floor(f.size / (1000 * 1000)) + 'MB',
+          };
+        }),
+      });
+    }
+
+    return flatten;
   }
 }
