@@ -5,7 +5,9 @@ const docker = new Docker();
 export const listImages = async (
   opts?: ListImagesOptions,
 ): Promise<Array<ImageInfo>> => {
-  const images = await docker.listImages(opts);
+  const images = await docker.listImages({
+    ...opts,
+  });
 
   return images;
 };
