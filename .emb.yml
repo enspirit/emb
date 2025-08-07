@@ -12,19 +12,19 @@ defaults:
   docker:
     tag: ${dockerTag}
 
-# Overrides per components
+# The order is not important
+# as we will build a dependency graph
 components:
   - simple
   - frontend
-  # On purpose putting dependent before base
-  - name: dependent
-    dependencies:
-      - base
   - base
   - name: buildargs
     buildArgs:
       # Inject some env var as build arg
       GREETING: Hello ${env:USER}
+  - name: dependent
+    dependencies:
+      - base
 
 flavors:
   production:
