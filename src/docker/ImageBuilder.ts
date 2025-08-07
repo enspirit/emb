@@ -1,13 +1,12 @@
 import { Manager } from '@listr2/manager';
 import { ListrLogger, ListrLogLevels, PRESET_TIMER } from 'listr2';
 
-import { getContext } from '../cli/context.js';
-import { EmbContext } from '../types.js';
+import { Component } from '../monorepo/component.js';
 import { buildDockerImage } from './buildImage.js';
 import { DockerComponentBuild } from './index.js';
 
 export type BuildOptions = {
-  components?: Array<string>;
+  components: Array<Component>;
   concurreny?: number;
   failfast?: boolean;
   retry?: number;
@@ -15,12 +14,10 @@ export type BuildOptions = {
 
 export class ImageBuilder {
   private logger = new ListrLogger({ useIcons: false });
-  private manager: Manager<
-    EmbContext & { components: Array<DockerComponentBuild> }
-  >;
+  private manager: Manager<{ components: Array<DockerComponentBuild> }>;
   private options: BuildOptions;
 
-  constructor(options?: BuildOptions) {
+  constructor(options: BuildOptions) {
     this.options = {
       concurreny: 1,
       failfast: false,
@@ -50,19 +47,13 @@ export class ImageBuilder {
       [
         {
           async task(ctx, task) {
-            Object.assign(ctx, getContext());
             ctx.components = await Promise.all(
-              ctx.monorepo.components
-                .filter((cmp) =>
-                  options.components
-                    ? options.components.includes(cmp.name)
-                    : true,
-                )
-                .map((cmp) => {
-                  return cmp.toDockerBuild();
-                }),
+              options.components.map((cmp) => {
+                return cmp.toDockerBuild();
+              }),
             );
-            task.title = `Load monorepo config (${ctx.monorepo.name})`;
+
+            task.title = `Preparing build configs`;
           },
           title: 'Loading monorepo config',
         },

@@ -1,6 +1,7 @@
 import { Args, Command, Flags } from '@oclif/core';
 
 import { ImageBuilder } from '../../../docker/ImageBuilder.js';
+import { getContext } from '../../context.js';
 
 export default class Build extends Command {
   static args = {
@@ -42,9 +43,13 @@ export default class Build extends Command {
 
   async run(): Promise<void> {
     const { argv, flags } = await this.parse(Build);
+    const { monorepo } = getContext();
 
     await new ImageBuilder({
-      components: argv.length > 0 ? (argv as string[]) : undefined,
+      components:
+        argv.length > 0
+          ? argv.map((c) => monorepo.component(c as string))
+          : monorepo.components,
       concurreny: flags.concurrency,
       failfast: flags.failfast,
       retry: flags.retry,

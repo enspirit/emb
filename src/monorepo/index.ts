@@ -15,27 +15,31 @@ export class Monorepo {
 
   // TODO: cache/improve
   get components() {
-    return this.config.components.map((c) => new Component(c, this));
+    return this._config.components.map((c) => new Component(c, this));
   }
 
-  get config() {
-    return structuredClone(this._config);
+  get config(): IMonorepoConfig {
+    return this._config.toJSON();
   }
 
   get defaults() {
-    return this.config.defaults;
+    return this._config.defaults;
   }
 
   get name() {
-    return this.config.project.name;
+    return this._config.project.name;
   }
 
   get rootDir() {
-    return this.config.project.rootDir;
+    return this._config.project.rootDir;
   }
 
   get vars(): Record<string, string> {
-    return this.config.vars;
+    return this._config.vars;
+  }
+
+  component(name: string) {
+    return new Component(this._config.component(name), this);
   }
 
   // Helper to expand a record of strings
@@ -76,6 +80,6 @@ export class Monorepo {
 
   // Helper to build relative path to the root dir
   join(...paths: string[]) {
-    return join(this.config.project.rootDir, ...paths);
+    return join(this._config.project.rootDir, ...paths);
   }
 }
