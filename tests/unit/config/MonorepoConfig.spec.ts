@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, test } from 'vitest';
 import { MonorepoConfig } from '../../../src/config/config';
 import { CompleteExample } from '../../fixtures/complete-example';
 
-describe.only('Config - MonorepoConfig', () => {
+describe('Config - MonorepoConfig', () => {
   let config: MonorepoConfig
   beforeEach(() => {
     config = new MonorepoConfig(CompleteExample)
