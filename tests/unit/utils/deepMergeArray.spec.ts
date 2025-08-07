@@ -1,44 +1,40 @@
-import { describe, expect, test, vi } from 'vitest';
+import { describe, expect, test } from 'vitest';
+
 import { deepMergeArray } from '../../../src/utils/index.js';
 
-describe('Utils / deepMergeArray', () => {
+const byName = <T extends { name: string }>(item: T) => item.name;
 
+describe('Utils / deepMergeArray', () => {
   describe('when not used with identifier function', () => {
     test('it does not remove elements from target', () => {
-      expect(deepMergeArray([1], [])).to.deep.eq([1])
-    })
+      expect(deepMergeArray([1], [])).to.deep.eq([1]);
+    });
 
     test('it does merge things', () => {
-      expect(deepMergeArray([1], [2, 3])).to.deep.eq([1, 2, 3])
-    })
-  })
+      expect(deepMergeArray([1], [2, 3])).to.deep.eq([1, 2, 3]);
+    });
+  });
 
   describe('when used with identifier function', () => {
-
-    const byName = <T extends { name: string }>(item: T) => item.name
-
     test('it does not remove elements from target', () => {
-      expect(deepMergeArray(
-        [{ name: 'frontend' }],
-        [],
-        byName,
-      )).to.deep.eq(
-        [{ name: 'frontend' }]
-      )
-    })
+      expect(deepMergeArray([{ name: 'frontend' }], [], byName)).to.deep.eq([
+        { name: 'frontend' },
+      ]);
+    });
 
     test('it does work as expected', () => {
       const result = deepMergeArray(
-        [{ name: 'frontend', buildArgs: { foo: 'bar', untouched: true } }],
-        [{ name: 'frontend', buildArgs: { foo: 'baz', add: 42 }}],
+        [{ buildArgs: { foo: 'bar', untouched: true }, name: 'frontend' }],
+        [{ buildArgs: { add: 42, foo: 'baz' }, name: 'frontend' }],
         byName,
       );
 
-      expect(result).to.deep.eq(
-        [{ name: 'frontend', buildArgs: { foo: 'baz', add: 42, untouched: true }}]
-      )
-    })
-  })
-
-
+      expect(result).to.deep.eq([
+        {
+          buildArgs: { add: 42, foo: 'baz', untouched: true },
+          name: 'frontend',
+        },
+      ]);
+    });
+  });
 });

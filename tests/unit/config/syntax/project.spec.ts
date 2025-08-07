@@ -4,8 +4,8 @@ import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { validateUserConfig } from '../../../../src/config';
 
 describe('Config syntax - Project', () => {
+  let vConfig: ReturnType<typeof vi.fn>;
 
-  let vConfig: ReturnType<typeof vi.fn>
   beforeEach(() => {
     vConfig = vi.fn(validateUserConfig);
   });
@@ -15,17 +15,17 @@ describe('Config syntax - Project', () => {
 
     expect(vConfig).toHaveResolvedWith({
       components: [],
+      defaults: {
+        docker: {
+          labels: {
+            'emb/project': 'test1',
+          },
+        },
+      },
       project: {
         name: 'test1',
         rootDir: cwd(),
       },
-      defaults: {
-        docker: {
-          labels: {
-            'emb/project': 'test1'
-          }
-        }
-      }
     });
   });
 
@@ -34,17 +34,17 @@ describe('Config syntax - Project', () => {
 
     expect(vConfig).toHaveResolvedWith({
       components: [],
+      defaults: {
+        docker: {
+          labels: {
+            'emb/project': 'test2',
+          },
+        },
+      },
       project: {
         name: 'test2',
         rootDir: cwd(),
       },
-      defaults: {
-        docker: {
-          labels: {
-            'emb/project': 'test2'
-          }
-        }
-      }
     });
   });
 
@@ -56,9 +56,9 @@ describe('Config syntax - Project', () => {
       defaults: {
         docker: {
           labels: {
-            'emb/project': 'test3'
-          }
-        }
+            'emb/project': 'test3',
+          },
+        },
       },
       project: {
         name: 'test3',
