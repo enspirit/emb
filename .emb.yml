@@ -21,7 +21,7 @@ components:
       # Inject some env var as build arg
       GREETING: Hello ${env:USER}
 
-flavours:
+flavors:
   production:
     defaults:
       docker:

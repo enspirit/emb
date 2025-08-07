@@ -44,7 +44,7 @@
         "$ref": "#/$defs/component"
       }
     },
-    "flavours": {
+    "flavors": {
       "type": "object",
       "additionalProperties": {
         "type": "object",
@@ -81,6 +81,12 @@
             "buildArgs": {
               "type": "object",
               "additionalProperties": true
+            },
+            "labels": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
             }
           }
         }

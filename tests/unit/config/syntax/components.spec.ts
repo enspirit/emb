@@ -1,16 +1,27 @@
 import { cwd } from 'node:process';
-import { describe, expect, test, vi } from 'vitest';
+import { describe, expect, test, vi, beforeEach } from 'vitest';
 
 import { validateUserConfig } from '../../../../src/config/index';
 
 describe('Config syntax - Components', () => {
-  const vConfig = vi.fn(validateUserConfig);
+
+  let vConfig: ReturnType<typeof vi.fn>
+  beforeEach(() => {
+    vConfig = vi.fn(validateUserConfig);
+  });
 
   test('allows for simple shortcuts', async () => {
     await vConfig({ components: ['frontend'], project: 'test1' });
 
     expect(vConfig).toHaveResolvedWith({
       components: [{ name: 'frontend' }],
+      defaults: {
+        docker: {
+          labels: {
+            'emb/project': 'test1'
+          }
+        }
+      },
       project: {
         name: 'test1',
         rootDir: cwd(),
@@ -26,6 +37,13 @@ describe('Config syntax - Components', () => {
 
     expect(vConfig).toHaveResolvedWith({
       components: [{ name: 'frontend' }],
+      defaults: {
+        docker: {
+          labels: {
+            'emb/project': 'test2'
+          }
+        }
+      },
       project: {
         name: 'test2',
         rootDir: cwd(),
@@ -35,6 +53,13 @@ describe('Config syntax - Components', () => {
 
   test('allows for build args', async () => {
     await vConfig({
+      defaults: {
+        docker: {
+          labels: {
+            'emb/project': 'test2'
+          }
+        }
+      },
       components: [
         {
           buildArgs: {
@@ -47,6 +72,13 @@ describe('Config syntax - Components', () => {
     });
 
     expect(vConfig).toHaveResolvedWith({
+      defaults: {
+        docker: {
+          labels: {
+            'emb/project': 'test2'
+          }
+        }
+      },
       components: [
         {
           buildArgs: {

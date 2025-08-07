@@ -38,6 +38,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.32.0",
+    "@fastify/deepmerge": "^3.1.0",
     "@oclif/prettier-config": "^0.2.1",
     "@oclif/test": "^4",
     "@tsconfig/node20": "^20.1.6",

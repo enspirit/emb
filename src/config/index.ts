@@ -30,6 +30,7 @@ export type ProjectConfig = {
 export type ComponentConfig = {
   buildArgs?: Record<PropertyKey, string>;
   dockerfile?: string;
+  labels?: Record<string, string>;
   name: string;
   target?: string;
 };
@@ -37,14 +38,21 @@ export type ComponentConfig = {
 export type DefaultSettings = {
   docker?: {
     buildArgs?: Record<string, string>;
+    labels?: Record<string, string>;
     tag?: string;
     target?: string;
   };
 };
 
+export type FlavorConfig = {
+  components?: Array<ComponentConfig>;
+  defaults?: DefaultSettings;
+};
+
 export type Config = {
   components: Array<ComponentConfig>;
   defaults?: DefaultSettings;
+  flavors?: Record<string, FlavorConfig>;
   project: ProjectConfig;
   vars?: Record<string, string>;
 };
@@ -76,7 +84,16 @@ export const toProjectConfig = (
 
   return {
     components,
-    defaults,
+    defaults: {
+      ...defaults,
+      docker: {
+        ...defaults?.docker,
+        labels: {
+          ...defaults?.docker?.labels,
+          'emb/project': project.name!,
+        },
+      },
+    },
     project: {
       ...project,
     } as ProjectConfig,

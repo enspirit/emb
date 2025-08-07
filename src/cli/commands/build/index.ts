@@ -1,6 +1,7 @@
 import { Args, Command, Flags } from '@oclif/core';
 
 import { ImageBuilder } from '../../../docker/ImageBuilder.js';
+import { getContext } from '../../context.js';
 
 export default class Build extends Command {
   static args = {
@@ -11,7 +12,7 @@ export default class Build extends Command {
   };
   static description = 'Build the docker images of the monorepo';
   static examples = [
-    `<%= config.bin %> <%= command.id %> build --flavour development`,
+    `<%= config.bin %> <%= command.id %> build --flavor development`,
   ];
   static flags = {
     concurrency: Flags.integer({
@@ -26,9 +27,9 @@ export default class Build extends Command {
       name: 'failfast',
       required: false,
     }),
-    flavour: Flags.string({
+    flavor: Flags.string({
       char: 'f',
-      description: 'Flavour to build (dev, production, ...)',
+      description: 'flavor to build (dev, production, ...)',
       required: false,
     }),
     retry: Flags.integer({
@@ -42,12 +43,14 @@ export default class Build extends Command {
 
   async run(): Promise<void> {
     const { argv, flags } = await this.parse(Build);
+    const context = await getContext();
 
     await new ImageBuilder({
       components: argv.length > 0 ? (argv as string[]) : undefined,
       concurreny: flags.concurrency,
       failfast: flags.failfast,
-      flavour: flags.flavour,
+      flavor: flags.flavor,
+      labels: context.monorepo.defaults.docker?.labels,
       retry: flags.retry,
     }).run();
   }

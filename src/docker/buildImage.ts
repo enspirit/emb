@@ -22,6 +22,7 @@ export const buildDockerImage = async (
     {
       buildargs: cmp.buildArgs,
       dockerfile: cmp.dockerfile,
+      labels: cmp.labels,
       t: cmp.name + ':' + (cmp.tag || 'latest'),
       target: cmp.target,
       version: '2',
