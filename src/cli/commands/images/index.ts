@@ -4,7 +4,7 @@ import { ImageInfo } from 'dockerode';
 import { listImages } from '../../../docker/index.js';
 import { getContext } from '../../context.js';
 
-export default class PluginsIndex extends Command {
+export default class ImagesIndex extends Command {
   static description = 'List available images.';
   static enableJsonFlag = true;
   static examples = ['<%= config.bin %> <%= command.id %>'];
@@ -20,7 +20,7 @@ export default class PluginsIndex extends Command {
   };
 
   public async run(): Promise<Array<ImageInfo>> {
-    const { flags } = await this.parse(PluginsIndex);
+    const { flags } = await this.parse(ImagesIndex);
     const context = await getContext();
 
     const { project } = context.monorepo;
