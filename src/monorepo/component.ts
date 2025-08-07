@@ -20,6 +20,12 @@ export class Component {
     return this.config.context;
   }
 
+  get dependencies() {
+    return this.monorepo.components.filter((c) =>
+      this.config.dependencies?.includes(c.name),
+    );
+  }
+
   get imageName() {
     return join(this.monorepo.name, this.name);
   }

@@ -3,6 +3,7 @@ import { ListrLogger, ListrTask, PRESET_TIMER } from 'listr2';
 
 import { getContext } from '../cli/context.js';
 import { Component } from '../monorepo/component.js';
+import { findBuildOrder } from '../monorepo/utils/findBuildOrder.js';
 import { buildDockerImage } from './buildImage.js';
 import { DockerComponentBuild } from './index.js';
 
@@ -43,13 +44,14 @@ export class ImageBuilder {
   public async run(): Promise<void> {
     const { options } = this;
     const { monorepo } = getContext();
+    const components = findBuildOrder(monorepo.components);
 
     // Set context
     this.manager.add([
       {
         async task(ctx, task) {
           ctx.components = await Promise.all(
-            options.components.map((cmp) => cmp.toDockerBuild()),
+            components.map((cmp) => cmp.toDockerBuild()),
           );
           task.title = `Preparing build configs`;
         },

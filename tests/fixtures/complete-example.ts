@@ -13,12 +13,20 @@ export const CompleteExample: IMonorepoConfig = {
         API_KEY: 'secret',
       },
       context: 'backend',
+      dependencies: ['base'],
       name: 'backend',
     },
     // Docker build targets
     {
       context: 'frontend',
+      dependencies: ['base'],
       name: 'frontend',
+      target: 'development',
+    },
+    // Base image for backend/frontend
+    {
+      context: 'base',
+      name: 'base',
       target: 'development',
     },
   ],

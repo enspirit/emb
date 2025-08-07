@@ -17,7 +17,9 @@ components:
   - simple
   - frontend
   # On purpose putting dependent before base
-  - dependent
+  - name: dependent
+    dependencies:
+      - base
   - base
   - name: buildargs
     buildArgs:

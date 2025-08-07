@@ -123,6 +123,12 @@
               "properties": {},
               "additionalProperties": true
             },
+            "dependencies": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
             "target": {
               "type": "string",
               "description": "The stage to target for the build"
