@@ -43,14 +43,11 @@ export default class Build extends Command {
 
   async run(): Promise<void> {
     const { argv, flags } = await this.parse(Build);
-    const context = await getContext();
 
     await new ImageBuilder({
       components: argv.length > 0 ? (argv as string[]) : undefined,
       concurreny: flags.concurrency,
       failfast: flags.failfast,
-      flavor: flags.flavor,
-      labels: context.monorepo.defaults.docker?.labels,
       retry: flags.retry,
     }).run();
   }

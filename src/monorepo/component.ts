@@ -1,3 +1,4 @@
+import deepmerge from '@fastify/deepmerge';
 import { join } from 'node:path';
 
 import { ComponentConfig } from '../config/index.js';
@@ -50,6 +51,12 @@ export class Component {
       buildArgs: await this.monorepo.expand(this.config.buildArgs || {}),
       context: this.rootdir,
       dockerfile: this.config.dockerfile || 'Dockerfile',
+      labels: deepmerge()(
+        {
+          ...this.monorepo.defaults.docker?.labels,
+        },
+        this.config.labels || {},
+      ),
       name: this.imageName,
       prerequisites: await this.getPrerequisites(),
       tag: this.imageTag,

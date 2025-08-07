@@ -67,7 +67,6 @@ export class ImageBuilder {
                     retry: options.retry,
                     async task(_ctx, task) {
                       const buildConfig = await cmp.toDockerBuild();
-
                       await buildDockerImage(buildConfig, (progress) => {
                         task.output = progress?.error || progress?.name || '';
                       });
