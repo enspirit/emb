@@ -16,6 +16,9 @@ defaults:
 components:
   - simple
   - frontend
+  # On purpose putting dependent before base
+  - dependent
+  - base
   - name: buildargs
     buildArgs:
       # Inject some env var as build arg

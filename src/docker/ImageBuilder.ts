@@ -66,7 +66,12 @@ export class ImageBuilder {
                   retry: options.retry,
                   async task(_ctx, task) {
                     await buildDockerImage(cmp, (progress) => {
-                      task.output = progress?.error || progress?.name || '';
+                      try {
+                        task.output = progress?.error || progress?.name || '';
+                      } catch {
+                        // if the command fails we might still try to update the output
+                        // and it triggers TypeError
+                      }
                     });
                     task.output = '';
                   },

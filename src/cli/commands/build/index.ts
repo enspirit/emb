@@ -22,7 +22,8 @@ export default class Build extends Command {
       required: false,
     }),
     failfast: Flags.boolean({
-      default: false,
+      allowNo: true,
+      default: true,
       description: 'Stop on first error',
       name: 'failfast',
       required: false,
