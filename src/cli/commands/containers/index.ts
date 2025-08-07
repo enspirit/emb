@@ -9,7 +9,7 @@ import { TABLE_DEFAULTS } from '../../constant.js';
 import { getContext } from '../../context.js';
 
 export default class ContainersIndex extends Command {
-  static description = 'List containers.';
+  static description = 'List docker containers.';
   static enableJsonFlag = true;
   static examples = ['<%= config.bin %> <%= command.id %>'];
   static flags = {

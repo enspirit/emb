@@ -16,7 +16,7 @@ export type ImageInfo = {
 };
 
 export default class ImagesIndex extends Command {
-  static description = 'List available images.';
+  static description = 'List docker images.';
   static enableJsonFlag = true;
   static examples = ['<%= config.bin %> <%= command.id %>'];
   static flags = {
