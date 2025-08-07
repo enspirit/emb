@@ -1,9 +1,12 @@
 import { describe, expect, test, vi } from 'vitest';
 
-import { expandRecord } from '../../../src/utils/expand';
+import { TemplateExpander } from '../../../src/utils/TemplateExpander';
 
 describe('Utils / expandRecord', () => {
-  const expandRecordFn = vi.fn((record, opts) => expandRecord(record, opts));
+  const expander = new TemplateExpander();
+  const expandRecordFn = vi.fn((record, opts) =>
+    expander.expandRecord(record, opts),
+  );
 
   test('works as expected', async () => {
     await expandRecordFn(

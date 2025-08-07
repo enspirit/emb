@@ -1,7 +1,7 @@
 import { join } from 'node:path';
 
 import { IMonorepoConfig } from '../config/index.js';
-import { expand, expandRecord } from '../utils/expand.js';
+import { TemplateExpander } from '../utils/TemplateExpander.js';
 import { Component } from './component.js';
 import { MonorepoConfig } from './config.js';
 import { ComponentDiscoverPlugin } from './plugins/ComponentsDiscover.js';
@@ -49,6 +49,8 @@ export class Monorepo {
   async expand(str: string): Promise<string>;
   async expand<R extends Record<string, unknown>>(record: R): Promise<R>;
   async expand(strOrRecord: unknown) {
+    const expander = new TemplateExpander();
+
     const options = {
       default: 'vars',
       sources: {
@@ -58,10 +60,13 @@ export class Monorepo {
     };
 
     if (typeof strOrRecord === 'string') {
-      return expand(strOrRecord as string, options);
+      return expander.expand(strOrRecord as string, options);
     }
 
-    return expandRecord(strOrRecord as Record<string, unknown>, options);
+    return expander.expandRecord(
+      strOrRecord as Record<string, unknown>,
+      options,
+    );
   }
 
   // Initialize
