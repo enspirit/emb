@@ -10,7 +10,6 @@ export default class ContainersPrune extends Command {
   static examples = ['<%= config.bin %> <%= command.id %>'];
 
   public async run(): Promise<PruneContainersInfo> {
-    const { flags } = await this.parse(ContainersPrune);
     const context = await getContext();
 
     const info = await pruneContainers({

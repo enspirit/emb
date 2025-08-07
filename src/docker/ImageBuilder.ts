@@ -1,5 +1,5 @@
 import { Manager } from '@listr2/manager';
-import { ListrLogger, ListrLogLevels, PRESET_TIMER } from 'listr2';
+import { ListrLogger, PRESET_TIMER } from 'listr2';
 
 import { Component } from '../monorepo/component.js';
 import { buildDockerImage } from './buildImage.js';

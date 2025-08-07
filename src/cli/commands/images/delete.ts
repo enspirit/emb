@@ -11,7 +11,6 @@ export default class ImagesDelete extends Command {
   static flags = {};
 
   public async run(): Promise<void> {
-    const { flags } = await this.parse(ImagesDelete);
     const context = await getContext();
 
     const images = await listImages({

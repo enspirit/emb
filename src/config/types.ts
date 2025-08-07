@@ -1,13 +1,5 @@
 import { EMBConfigSchema } from './schema.js';
 
-export type Component = {
-  name: string;
-};
-
-export type Service = {
-  name: string;
-};
-
 export type UserConfig = EMBConfigSchema;
 
 export type IProjectConfig = {

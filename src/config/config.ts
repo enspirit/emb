@@ -19,7 +19,7 @@ export class ProjectConfig implements IProjectConfig {
   }
 }
 
-export class MonorepoConfig implements IMonorepoConfig {
+export class MonorepoConfig implements Required<IMonorepoConfig> {
   components: ComponentConfig[];
   defaults: DefaultSettings;
   flavors: Record<string, FlavorConfig>;
