@@ -1,9 +1,17 @@
-import { Config } from "../../src/config";
+import { IMonorepoConfig } from "../../src/config";
 
-export const CompleteExample: Config = {
+export const CompleteExample: IMonorepoConfig = {
   project: {
     name: "simple",
     rootDir: "/tmp/simple"
+  },
+  defaults: {
+    docker: {
+      tag: '${vars:dockerTag}'
+    }
+  },
+  vars: {
+    dockerTag: '${env:DOCKER_TAG:-latest}'
   },
   components: [
     // Simplest component
@@ -25,10 +33,15 @@ export const CompleteExample: Config = {
   ],
   flavors: {
     production: {
+      defaults: {
+        docker: {
+          tag: 'production'
+        }
+      },
       components: [{
         name: 'frontend',
         target: 'production'
       }]
     }
-  }
+  },
 }

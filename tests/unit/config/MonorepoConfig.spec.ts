@@ -78,9 +78,13 @@ describe.only('Config - MonorepoConfig', () => {
       expect(production.project.name).to.equal(CompleteExample.project.name)
       expect(production.project.rootDir).to.equal(CompleteExample.project.rootDir)
 
-      console.log(production)
       // Override per component
+      expect(config.component('frontend').target).to.equal('development')
       expect(production.component('frontend').target).to.equal('production')
+
+      // Override defaults
+      expect(config.defaults.docker?.tag).to.equal('${vars:dockerTag}')
+      expect(production.defaults.docker?.tag).to.equal('production')
     })
   })
 });
