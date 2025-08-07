@@ -20,10 +20,5 @@ export interface DockerComponentBuild extends Task {
   target?: string;
 }
 
-export * from './buildImage.js';
-export * from './deleteImage.js';
-export * from './ImageBuilder.js';
-export * from './listContainers.js';
-export * from './listImages.js';
-export * from './pruneContainers.js';
-export * from './pruneImages.js';
+export * from './containers/index.js';
+export * from './images/index.js';

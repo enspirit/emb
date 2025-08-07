@@ -1,8 +1,8 @@
 import Docker from 'dockerode';
 import { Writable } from 'node:stream';
 
-import { DockerComponentBuild } from './index.js';
-import { decode } from './protobuf/index.js';
+import { DockerComponentBuild } from '../index.js';
+import { decode } from '../protobuf/index.js';
 
 export type MobyTrace = { aux: unknown; error?: string; id: string };
 export type Progress = { error?: string; name?: string };
