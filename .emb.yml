@@ -15,28 +15,46 @@ defaults:
 # The order is not important
 # as we will build a dependency graph
 components:
+  # The most simple way to add a component
+  # This should not be necessary when using autodiscovery
+  # This component will assume:
+  # - the folder 'simple/' exists
+  # - the Dockerfile 'simple/Dockerfile' exists
   - simple
+
+  # Exact same as for 'simple', but a tiny bit more verbose
   - name: base
+
+  # We can override things
   - name: frontend
+    # Such as the docker target to use for the build
     target: development
+    # And we can define tasks
     tasks:
       - name: test
-        executor: shell
         script: | # shell
           npm run test
       - name: fail
-        executor: shell
         script: | # shell
           npm run fail
 
+  # As part of things we can do for the build
+  # we can pass build args to the docker build
   - name: buildargs
     buildArgs:
       # Inject some env var as build arg
       GREETING: Hello ${env:USER}
+
+  # Sometimes we have inter-components dependencies
+  # (for instance when reusing images)
+  # This ensures that 'base' is built before 'dependent'
+  #
+  # (FYI: EMB will check and fail if it detects circular dependencies)
   - name: dependent
     dependencies:
       - base
 
+## Flavours
 flavors:
   production:
     defaults:
