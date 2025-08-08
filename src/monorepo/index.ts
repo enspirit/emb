@@ -1,7 +1,8 @@
 import { join } from 'node:path';
 
-import { IMonorepoConfig } from '../config/index.js';
-import { TemplateExpander } from '../utils/TemplateExpander.js';
+import { IMonorepoConfig } from '@/config';
+import { TemplateExpander } from '@/utils';
+
 import { Component } from './component.js';
 import { MonorepoConfig } from './config.js';
 import { ComponentDiscoverPlugin } from './plugins/ComponentsDiscover.js';

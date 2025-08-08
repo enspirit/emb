@@ -6,8 +6,8 @@ import {
   FlavorConfig,
   IMonorepoConfig,
   IProjectConfig,
-} from '../config/types.js';
-import { deepMergeArray } from '../utils/deepMergeArray.js';
+} from '@/config';
+import { deepMergeArray } from '@/utils';
 
 export class MonorepoConfig implements Required<IMonorepoConfig> {
   components: ComponentConfig[];

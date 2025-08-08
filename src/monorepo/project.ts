@@ -1,4 +1,4 @@
-import { IProjectConfig } from '../config/types.js';
+import { IProjectConfig } from '@/config';
 
 export class ProjectConfig implements IProjectConfig {
   name: string;

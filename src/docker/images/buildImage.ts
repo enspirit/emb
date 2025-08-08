@@ -1,9 +1,7 @@
 import { Writable } from 'node:stream';
 
 import { getContext } from '@/cli';
-
-import { DockerComponentBuild } from '../index.js';
-import { decode } from '../protobuf/index.js';
+import { decodeBuildkitStatusResponse, DockerComponentBuild } from '@/docker';
 
 export type MobyTrace = { aux: unknown; error?: string; id: string };
 export type Progress = { error?: string; name?: string };
@@ -49,7 +47,9 @@ export const buildDockerImage = async (
           reject(new Error(trace.error));
         } else {
           try {
-            const { vertexes } = await decode(trace.aux as string);
+            const { vertexes } = await decodeBuildkitStatusResponse(
+              trace.aux as string,
+            );
             vertexes.forEach((v: { name: string }) => {
               progress?.(v);
             });

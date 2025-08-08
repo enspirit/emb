@@ -13,6 +13,7 @@ export default defineConfig({
       '@/docker': resolve(__dirname, './src/docker/index.js'),
       '@/git': resolve(__dirname, './src/git/index.js'),
       '@/monorepo': resolve(__dirname, './src/monorepo/index.js'),
+      '@/utils': resolve(__dirname, './src/utils/index.js'),
     },
 
     extensions: ['.js', '.ts', '.json'], // 👈 Important

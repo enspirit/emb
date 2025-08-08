@@ -2,10 +2,8 @@ import { Manager } from '@listr2/manager';
 import { ListrLogger, ListrTask, PRESET_TIMER } from 'listr2';
 
 import { getContext } from '@/cli';
+import { buildDockerImage, DockerComponentBuild } from '@/docker';
 import { Component, findBuildOrder } from '@/monorepo';
-
-import { DockerComponentBuild } from '../index.js';
-import { buildDockerImage } from './buildImage.js';
 
 export type BuildOptions = {
   components: Array<Component>;

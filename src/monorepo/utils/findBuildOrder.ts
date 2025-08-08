@@ -1,6 +1,6 @@
 import graphlib from 'graphlib';
 
-import { Component } from '../component.js';
+import { Component } from '@/monorepo';
 
 export const findBuildOrder = (
   components: Array<Component>,

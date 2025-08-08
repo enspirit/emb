@@ -1,10 +1,8 @@
 import { Command } from '@oclif/core';
 import { printTable } from '@oclif/table';
 
-import { getContext } from '@/cli';
+import { getContext, TABLE_DEFAULTS } from '@/cli';
 import { TaskInfo } from '@/monorepo';
-
-import { TABLE_DEFAULTS } from '../../constants.js';
 
 export default class TasksIndex extends Command {
   static description = 'List tasks.';

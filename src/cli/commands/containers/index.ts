@@ -2,11 +2,9 @@ import { Command, Flags } from '@oclif/core';
 import { printTable } from '@oclif/table';
 import { ContainerInfo } from 'dockerode';
 
-import { getContext } from '@/cli';
+import { getContext, TABLE_DEFAULTS } from '@/cli';
 import { listContainers, shortId } from '@/docker';
-
-import { timeAgo } from '../../../utils/time.js';
-import { TABLE_DEFAULTS } from '../../constants.js';
+import { timeAgo } from '@/utils';
 
 export default class ContainersIndex extends Command {
   static aliases = ['ps'];

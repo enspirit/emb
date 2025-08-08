@@ -19,7 +19,9 @@
       "@/monorepo": ["./src/monorepo/index.js"],
       "@/monorepo/*": ["./src/monorepo/*"],
       "@/docker": ["./src/docker/index.js"],
-      "@/docker/*": ["./src/docker/*"]
+      "@/docker/*": ["./src/docker/*"],
+      "@/utils": ["./src/utils/index.js"],
+      "@/utils/*": ["./src/utils/*"]
     }
   },
   "include": ["src/**/*", "tests/**/*"],

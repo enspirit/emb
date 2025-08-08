@@ -14,7 +14,7 @@ export const loadControl = async () => {
   return control;
 };
 
-export const decode = async (str: Buffer | string) => {
+export const decodeBuildkitStatusResponse = async (str: Buffer | string) => {
   const control = await loadControl();
   const buffer =
     typeof str === 'string' ? Buffer.from(str as string, 'base64') : str;

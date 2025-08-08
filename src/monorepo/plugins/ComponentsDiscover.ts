@@ -2,9 +2,9 @@ import deepmerge from '@fastify/deepmerge';
 import { glob } from 'glob';
 import { dirname } from 'node:path';
 
-import { ComponentConfig } from '../../config/types.js';
-import { MonorepoConfig } from '../config.js';
-import { Monorepo } from '../index.js';
+import { ComponentConfig } from '@/config';
+import { Monorepo, MonorepoConfig } from '@/monorepo';
+
 import { IEMBPlugin } from './types.js';
 
 export class ComponentDiscoverPlugin implements IEMBPlugin {

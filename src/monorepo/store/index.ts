@@ -2,7 +2,7 @@ import { constants, createWriteStream } from 'node:fs';
 import { access, mkdir } from 'node:fs/promises';
 import { dirname, join, normalize } from 'node:path';
 
-import { Monorepo } from '../index.js';
+import { Monorepo } from '@/monorepo';
 
 /**
  * A first implementation of a "store" where

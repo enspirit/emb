@@ -3,9 +3,8 @@ import 'dotenv/config';
 import Dockerode from 'dockerode';
 
 import { setContext } from '@/cli';
+import { loadConfig } from '@/config';
 import { Monorepo } from '@/monorepo';
-
-import { loadConfig } from '../../config/index.js';
 
 const hook: Hook.Init = async function (options) {
   try {

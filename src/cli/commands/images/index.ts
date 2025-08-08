@@ -1,11 +1,9 @@
 import { Command, Flags } from '@oclif/core';
 import { printTable } from '@oclif/table';
 
-import { getContext } from '@/cli';
+import { getContext, TABLE_DEFAULTS } from '@/cli';
 import { listImages, shortId } from '@/docker';
-
-import { timeAgo } from '../../../utils/time.js';
-import { TABLE_DEFAULTS } from '../../constants.js';
+import { timeAgo } from '@/utils';
 
 export type ImageInfo = {
   created: Date;

@@ -1,5 +1,4 @@
-import { MonorepoConfig } from '../config.js';
-import { Monorepo } from '../index.js';
+import { Monorepo, MonorepoConfig } from '@/monorepo';
 
 export interface IEMBPlugin {
   run(config: Monorepo): Promise<MonorepoConfig>;
