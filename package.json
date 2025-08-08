@@ -21,7 +21,9 @@
     "postpack": "shx rm -f oclif.manifest.json",
     "posttest": "npm run lint",
     "prepack": "oclif manifest && oclif readme",
-    "test": "vitest run",
+    "test": "npm run test:unit",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
     "test:watch": "vitest",
     "version": "oclif readme && git add README.md"
   },
@@ -70,6 +72,7 @@
     "rimraf": "^6.0.1",
     "shx": "^0.4.0",
     "ts-node": "^10.9.2",
+    "tsx": "^4.20.3",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
   },
