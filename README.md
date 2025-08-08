@@ -46,7 +46,7 @@ USAGE
 * [`emb ps`](#emb-ps)
 * [`emb run COMPONENT SCRIPT`](#emb-run-component-script)
 * [`emb tasks`](#emb-tasks)
-* [`emb tasks run`](#emb-tasks-run)
+* [`emb tasks run [TASK]`](#emb-tasks-run-task)
 * [`emb up`](#emb-up)
 
 ## `emb autocomplete [SHELL]`
@@ -613,13 +613,16 @@ EXAMPLES
   $ emb tasks
 ```
 
-## `emb tasks run`
+## `emb tasks run [TASK]`
 
 Run a task.
 
 ```
 USAGE
-  $ emb tasks run [--json]
+  $ emb tasks run [TASK...] [--json]
+
+ARGUMENTS
+  TASK...  List of tasks ids to run (eg: component:task)
 
 GLOBAL FLAGS
   --json  Format output as json.

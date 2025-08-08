@@ -1,5 +1,6 @@
 import { Args, Command } from '@oclif/core';
 import { delay, Listr, ListrTask } from 'listr2';
+import { PassThrough, Writable } from 'node:stream';
 
 import { shellExecutor } from '../../../executors/shell.js';
 import { TaskInfo } from '../../../monorepo/types.js';
@@ -41,7 +42,7 @@ export default class RunTask extends Command {
         rendererOptions: { persistentOutput: true },
 
         async task(_ctx, listrTask) {
-          const logStream = await monorepo.store.createWriteStream(
+          const logStream: Writable = await monorepo.store.createWriteStream(
             `logs/tasks/run/${task.id}.log`,
           );
 
@@ -49,15 +50,15 @@ export default class RunTask extends Command {
             ? monorepo.component(task.component).rootdir
             : monorepo.rootDir;
 
-          const process = await shellExecutor.run(task.script, {
+          // Gonna log on both the logStream and stdout
+          const tee = new PassThrough();
+          tee.pipe(listrTask.stdout());
+          tee.pipe(logStream);
+
+          await shellExecutor.run(task.script, {
             cwd,
+            out: tee,
           });
-
-          process.stdout?.pipe?.(listrTask.stdout());
-          process.stderr?.pipe?.(listrTask.stdout());
-
-          process.stdout?.pipe?.(logStream);
-          process.stderr?.pipe?.(logStream);
         },
         title: `Running ${task.id}`,
       };

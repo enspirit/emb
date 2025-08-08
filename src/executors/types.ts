@@ -1,8 +1,10 @@
-import { ChildProcess } from 'node:child_process';
+import { Writable } from 'node:stream';
 
 export type ExecutorRunOptions = {
   cwd?: string;
+  out?: Writable;
 };
-export type Executor = {
-  run(script: string, options?: ExecutorRunOptions): Promise<ChildProcess>;
+
+export type Executor<T = unknown> = {
+  run(script: string, options?: ExecutorRunOptions): Promise<T>;
 };
