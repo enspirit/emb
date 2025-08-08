@@ -1,5 +1,3 @@
-import { Command } from '@oclif/core';
-
 import { FlavoredCommand, getContext } from '@/cli';
 import { IMonorepoConfig } from '@/config';
 

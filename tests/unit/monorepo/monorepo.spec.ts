@@ -1,4 +1,3 @@
-import { cwd } from 'node:process';
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { Component, Monorepo, MonorepoConfig } from '@/monorepo';

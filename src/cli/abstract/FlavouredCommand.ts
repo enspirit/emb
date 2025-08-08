@@ -1,5 +1,5 @@
 // src/FlavoredCommand.ts
-import { Command, Errors, Flags, Interfaces } from '@oclif/core';
+import { Command, Flags, Interfaces } from '@oclif/core';
 
 import { getContext, setContext } from '../context.js';
 
