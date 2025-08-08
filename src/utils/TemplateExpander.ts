@@ -5,18 +5,35 @@ type ExpandOptions = {
 
 const TPL_REGEX = /(?<!\\)\${(?:(\w+):)?(\w+)(?::-(.*?))?}/g;
 
+export type ExpansionHistory = {
+  source: string;
+  value: unknown;
+  variable: string;
+};
+
 export class TemplateExpander {
+  /**
+   * Keep track of the sources used for expansions
+   * (track source, name, final value)
+   */
+  private expansions: Array<ExpansionHistory> = [];
+
+  get expansionCount() {
+    return this.expansions.length;
+  }
+
   async expand(str: string, options: ExpandOptions = {}) {
     return (
       (str || '')
         .toString()
         // Expand variables
         .replaceAll(TPL_REGEX, (match, source, key, fallback) => {
-          const provider = options.sources?.[source || options.default];
+          const src = source || options.default;
+          const provider = options.sources?.[src];
 
           if (!provider) {
             if (fallback !== undefined) {
-              return fallback;
+              return this.track(src, key, fallback);
             }
 
             throw new Error(`Invalid expand provider '${source}' ('${match}')`);
@@ -33,7 +50,11 @@ export class TemplateExpander {
             );
           }
 
-          return val ?? fallback;
+          if (val !== undefined && val !== null) {
+            return this.track(src, key, val);
+          }
+
+          return this.track(src, key, fallback || '');
         })
         // Unescape non-variables left
         .replaceAll('\\${', '${')
@@ -57,5 +78,10 @@ export class TemplateExpander {
       },
       Promise.resolve({}) as Promise<R>,
     );
+  }
+
+  private track<T>(source: string, variable: string, value: T) {
+    this.expansions.push({ source, value, variable });
+    return value;
   }
 }

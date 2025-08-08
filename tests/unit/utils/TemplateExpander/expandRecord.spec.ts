@@ -34,5 +34,7 @@ describe('Utils / expandRecord', () => {
       },
     });
     expandRecordFn.mockReset();
+
+    expect(expander.expansionCount).to.equal(1);
   });
 });
