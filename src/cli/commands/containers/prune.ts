@@ -1,7 +1,8 @@
 import { Command } from '@oclif/core';
 import { PruneContainersInfo } from 'dockerode';
 
-import { pruneContainers } from '../../../docker/index.js';
+import { pruneContainers } from '@/docker';
+
 import { getContext } from '../../context.js';
 
 export default class ContainersPrune extends Command {

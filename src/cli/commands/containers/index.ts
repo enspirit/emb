@@ -2,8 +2,8 @@ import { Command, Flags } from '@oclif/core';
 import { printTable } from '@oclif/table';
 import { ContainerInfo } from 'dockerode';
 
-import { listContainers } from '../../../docker/index.js';
-import { shortId } from '../../../docker/utils.js';
+import { listContainers, shortId } from '@/docker';
+
 import { timeAgo } from '../../../utils/time.js';
 import { TABLE_DEFAULTS } from '../../constant.js';
 import { getContext } from '../../context.js';

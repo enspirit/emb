@@ -8,6 +8,7 @@ const __dirname = dirname(__filename);
 export default defineConfig({
   resolve: {
     alias: {
+      '@/docker': resolve(__dirname, './src/docker'),
       '@/monorepo': resolve(__dirname, './src/monorepo'),
     },
 

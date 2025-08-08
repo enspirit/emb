@@ -1,7 +1,8 @@
 import { Command } from '@oclif/core';
 import { Listr } from 'listr2';
 
-import { down } from '../../docker/compose/index.js';
+import { down } from '@/docker';
+
 import { getContext } from '../context.js';
 
 export default class DownCommand extends Command {

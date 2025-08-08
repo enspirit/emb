@@ -10,7 +10,9 @@
     "resolveJsonModule": true,
     "paths": {
       "@/monorepo": ["./src/monorepo/index.js"],
-      "@/monorepo/*": ["./src/monorepo/*"]
+      "@/monorepo/*": ["./src/monorepo/*"],
+      "@/docker": ["./src/docker/index.js"],
+      "@/docker/*": ["./src/docker/*"]
     }
   },
   "include": ["src/**/*", "tests/**/*"],

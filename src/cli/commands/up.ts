@@ -1,7 +1,8 @@
 import { Command, Flags } from '@oclif/core';
 import { Listr } from 'listr2';
 
-import { up } from '../../docker/compose/index.js';
+import { up } from '@/docker';
+
 import { getContext } from '../context.js';
 
 export default class UpCommand extends Command {

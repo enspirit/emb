@@ -2,9 +2,9 @@ import { Args, Command, Flags } from '@oclif/core';
 import { Listr, ListrTask } from 'listr2';
 import { PassThrough, Writable } from 'node:stream';
 
+import { getContainer, listContainers } from '@/docker';
 import { TaskInfo } from '@/monorepo';
 
-import { getContainer, listContainers } from '../../../docker/index.js';
 import { dockerExecutor } from '../../../executors/docker.js';
 import { ExecutorType } from '../../../executors/index.js';
 import { shellExecutor } from '../../../executors/shell.js';
