@@ -1,10 +1,11 @@
-import Docker, { ContainerInfo, ContainerListOptions } from 'dockerode';
+import { ContainerInfo, ContainerListOptions } from 'dockerode';
 
-const docker = new Docker();
+import { getContext } from '../../cli/context.js';
 
 export const listContainers = async (
   opts?: ContainerListOptions,
 ): Promise<Array<ContainerInfo>> => {
+  const { docker } = getContext();
   const containers = await docker.listContainers({
     ...opts,
   });

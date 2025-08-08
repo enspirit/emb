@@ -34,7 +34,6 @@ export default class RunTask extends Command {
     const { argv, flags } = await this.parse(RunTask);
     const context = await getContext();
     const { monorepo } = context;
-    const _this = this;
 
     const toRun =
       argv.length > 0
@@ -53,7 +52,7 @@ export default class RunTask extends Command {
       return {
         rendererOptions: { persistentOutput: true },
 
-        async task(_ctx, listrTask) {
+        task: async (_ctx, listrTask) => {
           const type: ExecutorType = flags.executor
             ? (flags.executor as ExecutorType)
             : ExecutorType.container;
@@ -69,11 +68,11 @@ export default class RunTask extends Command {
 
           switch (type) {
             case ExecutorType.container: {
-              return _this.dockerExec(task, tee);
+              return this.dockerExec(task, tee);
             }
 
             case ExecutorType.local: {
-              return _this.shellExec(task, tee);
+              return this.shellExec(task, tee);
             }
 
             default: {

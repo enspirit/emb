@@ -1,6 +1,7 @@
 import Docker from 'dockerode';
 import { Writable } from 'node:stream';
 
+import { getContext } from '../../cli/context.js';
 import { DockerComponentBuild } from '../index.js';
 import { decode } from '../protobuf/index.js';
 
@@ -10,14 +11,13 @@ export type DockerBuildExtraOptions = {
   output?: Writable;
 };
 
-const docker = new Docker();
-
 export const buildDockerImage = async (
   cmp: DockerComponentBuild,
   opts: DockerBuildExtraOptions = {},
   progress?: (progress: Progress) => void,
 ): Promise<DockerComponentBuild & { traces: Array<MobyTrace> }> => {
   const files = (cmp.prerequisites || []).map((f) => f.path);
+  const { docker } = getContext();
 
   const stream = await docker.buildImage(
     {

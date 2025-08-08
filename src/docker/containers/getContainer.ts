@@ -1,7 +1,8 @@
-import Docker, { Container } from 'dockerode';
+import { Container } from 'dockerode';
 
-const docker = new Docker();
+import { getContext } from '../../cli/context.js';
 
 export const getContainer = async (id: string): Promise<Container> => {
+  const { docker } = getContext();
   return docker.getContainer(id);
 };

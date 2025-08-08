@@ -1,6 +1,6 @@
-import Docker, { PruneContainersInfo } from 'dockerode';
+import { PruneContainersInfo } from 'dockerode';
 
-const docker = new Docker();
+import { getContext } from '../../cli/context.js';
 
 // For some reason it's not typed in dockerode
 export type PruneContainersOptions = {
@@ -10,6 +10,7 @@ export type PruneContainersOptions = {
 export const pruneContainers = async (
   opts?: PruneContainersOptions,
 ): Promise<PruneContainersInfo> => {
+  const { docker } = getContext();
   const info = await docker.pruneContainers({
     ...opts,
   });

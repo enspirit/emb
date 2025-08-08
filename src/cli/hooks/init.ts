@@ -1,5 +1,6 @@
 import { Hook } from '@oclif/core';
 import 'dotenv/config';
+import Dockerode from 'dockerode';
 
 import { loadConfig } from '../../config/index.js';
 import { Monorepo } from '../../monorepo/index.js';
@@ -16,6 +17,7 @@ const hook: Hook.Init = async function (options) {
     Object.assign(process.env, envVars);
 
     setContext({
+      docker: new Dockerode(),
       monorepo,
     });
   } catch (error) {
