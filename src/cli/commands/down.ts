@@ -11,7 +11,6 @@ export default class DownCommand extends Command {
   static flags = {};
 
   public async run(): Promise<void> {
-    const { flags } = await this.parse(DownCommand);
     const { monorepo } = getContext();
 
     const runner = new Listr([

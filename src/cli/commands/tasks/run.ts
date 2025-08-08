@@ -1,13 +1,11 @@
 import { Args, Command, Flags } from '@oclif/core';
-import { Container } from 'dockerode';
-import { delay, Listr, ListrTask } from 'listr2';
+import { Listr, ListrTask } from 'listr2';
 import { PassThrough, Writable } from 'node:stream';
 
 import { getContainer, listContainers } from '../../../docker/index.js';
 import { dockerExecutor } from '../../../executors/docker.js';
 import { ExecutorType } from '../../../executors/index.js';
 import { shellExecutor } from '../../../executors/shell.js';
-import { Executor } from '../../../executors/types.js';
 import { TaskInfo } from '../../../monorepo/types.js';
 import { getContext } from '../../context.js';
 

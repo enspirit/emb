@@ -1,4 +1,3 @@
-import Docker from 'dockerode';
 import { Writable } from 'node:stream';
 
 import { getContext } from '../../cli/context.js';

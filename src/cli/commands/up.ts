@@ -1,5 +1,5 @@
 import { Command, Flags } from '@oclif/core';
-import { Listr, ListrLogger, ProcessOutput } from 'listr2';
+import { Listr } from 'listr2';
 
 import { up } from '../../docker/compose/index.js';
 import { getContext } from '../context.js';
@@ -19,7 +19,6 @@ export default class UpCommand extends Command {
   };
 
   public async run(): Promise<void> {
-    const { flags } = await this.parse(UpCommand);
     const { monorepo } = getContext();
 
     const runner = new Listr([
