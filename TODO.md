@@ -23,6 +23,8 @@
 
 * Ability to split one long .emb.yml file into multiple files (imports?) and move parts into their components folder (like we had for */makefile.mk)
 
+* Ability to specify which .env need to be autoloaded (some of our repos were including .env.commons + .env)
+
 ## Pre-requisites
 
 * Our docker-compose sometimes depends on env files that are not part of the git and need to be auto-created
