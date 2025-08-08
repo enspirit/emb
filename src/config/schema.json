@@ -99,6 +99,29 @@
         }
       }
     },
+    "task":{
+      "type": "object",
+      "required": ["name", "script"],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "script": {
+          "type": "string"
+        },
+        "executor": {
+          "type": "string"
+        },
+        "options": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
     "component": {
       "oneOf": [
         {
@@ -143,6 +166,12 @@
             "dockerfile": {
               "type": "string",
               "description": "The Dockerfile to use"
+            },
+            "tasks": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/task"
+              }
             }
           },
           "additionalProperties": false

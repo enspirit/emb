@@ -10,7 +10,7 @@
     "emb": "./bin/run.js"
   },
   "scripts": {
-    "build": "rimraf dist && npm run build:ts && npm run copy:proto && npm run build:types",
+    "build": "rimraf dist && npm run build:types && npm run build:ts && npm run copy:proto",
     "copy:proto": "cp -r src/docker/protobuf/*.proto dist/docker/protobuf/",
     "build:ts": "tsc -b",
     "build:types": "json2ts src/config/schema.json > src/config/schema.ts",
@@ -37,6 +37,7 @@
     "dockerode": "^4.0.7",
     "docker-compose": "^1.2.0",
     "dotenv": "^17.2.1",
+    "execa": "^9.6.0",
     "find-up": "^7.0.0",
     "glob": "^11.0.3",
     "graphlib": "^2.1.8",

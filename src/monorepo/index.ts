@@ -6,8 +6,10 @@ import { Component } from './component.js';
 import { MonorepoConfig } from './config.js';
 import { ComponentDiscoverPlugin } from './plugins/ComponentsDiscover.js';
 import { EMBStore } from './store/index.js';
+import { TaskInfo } from './types.js';
 
 export * from './config.js';
+export * from './types.js';
 
 export class Monorepo {
   private _config: MonorepoConfig;
@@ -41,6 +43,12 @@ export class Monorepo {
 
   get store() {
     return this._store;
+  }
+
+  get tasks() {
+    return this.components.reduce<Array<TaskInfo>>((tasks, cmp) => {
+      return [...tasks, ...cmp.tasks];
+    }, []);
   }
 
   get vars(): Record<string, unknown> {

@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { ComponentConfig } from '../config/index.js';
 import { DockerComponentBuild, Prerequisite } from '../docker/index.js';
 import { loadFilePrerequisites } from '../git/index.js';
-import { Monorepo } from './index.js';
+import { Monorepo, TaskInfo } from './index.js';
 
 export class Component {
   constructor(
@@ -40,6 +40,16 @@ export class Component {
 
   get rootdir() {
     return this.monorepo.join(this.context);
+  }
+
+  get tasks(): Array<TaskInfo> {
+    return (this.config.tasks || [])?.map((t) => {
+      return {
+        ...t,
+        component: this.name,
+        id: `${this.name}:${t.name}`,
+      };
+    });
   }
 
   cloneWith(config: Partial<ComponentConfig>) {

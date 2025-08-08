@@ -16,8 +16,14 @@ defaults:
 # as we will build a dependency graph
 components:
   - simple
-  - frontend
-  - base
+  - name: base
+  - name: frontend
+    tasks:
+      - name: test
+        executor: shell
+        script: | # shell
+          ls /tmp | wc -l
+
   - name: buildargs
     buildArgs:
       # Inject some env var as build arg

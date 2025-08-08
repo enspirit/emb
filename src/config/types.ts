@@ -1,4 +1,4 @@
-import { EMBConfigSchema } from './schema.js';
+import { EMBConfigSchema, Task } from './schema.js';
 
 export type UserConfig = EMBConfigSchema;
 
@@ -15,6 +15,7 @@ export type ComponentConfig = {
   labels?: Record<string, string>;
   name: string;
   target?: string;
+  tasks?: Array<Task>;
 };
 
 export type DefaultSettings = {
