@@ -1,8 +1,11 @@
 ## Tasks
 
+[x] ability to run a task inside a container / locally
+
 * ability to take a shell on a running container (`make auth.bash`) (include ability to specify which shell the containers can have (bash by default / sh / etc))
 
-* ability to run a task inside a container / locally / (on k8s pod?) (and ability to define which mode is supported or not)
+[ ] Abstract the executor option for tasks to allow creation of other executors (k8s, ...)
+[ ] Add ability to specify when a task only supports specific executors (only local / only container / ...)
 
 * When running a task, I should be able to pass custom environment variable easily: `eg: FAILFAST=1 emb run task webspicy:tests` (is it possible easily on both local and docker runner?)
 
