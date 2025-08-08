@@ -24,13 +24,14 @@ USAGE
 # Commands
 <!-- commands -->
 * [`emb autocomplete [SHELL]`](#emb-autocomplete-shell)
-* [`emb build [COMPONENT]`](#emb-build-component)
+* [`emb components`](#emb-components)
 * [`emb config print`](#emb-config-print)
 * [`emb containers`](#emb-containers)
 * [`emb containers prune`](#emb-containers-prune)
 * [`emb down`](#emb-down)
 * [`emb help [COMMAND]`](#emb-help-command)
 * [`emb images`](#emb-images)
+* [`emb images build [COMPONENT]`](#emb-images-build-component)
 * [`emb images delete`](#emb-images-delete)
 * [`emb images prune`](#emb-images-prune)
 * [`emb plugins`](#emb-plugins)
@@ -80,28 +81,25 @@ EXAMPLES
 
 _See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v3.2.34/src/commands/autocomplete/index.ts)_
 
-## `emb build [COMPONENT]`
+## `emb components`
 
-Build the docker images of the monorepo
+List components.
 
 ```
 USAGE
-  $ emb build [COMPONENT...] [-c <value>] [--failfast] [-f <value>] [-r <value>]
-
-ARGUMENTS
-  COMPONENT...  List of components to build
+  $ emb components [--json] [--flavor <value>]
 
 FLAGS
-  -c, --concurrency=<value>  [default: 1] Number of concurrent builds
-  -f, --flavor=<value>       flavor to build (dev, production, ...)
-  -r, --retry=<value>        [default: 1] Retry on build fail
-      --[no-]failfast        Stop on first error
+  --flavor=<value>  Specify the flavor to use.
+
+GLOBAL FLAGS
+  --json  Format output as json.
 
 DESCRIPTION
-  Build the docker images of the monorepo
+  List components.
 
 EXAMPLES
-  $ emb build build --flavor development
+  $ emb components
 ```
 
 ## `emb config print`
@@ -110,7 +108,10 @@ Print the current config.
 
 ```
 USAGE
-  $ emb config print [--json]
+  $ emb config print [--json] [--flavor <value>]
+
+FLAGS
+  --flavor=<value>  Specify the flavor to use.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -221,6 +222,33 @@ DESCRIPTION
 
 EXAMPLES
   $ emb images
+```
+
+## `emb images build [COMPONENT]`
+
+Build the docker images of the monorepo
+
+```
+USAGE
+  $ emb images build [COMPONENT...] [--json] [--flavor <value>] [-c <value>] [--failfast] [-r <value>]
+
+ARGUMENTS
+  COMPONENT...  List of components to build images for
+
+FLAGS
+  -c, --concurrency=<value>  [default: 1] Number of concurrent builds
+  -r, --retry=<value>        [default: 1] Retry on build fail
+      --[no-]failfast        Stop on first error
+      --flavor=<value>       Specify the flavor to use.
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Build the docker images of the monorepo
+
+EXAMPLES
+  $ emb images build build --flavor development
 ```
 
 ## `emb images delete`
@@ -619,10 +647,13 @@ Run a task.
 
 ```
 USAGE
-  $ emb tasks run [TASK...] [--json]
+  $ emb tasks run [TASK...] [--json] [-x container|local]
 
 ARGUMENTS
   TASK...  List of tasks ids to run (eg: component:task)
+
+FLAGS
+  -x, --executor=<option>  <options: container|local>
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -640,7 +671,11 @@ Start the whole project.
 
 ```
 USAGE
-  $ emb up [--json]
+  $ emb up [--json] [--flavor <value>] [-f]
+
+FLAGS
+  -f, --force-recreate  Recreate containers even if their configuration and image haven't changed
+      --flavor=<value>  Specify the flavor to use.
 
 GLOBAL FLAGS
   --json  Format output as json.
