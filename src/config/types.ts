@@ -9,7 +9,7 @@ export type IProjectConfig = {
 
 export type ComponentConfig = {
   buildArgs?: Record<PropertyKey, string>;
-  context: string;
+  context?: string;
   dependencies?: Array<string>;
   dockerfile?: string;
   labels?: Record<string, string>;

@@ -22,6 +22,7 @@ describe('Config syntax - Project', () => {
           },
         },
       },
+      flavors: {},
       project: {
         name: 'test1',
         rootDir: cwd(),
@@ -41,6 +42,7 @@ describe('Config syntax - Project', () => {
           },
         },
       },
+      flavors: {},
       project: {
         name: 'test2',
         rootDir: cwd(),
@@ -60,6 +62,7 @@ describe('Config syntax - Project', () => {
           },
         },
       },
+      flavors: {},
       project: {
         name: 'test3',
         rootDir: 'examples',

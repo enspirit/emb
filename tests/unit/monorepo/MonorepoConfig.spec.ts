@@ -28,6 +28,18 @@ describe('Config - MonorepoConfig', () => {
           target: 'production',
         },
       ],
+      flavors: {
+        production: {
+          components: [
+            {
+              buildArgs: {
+                API_KEY: 'production secret',
+              },
+              name: 'frontend',
+            },
+          ],
+        },
+      },
       project: {
         name: 'test',
         rootDir: cwd(),
@@ -39,8 +51,9 @@ describe('Config - MonorepoConfig', () => {
     expect(config.components).toHaveLength(2);
 
     expect(config.components[0].name).to.equal('frontend');
-
     expect(config.components[1].name).to.equal('backend');
+
+    expect(config.flavors).to.have.key('production');
   });
 
   describe('#flavor(name)', () => {

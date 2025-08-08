@@ -1,9 +1,9 @@
-import { Args, Command, Flags } from '@oclif/core';
+import { Args, Flags } from '@oclif/core';
 
-import { getContext } from '@/cli';
+import { FlavoredCommand, getContext } from '@/cli';
 import { ImageBuilder } from '@/docker';
 
-export default class Build extends Command {
+export default class BuildCommand extends FlavoredCommand<typeof BuildCommand> {
   static args = {
     component: Args.string({
       description: 'List of components to build',
@@ -28,11 +28,6 @@ export default class Build extends Command {
       name: 'failfast',
       required: false,
     }),
-    flavor: Flags.string({
-      char: 'f',
-      description: 'flavor to build (dev, production, ...)',
-      required: false,
-    }),
     retry: Flags.integer({
       char: 'r',
       default: 1,
@@ -43,7 +38,7 @@ export default class Build extends Command {
   static strict = false;
 
   async run(): Promise<void> {
-    const { argv, flags } = await this.parse(Build);
+    const { argv, flags } = await this.parse(BuildCommand);
     const { monorepo } = getContext();
 
     const components =

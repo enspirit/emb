@@ -9,7 +9,7 @@ import {
 } from '@/config';
 import { deepMergeArray } from '@/utils';
 
-export class MonorepoConfig implements Required<IMonorepoConfig> {
+export class MonorepoConfig implements IMonorepoConfig {
   components: ComponentConfig[];
   defaults: DefaultSettings;
   env: Record<string, string>;

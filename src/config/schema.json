@@ -54,19 +54,7 @@
     "flavors": {
       "type": "object",
       "additionalProperties": {
-        "type": "object",
-        "properties": {
-          "components": {
-            "type": "array",
-            "items": {
-              "$ref": "#/$defs/component"
-            }
-          },
-          "defaults": {
-            "$ref": "#/$defs/defaults"
-          }
-        },
-        "additionalProperties": false
+        "$ref": "#/$defs/flavor"
       }
     }
   },
@@ -177,6 +165,21 @@
           "additionalProperties": false
         }
       ]
+    },
+    "flavor": {
+      "type": "object",
+      "properties": {
+        "components": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/component"
+          }
+        },
+        "defaults": {
+          "$ref": "#/$defs/defaults"
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

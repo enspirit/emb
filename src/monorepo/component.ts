@@ -46,7 +46,7 @@ export class Component {
   }
 
   get rootdir() {
-    return this.monorepo.join(this.context);
+    return this.monorepo.join(this.context || this.name);
   }
 
   get tasks(): Array<TaskInfo> {

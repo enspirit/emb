@@ -38,6 +38,10 @@ export class Monorepo {
     return this._config.defaults;
   }
 
+  get flavors() {
+    return Object.keys(this._config.flavors || {});
+  }
+
   get name() {
     return this._config.project.name;
   }

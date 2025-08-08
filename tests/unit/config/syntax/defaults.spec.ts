@@ -1,0 +1,40 @@
+import { cwd } from 'node:process';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
+
+import { validateUserConfig } from '../../../../src/config/index.js';
+
+describe('Config syntax - Defaults', () => {
+  let vConfig: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    vConfig = vi.fn(validateUserConfig);
+  });
+
+  test('allows for defaults overrides', async () => {
+    await vConfig({
+      defaults: {
+        docker: {
+          tag: 'staging',
+        },
+      },
+      project: 'test1',
+    });
+
+    expect(vConfig).toHaveResolvedWith({
+      components: [],
+      defaults: {
+        docker: {
+          labels: {
+            'emb/project': 'test1',
+          },
+          tag: 'staging',
+        },
+      },
+      flavors: {},
+      project: {
+        name: 'test1',
+        rootDir: cwd(),
+      },
+    });
+  });
+});
