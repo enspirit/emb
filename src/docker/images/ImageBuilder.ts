@@ -47,29 +47,18 @@ export class ImageBuilder {
     // Set context
     this.manager.add([
       {
-        async task(ctx, task) {
-          ctx.components = await Promise.all(
-            components.map((cmp) => cmp.toDockerBuild()),
-          );
-          task.title = `Preparing build configs`;
-        },
-        title: 'Loading monorepo config',
-      },
-      {
         async task(context, task) {
-          const buildTasks: Array<ListrTask> = context.components.map((cmp) => {
-            const fullName = `${cmp.name}:${cmp.tag}`;
-
+          const buildTasks: Array<ListrTask> = components.map((cmp) => {
             return {
               rendererOptions: { persistentOutput: true },
               retry: options.retry,
 
               async task(_ctx, task) {
                 const logStream = await monorepo.store.createWriteStream(
-                  `logs/docker/build/${fullName}.log`,
+                  `logs/docker/build/${cmp.name}.log`,
                 );
 
-                await buildDockerImage(
+                const result = await buildDockerImage(
                   cmp,
                   {
                     output: logStream,
@@ -83,9 +72,15 @@ export class ImageBuilder {
                     }
                   },
                 );
+
+                // No result means we skipped the build thanks to our own caching mechanism
+                if (!result) {
+                  task.title += ' (skipped)';
+                }
+
                 task.output = '';
               },
-              title: `Build ${fullName}`,
+              title: `Build ${cmp.name}`,
             };
           });
 

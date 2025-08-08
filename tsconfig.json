@@ -12,8 +12,8 @@
     "paths": {
       "@/cli": ["./src/cli/index.js"],
       "@/cli/*": ["./src/cli/*"],
-      "@/git": ["./src/git/index.js"],
-      "@/git/*": ["./src/git/*"],
+      "@/prerequisites": ["./src/prerequisites/index.js"],
+      "@/prerequisites/*": ["./src/prerequisites/*"],
       "@/config": ["./src/config/index.js"],
       "@/config/*": ["./src/config/*"],
       "@/monorepo": ["./src/monorepo/index.js"],

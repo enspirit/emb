@@ -11,8 +11,8 @@ export default defineConfig({
       '@/cli': resolve(__dirname, './src/cli/index.js'),
       '@/config': resolve(__dirname, './src/config/index.js'),
       '@/docker': resolve(__dirname, './src/docker/index.js'),
-      '@/git': resolve(__dirname, './src/git/index.js'),
       '@/monorepo': resolve(__dirname, './src/monorepo/index.js'),
+      '@/prerequisites': resolve(__dirname, './src/prerequisites/index.js'),
       '@/utils': resolve(__dirname, './src/utils/index.js'),
     },
 
