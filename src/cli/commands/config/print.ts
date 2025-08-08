@@ -1,3 +1,5 @@
+import YAML from 'yaml';
+
 import { FlavoredCommand, getContext } from '@/cli';
 import { IMonorepoConfig } from '@/config';
 
@@ -11,7 +13,6 @@ export default class ConfigPrint extends FlavoredCommand<typeof ConfigPrint> {
   static description = 'Print the current config.';
   static enableJsonFlag = true;
   static examples = ['<%= config.bin %> <%= command.id %>'];
-  static flags = {};
 
   public async run(): Promise<IMonorepoConfig> {
     const { flags } = await this.parse(ConfigPrint);
@@ -19,7 +20,7 @@ export default class ConfigPrint extends FlavoredCommand<typeof ConfigPrint> {
     const { monorepo } = context;
 
     if (!flags.json) {
-      console.log(JSON.stringify(monorepo.config, null, 2));
+      console.log(YAML.stringify(monorepo.config));
     }
 
     return monorepo.config;

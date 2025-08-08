@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node dev.js",
     "test": "node --test && echo Ran successfully on $HOSTNAME",
+    "greet": "echo Hello $GREET",
     "fail": "fail"
   },
   "dependencies": {
