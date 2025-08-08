@@ -33,8 +33,12 @@ export const CompleteExample: IMonorepoConfig = {
   defaults: {
     docker: {
       // eslint-disable-next-line no-template-curly-in-string
-      tag: '${vars:dockerTag}',
+      tag: '${env:DOCKER_TAG}',
     },
+  },
+  env: {
+    // eslint-disable-next-line no-template-curly-in-string
+    DOCKER_TAG: '${env:DOCKER_TAG:-latest}',
   },
   flavors: [
     {
@@ -65,6 +69,9 @@ export const CompleteExample: IMonorepoConfig = {
           tag: 'production',
         },
       },
+      env: {
+        DOCKER_TAG: 'production',
+      },
       name: 'production',
     },
   ],
@@ -73,7 +80,6 @@ export const CompleteExample: IMonorepoConfig = {
     rootDir: '/tmp/simple',
   },
   vars: {
-    // eslint-disable-next-line no-template-curly-in-string
-    dockerTag: '${env:DOCKER_TAG:-latest}',
+    foo: 'bar',
   },
 };

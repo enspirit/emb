@@ -8,9 +8,11 @@ describe('Config - MonorepoConfig', () => {
   let repo: Monorepo;
   let config: MonorepoConfig;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     config = new MonorepoConfig(CompleteExample);
     repo = new Monorepo(config);
+
+    await repo.init();
   });
 
   describe('.flavors', () => {
@@ -41,12 +43,32 @@ describe('Config - MonorepoConfig', () => {
     });
   });
 
-  describe('.vars', () => {
-    test('exposes the unepanded configured vars', () => {
-      expect(repo.vars).to.deep.equal(config.vars);
+  describe('.env', () => {
+    describe('before repo initialization', () => {
+      test('exposes the unepanded env vars', () => {
+        const repo = new Monorepo(config);
+        // The original config has a template
+        // eslint-disable-next-line no-template-curly-in-string
+        expect(config.env.DOCKER_TAG).to.equal('${env:DOCKER_TAG:-latest}');
 
-      // eslint-disable-next-line no-template-curly-in-string
-      expect(repo.vars.dockerTag).to.equal('${env:DOCKER_TAG:-latest}');
+        // The repo has the same
+        // eslint-disable-next-line no-template-curly-in-string
+        expect(repo.env.DOCKER_TAG).to.equal('${env:DOCKER_TAG:-latest}');
+      });
+    });
+
+    describe('after repo initialization', () => {
+      test('exposes the expanded env vars', async () => {
+        const repo = new Monorepo(config);
+        await repo.init();
+
+        // The original config has a template
+        // eslint-disable-next-line no-template-curly-in-string
+        expect(config.env.DOCKER_TAG).to.equal('${env:DOCKER_TAG:-latest}');
+
+        // The repo env vars have been expanded
+        expect(repo.env.DOCKER_TAG).to.equal('latest');
+      });
     });
   });
 

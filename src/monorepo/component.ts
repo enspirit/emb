@@ -97,7 +97,7 @@ export class Component {
       prerequisites: await this.getPrerequisites(),
       tag: this.imageTag
         ? await this.monorepo.expand(this.imageTag as string)
-        : undefined,
+        : 'latest',
       target: this.config.target || this.monorepo.defaults?.docker?.target,
     };
   }

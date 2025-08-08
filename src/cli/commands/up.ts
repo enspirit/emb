@@ -1,10 +1,10 @@
-import { Command, Flags } from '@oclif/core';
+import { Flags } from '@oclif/core';
 import { Listr } from 'listr2';
 
-import { getContext } from '@/cli';
+import { FlavoredCommand, getContext } from '@/cli';
 import { up } from '@/docker';
 
-export default class UpCommand extends Command {
+export default class UpCommand extends FlavoredCommand<typeof UpCommand> {
   static description = 'Start the whole project.';
   static enableJsonFlag = true;
   static examples = ['<%= config.bin %> <%= command.id %>'];
@@ -25,7 +25,7 @@ export default class UpCommand extends Command {
       {
         rendererOptions: { persistentOutput: true },
         async task(ctx, task) {
-          const process = up({ cwd: monorepo.rootDir });
+          const process = await up({ cwd: monorepo.rootDir });
 
           const handleOutput = (chunk: Buffer) => {
             const line = chunk.toString();

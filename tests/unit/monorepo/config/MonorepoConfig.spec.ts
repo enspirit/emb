@@ -28,6 +28,9 @@ describe('Config - MonorepoConfig', () => {
           target: 'production',
         },
       ],
+      env: {
+        DOCKER_TAG: 'latest',
+      },
       flavors: [
         {
           components: [
@@ -49,6 +52,7 @@ describe('Config - MonorepoConfig', () => {
 
     expect(config.project.name).to.equal('test');
     expect(config.project.rootDir).to.equal(cwd());
+    expect(config.env).to.deep.equal({ DOCKER_TAG: 'latest' });
     expect(config.components).toHaveLength(2);
 
     expect(config.components[0].name).to.equal('frontend');
@@ -104,8 +108,13 @@ describe('Config - MonorepoConfig', () => {
 
       // Override defaults
       // eslint-disable-next-line no-template-curly-in-string
-      expect(config.defaults.docker?.tag).to.equal('${vars:dockerTag}');
+      expect(config.defaults.docker?.tag).to.equal('${env:DOCKER_TAG}');
       expect(production.defaults.docker?.tag).to.equal('production');
+
+      // Override defaults
+      // eslint-disable-next-line no-template-curly-in-string
+      expect(config.env.DOCKER_TAG).to.equal('${env:DOCKER_TAG:-latest}');
+      expect(production.env.DOCKER_TAG).to.equal('production');
     });
   });
 });

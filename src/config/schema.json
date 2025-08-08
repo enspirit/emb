@@ -173,6 +173,13 @@
         "name": {
           "type": "string"
         },
+        "env": {
+          "type": "object",
+          "description": "Variables to install on the environment",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
         "components": {
           "type": "array",
           "items": {

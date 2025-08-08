@@ -16,6 +16,6 @@ export interface DockerComponentBuild extends Task {
   dockerfile: string;
   labels?: Record<string, string>;
   name: string;
-  tag?: string;
+  tag: string;
   target?: string;
 }

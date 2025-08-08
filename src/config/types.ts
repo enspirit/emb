@@ -30,6 +30,7 @@ export type DefaultSettings = {
 export type FlavorConfig = {
   components?: Array<ComponentConfig>;
   defaults?: DefaultSettings;
+  env?: Record<string, string>;
   name: string;
 };
 

@@ -70,6 +70,7 @@ export class MonorepoConfig implements IMonorepoConfig {
         },
       })(this.components, overrides?.components || []),
       defaults: deepMerge()(this.defaults, overrides.defaults),
+      env: deepMerge()(this.env, overrides?.env || {}),
       project: deepMerge()(this.project, overrides?.project || {}),
       vars: deepMerge()(this.vars, overrides?.vars || {}),
     };

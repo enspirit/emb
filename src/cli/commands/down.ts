@@ -17,7 +17,7 @@ export default class DownCommand extends Command {
       {
         rendererOptions: { persistentOutput: true },
         async task(ctx, task) {
-          const process = down({ cwd: monorepo.rootDir });
+          const process = await down({ cwd: monorepo.rootDir });
 
           const handleOutput = (chunk: Buffer) => {
             const line = chunk.toString();

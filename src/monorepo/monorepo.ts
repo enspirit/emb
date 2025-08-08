@@ -11,11 +11,13 @@ import { TaskInfo } from './types.js';
 
 export class Monorepo {
   private _config: MonorepoConfig;
+  private _env!: Record<string, string | undefined>;
   private _store!: EMBStore;
   private initialized = false;
 
   constructor(config: IMonorepoConfig) {
     this._config = new MonorepoConfig(config);
+    this._env = config.env || {};
   }
 
   // TODO: cache/improve
@@ -29,6 +31,10 @@ export class Monorepo {
 
   get defaults() {
     return this._config.defaults;
+  }
+
+  get env(): Record<string, string | undefined> {
+    return this._env || {};
   }
 
   get flavors() {
@@ -70,7 +76,7 @@ export class Monorepo {
     const options = {
       default: 'vars',
       sources: {
-        env: process.env as Record<string, unknown>,
+        env: this.env,
         vars: this.vars,
       },
     };
@@ -83,10 +89,6 @@ export class Monorepo {
       strOrRecord as Record<string, unknown>,
       options,
     );
-  }
-
-  async getEnvVars(expanded = true): Promise<Record<string, unknown>> {
-    return expanded ? this.expand(this._config.env || {}) : this.vars;
   }
 
   // Initialize
@@ -102,10 +104,20 @@ export class Monorepo {
     const discover = new ComponentDiscoverPlugin();
     this._config = await discover.run(this);
 
-    // Find a more elegant to do this
-    // decide on an exact when
-    // TODO: we should force everyone to pass through getEnvVars() instead
-    this._config.vars = await this.expand(this._config.vars);
+    // Expand env vars at the init and then we don't expand anymore
+    // The only available source for them is the existing env
+    const expander = new TemplateExpander();
+    const options = {
+      default: 'env',
+      sources: {
+        env: process.env,
+      },
+    };
+    const expanded = await expander.expandRecord(this._config.env, options);
+    this._env = {
+      ...process.env,
+      ...expanded,
+    };
 
     this.initialized = true;
   }

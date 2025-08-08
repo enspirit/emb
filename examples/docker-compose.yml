@@ -1,15 +1,15 @@
 services:
   autodiscover:
-    image: emb/autodiscover
+    image: emb/autodiscover:${DOCKER_TAG}
 
   buildargs:
-    image: emb/buildargs
+    image: emb/buildargs:${DOCKER_TAG}
 
   dependent:
-    image: emb/dependent
+    image: emb/dependent:${DOCKER_TAG}
 
   frontend:
-    image: emb/frontend
+    image: emb/frontend:${DOCKER_TAG}
 
   simple:
-    image: emb/simple
+    image: emb/simple:${DOCKER_TAG}

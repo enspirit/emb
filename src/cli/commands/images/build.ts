@@ -6,7 +6,7 @@ import { ImageBuilder } from '@/docker';
 export default class BuildCommand extends FlavoredCommand<typeof BuildCommand> {
   static args = {
     component: Args.string({
-      description: 'List of components to build',
+      description: 'List of components to build images for',
       required: false,
     }),
   };

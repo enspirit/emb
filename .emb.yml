@@ -3,14 +3,18 @@ project:
   name: emb
   rootDir: examples
 
-# Some default vars available everywhere
-vars:
-  dockerTag: ${env:DOCKER_TAG:-latest}
+## Add variables to the environment
+env:
+  DOCKER_TAG: ${env:DOCKER_TAG:-latest}
+
+# Vars, contrary to the 'env' vars
+# wont be passed down to subprocesses
+vars: {}
 
 # Some default for every docker build
 defaults:
   docker:
-    tag: ${dockerTag}
+    tag: ${env:DOCKER_TAG}
 
 # The order is not important
 # as we will build a dependency graph
@@ -53,13 +57,14 @@ components:
   - name: dependent
     dependencies:
       - base
+    buildArgs:
+      BASE_IMAGE: emb/base:${env:DOCKER_TAG}
 
 ## Flavours
 flavors:
   - name: production
-    defaults:
-      docker:
-        tag: production
+    env:
+      DOCKER_TAG: production
     components:
       - name: frontend
         target: production
