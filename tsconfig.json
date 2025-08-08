@@ -8,6 +8,7 @@
     "target": "esnext",
     "moduleResolution": "nodenext",
     "resolveJsonModule": true,
+    "baseUrl": "./",
     "paths": {
       "@/cli": ["./src/cli/index.js"],
       "@/cli/*": ["./src/cli/*"],
