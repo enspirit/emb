@@ -1,4 +1,4 @@
-import type { File } from '../git/index.js';
+import type { File } from '@/git';
 
 export type Prerequisite = File;
 

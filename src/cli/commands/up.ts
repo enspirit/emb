@@ -1,9 +1,8 @@
 import { Command, Flags } from '@oclif/core';
 import { Listr } from 'listr2';
 
+import { getContext } from '@/cli';
 import { up } from '@/docker';
-
-import { getContext } from '../context.js';
 
 export default class UpCommand extends Command {
   static description = 'Start the whole project.';

@@ -1,7 +1,7 @@
 import { Command } from '@oclif/core';
 
-import { IMonorepoConfig } from '../../../config/types.js';
-import { getContext } from '../../context.js';
+import { getContext } from '@/cli';
+import { IMonorepoConfig } from '@/config';
 
 export type TaskInfo = {
   component?: string;

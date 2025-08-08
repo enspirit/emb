@@ -9,6 +9,12 @@
     "moduleResolution": "nodenext",
     "resolveJsonModule": true,
     "paths": {
+      "@/cli": ["./src/cli/index.js"],
+      "@/cli/*": ["./src/cli/*"],
+      "@/git": ["./src/git/index.js"],
+      "@/git/*": ["./src/git/*"],
+      "@/config": ["./src/config/index.js"],
+      "@/config/*": ["./src/config/*"],
       "@/monorepo": ["./src/monorepo/index.js"],
       "@/monorepo/*": ["./src/monorepo/*"],
       "@/docker": ["./src/docker/index.js"],

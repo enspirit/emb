@@ -1,6 +1,7 @@
 import { Writable } from 'node:stream';
 
-import { getContext } from '../../cli/context.js';
+import { getContext } from '@/cli';
+
 import { DockerComponentBuild } from '../index.js';
 import { decode } from '../protobuf/index.js';
 

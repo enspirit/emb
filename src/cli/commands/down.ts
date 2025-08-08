@@ -1,9 +1,8 @@
 import { Command } from '@oclif/core';
 import { Listr } from 'listr2';
 
+import { getContext } from '@/cli';
 import { down } from '@/docker';
-
-import { getContext } from '../context.js';
 
 export default class DownCommand extends Command {
   static description = 'Stop the whole project.';

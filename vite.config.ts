@@ -8,8 +8,11 @@ const __dirname = dirname(__filename);
 export default defineConfig({
   resolve: {
     alias: {
-      '@/docker': resolve(__dirname, './src/docker'),
-      '@/monorepo': resolve(__dirname, './src/monorepo'),
+      '@/cli': resolve(__dirname, './src/cli/index.js'),
+      '@/config': resolve(__dirname, './src/config/index.js'),
+      '@/docker': resolve(__dirname, './src/docker/index.js'),
+      '@/git': resolve(__dirname, './src/git/index.js'),
+      '@/monorepo': resolve(__dirname, './src/monorepo/index.js'),
     },
 
     extensions: ['.js', '.ts', '.json'], // 👈 Important

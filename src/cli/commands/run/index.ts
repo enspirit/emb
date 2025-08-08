@@ -4,7 +4,7 @@ import { spawn } from 'node:child_process';
 import fs from 'node:fs/promises';
 import { Readable } from 'node:stream';
 
-import { getContext } from '../../context.js';
+import { getContext } from '@/cli';
 
 export default class RunComponentScript extends Command {
   static args = {

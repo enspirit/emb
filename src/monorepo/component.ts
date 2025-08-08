@@ -1,11 +1,10 @@
 import deepmerge from '@fastify/deepmerge';
 import { join } from 'node:path';
 
+import { ComponentConfig } from '@/config';
 import { DockerComponentBuild, Prerequisite } from '@/docker';
-
-import { ComponentConfig } from '../config/index.js';
-import { loadFilePrerequisites } from '../git/index.js';
-import { Monorepo, TaskInfo } from './index.js';
+import { loadFilePrerequisites } from '@/git';
+import { Monorepo, TaskInfo } from '@/monorepo';
 
 export class Component {
   constructor(

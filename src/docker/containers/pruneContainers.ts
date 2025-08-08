@@ -1,6 +1,6 @@
 import { PruneContainersInfo } from 'dockerode';
 
-import { getContext } from '../../cli/context.js';
+import { getContext } from '@/cli';
 
 // For some reason it's not typed in dockerode
 export type PruneContainersOptions = {

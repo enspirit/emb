@@ -1,6 +1,6 @@
 import { ContainerInfo, ContainerListOptions } from 'dockerode';
 
-import { getContext } from '../../cli/context.js';
+import { getContext } from '@/cli';
 
 export const listContainers = async (
   opts?: ContainerListOptions,

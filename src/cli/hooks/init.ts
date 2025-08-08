@@ -2,10 +2,10 @@ import { Hook } from '@oclif/core';
 import 'dotenv/config';
 import Dockerode from 'dockerode';
 
+import { setContext } from '@/cli';
 import { Monorepo } from '@/monorepo';
 
 import { loadConfig } from '../../config/index.js';
-import { setContext } from '../context.js';
 
 const hook: Hook.Init = async function (options) {
   try {

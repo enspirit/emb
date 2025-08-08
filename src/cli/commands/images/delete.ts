@@ -1,9 +1,8 @@
 import { Command, Flags } from '@oclif/core';
 import { Listr } from 'listr2';
 
+import { getContext } from '@/cli';
 import { deleteImage, listImages } from '@/docker';
-
-import { getContext } from '../../context.js';
 
 export default class ImagesDelete extends Command {
   static description = 'Delete project images.';

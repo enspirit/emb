@@ -1,8 +1,7 @@
 import { Args, Command, Flags } from '@oclif/core';
 
+import { getContext } from '@/cli';
 import { ImageBuilder } from '@/docker';
-
-import { getContext } from '../../context.js';
 
 export default class Build extends Command {
   static args = {

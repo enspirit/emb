@@ -1,9 +1,9 @@
 import { Manager } from '@listr2/manager';
 import { ListrLogger, ListrTask, PRESET_TIMER } from 'listr2';
 
+import { getContext } from '@/cli';
 import { Component, findBuildOrder } from '@/monorepo';
 
-import { getContext } from '../../cli/context.js';
 import { DockerComponentBuild } from '../index.js';
 import { buildDockerImage } from './buildImage.js';
 
