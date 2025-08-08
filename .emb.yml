@@ -24,6 +24,10 @@ components:
         executor: shell
         script: | # shell
           npm run test
+      - name: fail
+        executor: shell
+        script: | # shell
+          npm run fail
 
   - name: buildargs
     buildArgs:

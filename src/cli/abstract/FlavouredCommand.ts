@@ -1,5 +1,5 @@
 // src/FlavoredCommand.ts
-import { Command, Flags, Interfaces } from '@oclif/core';
+import { Command, Errors, Flags, Interfaces } from '@oclif/core';
 
 import { getContext } from '../context.js';
 
@@ -44,7 +44,9 @@ export abstract class FlavoredCommand<
     // Validate flavor
     const { flavor } = this.flags;
     if (flavor && !monorepo.flavors.includes(flavor)) {
-      throw new Error(`Unknown flavor: ${flavor}`);
+      this.error(`Unknown flavor: ${flavor}`, {
+        code: 'UNKNOWN_FLAVOR',
+      });
     }
   }
 }

@@ -61,10 +61,6 @@ export default class RunComponentScript extends Command {
       { concurrent: false },
     );
 
-    try {
-      await tasks.run();
-    } catch (error) {
-      console.error(error);
-    }
+    await tasks.run();
   }
 }
