@@ -1,6 +1,6 @@
 import { Command } from '@oclif/core';
 
-import { getContext } from '@/cli';
+import { FlavoredCommand, getContext } from '@/cli';
 import { IMonorepoConfig } from '@/config';
 
 export type TaskInfo = {
@@ -9,7 +9,7 @@ export type TaskInfo = {
   name: string;
 };
 
-export default class ConfigPrint extends Command {
+export default class ConfigPrint extends FlavoredCommand<typeof ConfigPrint> {
   static description = 'Print the current config.';
   static enableJsonFlag = true;
   static examples = ['<%= config.bin %> <%= command.id %>'];

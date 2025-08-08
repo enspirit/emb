@@ -37,6 +37,20 @@ export const CompleteExample: IMonorepoConfig = {
     },
   },
   flavors: {
+    development: {
+      components: [
+        {
+          context: 'frontend',
+          name: 'frontend',
+          target: 'production',
+        },
+      ],
+      defaults: {
+        docker: {
+          tag: 'production',
+        },
+      },
+    },
     production: {
       components: [
         {

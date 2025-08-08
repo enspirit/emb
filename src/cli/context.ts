@@ -7,9 +7,5 @@ export const getContext = () => {
 };
 
 export const setContext = (ctx: EmbContext) => {
-  if (context) {
-    throw new Error('Context already set');
-  }
-
   context = ctx;
 };

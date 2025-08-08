@@ -1,7 +1,7 @@
 // src/FlavoredCommand.ts
 import { Command, Errors, Flags, Interfaces } from '@oclif/core';
 
-import { getContext } from '../context.js';
+import { getContext, setContext } from '../context.js';
 
 export type Flags<T extends typeof Command> = Interfaces.InferredFlags<
   (typeof FlavoredCommand)['baseFlags'] & T['flags']
@@ -39,13 +39,16 @@ export abstract class FlavoredCommand<
     this.args = args as Args<T>;
 
     // Get monorepo config
-    const { monorepo } = getContext();
+    const context = getContext();
 
-    // Validate flavor
+    // Installing flavor if relevant
+    // no validation as the monorepo will
+    // complain properly if incorrect
     const { flavor } = this.flags;
-    if (flavor && !monorepo.flavors.includes(flavor)) {
-      this.error(`Unknown flavor: ${flavor}`, {
-        code: 'UNKNOWN_FLAVOR',
+    if (flavor) {
+      setContext({
+        ...context,
+        monorepo: await context.monorepo.withFlavor(flavor),
       });
     }
   }

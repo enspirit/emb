@@ -38,7 +38,7 @@ export class MonorepoConfig implements IMonorepoConfig {
 
   flavor(name: string): FlavorConfig {
     if (!this.flavors[name]) {
-      throw new Error(`Unknown flavor ${name}`);
+      throw new Error(`Unknown flavor: ${name}`);
     }
 
     return this.flavors[name];
