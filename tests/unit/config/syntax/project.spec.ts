@@ -1,7 +1,7 @@
 import { cwd } from 'node:process';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
-import { validateUserConfig } from '../../../../src/config';
+import { validateUserConfig } from '../../../../src/config/index.js';
 
 describe('Config syntax - Project', () => {
   let vConfig: ReturnType<typeof vi.fn>;

@@ -11,7 +11,7 @@
   },
   "scripts": {
     "build": "rimraf dist && npm run build:types && npm run build:ts && npm run copy:proto",
-    "copy:proto": "cp -r src/docker/protobuf/*.proto dist/docker/protobuf/",
+    "copy:proto": "cp -r src/docker/protobuf/*.proto dist/src/docker/protobuf/",
     "build:ts": "tsc -b",
     "build:types": "json2ts src/config/schema.json > src/config/schema.ts",
     "lint": "eslint",
@@ -81,16 +81,16 @@
   },
   "files": [
     "./bin",
-    "./dist",
+    "./dist/src",
     "./oclif.manifest.json"
   ],
-  "main": "dist/index.js",
+  "main": "dist/src/index.js",
   "oclif": {
     "bin": "emb",
     "dirname": "emb",
-    "commands": "./dist/cli/commands",
+    "commands": "./dist/src/cli/commands",
     "hooks": {
-      "init": "./dist/cli/hooks/init"
+      "init": "./dist/src/cli/hooks/init"
     },
     "macos": {
       "identifier": "dev.enspirit.emb"

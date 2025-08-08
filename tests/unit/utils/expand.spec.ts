@@ -1,7 +1,7 @@
 /* eslint-disable no-template-curly-in-string */
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
-import { TemplateExpander } from '../../../src/utils/TemplateExpander';
+import { TemplateExpander } from '../../../src/utils/TemplateExpander.js';
 
 describe('TemplateExpander', () => {
   let expander: TemplateExpander;

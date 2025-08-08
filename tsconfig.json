@@ -4,13 +4,16 @@
     "declaration": true,
     "module": "nodenext",
     "outDir": "dist",
-    "rootDir": "src",
     "strict": true,
     "target": "esnext",
     "moduleResolution": "nodenext",
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "paths": {
+      "@/monorepo": ["./src/monorepo/index.js"],
+      "@/monorepo/*": ["./src/monorepo/*"]
+    }
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "tests/**/*"],
   "exclude": ["examples/**/*"],
   "ts-node": {
     "esm": true

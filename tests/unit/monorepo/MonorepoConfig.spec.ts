@@ -1,8 +1,9 @@
 import { cwd } from 'node:process';
 import { beforeEach, describe, expect, test } from 'vitest';
 
-import { MonorepoConfig } from '../../../src/monorepo/index';
-import { CompleteExample } from '../../fixtures/complete-example';
+import { MonorepoConfig } from '@/monorepo';
+
+import { CompleteExample } from '../../fixtures/complete-example.js';
 
 describe('Config - MonorepoConfig', () => {
   let config: MonorepoConfig;

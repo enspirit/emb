@@ -2,8 +2,9 @@ import { Hook } from '@oclif/core';
 import 'dotenv/config';
 import Dockerode from 'dockerode';
 
+import { Monorepo } from '@/monorepo';
+
 import { loadConfig } from '../../config/index.js';
-import { Monorepo } from '../../monorepo/index.js';
 import { setContext } from '../context.js';
 
 const hook: Hook.Init = async function (options) {

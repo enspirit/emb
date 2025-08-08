@@ -9,7 +9,10 @@ import { EMBStore } from './store/index.js';
 import { TaskInfo } from './types.js';
 
 export * from './config.js';
+export * from './plugins/index.js';
+export * from './store/index.js';
 export * from './types.js';
+export * from './utils/index.js';
 
 export class Monorepo {
   private _config: MonorepoConfig;

@@ -1,6 +1,6 @@
 import { describe, expect, test, vi } from 'vitest';
 
-import { TemplateExpander } from '../../../src/utils/TemplateExpander';
+import { TemplateExpander } from '../../../src/utils/TemplateExpander.js';
 
 describe('Utils / expandRecord', () => {
   const expander = new TemplateExpander();

@@ -1,7 +1,8 @@
 import { Command } from '@oclif/core';
 import { printTable } from '@oclif/table';
 
-import { TaskInfo } from '../../../monorepo/types.js';
+import { TaskInfo } from '@/monorepo';
+
 import { TABLE_DEFAULTS } from '../../constant.js';
 import { getContext } from '../../context.js';
 
