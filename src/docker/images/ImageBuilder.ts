@@ -1,5 +1,11 @@
 import { Manager } from '@listr2/manager';
-import { ListrLogger, ListrTask, PRESET_TIMER } from 'listr2';
+import { createColors } from 'colorette';
+import {
+  ListrDefaultRendererLogLevels,
+  ListrLogger,
+  ListrTask,
+  PRESET_TIMER,
+} from 'listr2';
 
 import { getContext } from '@/cli';
 import { buildDockerImage, DockerComponentBuild } from '@/docker';
@@ -30,8 +36,16 @@ export class ImageBuilder {
       exitOnError: true,
       rendererOptions: {
         collapseErrors: false,
-        collapseSkips: false,
+        collapseSkips: true,
         collapseSubtasks: false,
+        color: {
+          // @ts-expect-error not sure why
+          [ListrDefaultRendererLogLevels.SKIPPED_WITH_COLLAPSE]:
+            createColors().green,
+        },
+        icon: {
+          [ListrDefaultRendererLogLevels.SKIPPED_WITH_COLLAPSE]: '♺',
+        },
         timer: {
           ...PRESET_TIMER,
         },
@@ -75,7 +89,8 @@ export class ImageBuilder {
 
                 // No result means we skipped the build thanks to our own caching mechanism
                 if (!result) {
-                  task.title += ' (skipped)';
+                  task.title += ' (cache hit)';
+                  task.skip();
                 }
 
                 task.output = '';
@@ -87,7 +102,10 @@ export class ImageBuilder {
           return task.newListr(buildTasks, {
             concurrent: options.concurreny,
             exitOnError: options.failfast,
-            rendererOptions: { collapseSubtasks: false },
+            rendererOptions: {
+              collapseSkips: true,
+              collapseSubtasks: false,
+            },
           });
         },
         title: 'Build components',

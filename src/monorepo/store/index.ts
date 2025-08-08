@@ -1,5 +1,5 @@
 import { constants, createReadStream, createWriteStream } from 'node:fs';
-import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { access, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, normalize } from 'node:path';
 
 import { Monorepo } from '@/monorepo';
@@ -67,6 +67,10 @@ export class EMBStore {
 
   async readFile(path: string) {
     return readFile(this.join(path));
+  }
+
+  async trash() {
+    return rm(this.path, { force: true, recursive: true });
   }
 
   async writeFile(path: string, data: string) {
