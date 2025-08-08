@@ -12,15 +12,16 @@ describe('Config syntax - Flavors', () => {
 
   test('allows for flavors', async () => {
     await vConfig({
-      flavors: {
-        staging: {
+      flavors: [
+        {
           defaults: {
             docker: {
               tag: 'staging',
             },
           },
+          name: 'staging',
         },
-      },
+      ],
       project: 'test1',
     });
 
@@ -33,15 +34,16 @@ describe('Config syntax - Flavors', () => {
           },
         },
       },
-      flavors: {
-        staging: {
+      flavors: [
+        {
           defaults: {
             docker: {
               tag: 'staging',
             },
           },
+          name: 'staging',
         },
-      },
+      ],
       project: {
         name: 'test1',
         rootDir: cwd(),

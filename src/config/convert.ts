@@ -12,21 +12,9 @@ import {
 
 export const toFlavor = (flavor: Flavor): FlavorConfig => {
   return {
+    ...flavor,
     components: flavor.components?.map(toComponent),
-    defaults: flavor.defaults,
   };
-};
-
-export const toFlavors = (
-  flavors: Record<string, Flavor> = {},
-): Record<string, FlavorConfig> => {
-  return Object.entries(flavors).reduce<Record<string, FlavorConfig>>(
-    (flavors, [name, config]) => {
-      flavors[name] = toFlavor(config);
-      return flavors;
-    },
-    {},
-  );
 };
 
 export const toComponent = (cmp: Component): ComponentConfig => {
@@ -71,7 +59,7 @@ export const toProjectConfig = (
       },
     },
     env,
-    flavors: toFlavors(flavors),
+    flavors: flavors?.map(toFlavor),
     project: {
       ...project,
     } as IProjectConfig,

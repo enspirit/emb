@@ -52,8 +52,8 @@
       }
     },
     "flavors": {
-      "type": "object",
-      "additionalProperties": {
+      "type": "array",
+      "items": {
         "$ref": "#/$defs/flavor"
       }
     }
@@ -168,7 +168,11 @@
     },
     "flavor": {
       "type": "object",
+      "required": ["name"],
       "properties": {
+        "name": {
+          "type": "string"
+        },
         "components": {
           "type": "array",
           "items": {

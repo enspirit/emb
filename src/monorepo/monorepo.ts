@@ -32,7 +32,7 @@ export class Monorepo {
   }
 
   get flavors() {
-    return Object.keys(this._config.flavors || {});
+    return this._config.flavors.map((f) => f.name);
   }
 
   get name() {

@@ -36,8 +36,8 @@ export const CompleteExample: IMonorepoConfig = {
       tag: '${vars:dockerTag}',
     },
   },
-  flavors: {
-    development: {
+  flavors: [
+    {
       components: [
         {
           context: 'frontend',
@@ -50,8 +50,9 @@ export const CompleteExample: IMonorepoConfig = {
           tag: 'production',
         },
       },
+      name: 'development',
     },
-    production: {
+    {
       components: [
         {
           context: 'frontend',
@@ -64,8 +65,9 @@ export const CompleteExample: IMonorepoConfig = {
           tag: 'production',
         },
       },
+      name: 'production',
     },
-  },
+  ],
   project: {
     name: 'simple',
     rootDir: '/tmp/simple',

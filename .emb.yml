@@ -56,7 +56,7 @@ components:
 
 ## Flavours
 flavors:
-  production:
+  - name: production
     defaults:
       docker:
         tag: production

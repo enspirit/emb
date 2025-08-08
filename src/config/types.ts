@@ -30,13 +30,14 @@ export type DefaultSettings = {
 export type FlavorConfig = {
   components?: Array<ComponentConfig>;
   defaults?: DefaultSettings;
+  name: string;
 };
 
 export type IMonorepoConfig = {
   components: Array<ComponentConfig>;
   defaults?: DefaultSettings;
   env?: Record<string, string>;
-  flavors?: Record<string, FlavorConfig>;
+  flavors?: Array<FlavorConfig>;
   project: IProjectConfig;
   vars?: Record<string, unknown>;
 };

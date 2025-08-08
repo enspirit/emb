@@ -27,7 +27,6 @@ describe('Config syntax - Components', () => {
           },
         },
       },
-      flavors: {},
       project: {
         name: 'test1',
         rootDir: cwd(),
@@ -50,7 +49,6 @@ describe('Config syntax - Components', () => {
           },
         },
       },
-      flavors: {},
       project: {
         name: 'test2',
         rootDir: cwd(),
@@ -94,7 +92,6 @@ describe('Config syntax - Components', () => {
           },
         },
       },
-      flavors: {},
       project: {
         name: 'test2',
         rootDir: cwd(),

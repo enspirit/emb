@@ -13,7 +13,7 @@ export class MonorepoConfig implements IMonorepoConfig {
   components: ComponentConfig[];
   defaults: DefaultSettings;
   env: Record<string, string>;
-  flavors: Record<string, FlavorConfig>;
+  flavors: Array<FlavorConfig>;
   project: IProjectConfig;
   vars: Record<string, unknown>;
 
@@ -22,7 +22,7 @@ export class MonorepoConfig implements IMonorepoConfig {
     this.defaults = config.defaults || {};
     this.project = config.project;
     this.vars = config.vars || {};
-    this.flavors = config.flavors || {};
+    this.flavors = config.flavors || [];
     this.env = config.env || {};
   }
 
@@ -37,11 +37,13 @@ export class MonorepoConfig implements IMonorepoConfig {
   }
 
   flavor(name: string): FlavorConfig {
-    if (!this.flavors[name]) {
+    const flavor = this.flavors.find((f) => f.name === name);
+
+    if (!flavor) {
       throw new Error(`Unknown flavor: ${name}`);
     }
 
-    return this.flavors[name];
+    return flavor;
   }
 
   toJSON(): Required<IMonorepoConfig> {

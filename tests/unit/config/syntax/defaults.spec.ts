@@ -30,7 +30,6 @@ describe('Config syntax - Defaults', () => {
           tag: 'staging',
         },
       },
-      flavors: {},
       project: {
         name: 'test1',
         rootDir: cwd(),
