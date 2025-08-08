@@ -18,11 +18,12 @@ components:
   - simple
   - name: base
   - name: frontend
+    target: development
     tasks:
       - name: test
         executor: shell
         script: | # shell
-          ls /tmp | wc -l
+          npm run test
 
   - name: buildargs
     buildArgs:

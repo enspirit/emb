@@ -5,6 +5,9 @@ export type ExecutorRunOptions = {
   out?: Writable;
 };
 
-export type Executor<T = unknown> = {
-  run(script: string, options?: ExecutorRunOptions): Promise<T>;
+export type Executor<
+  RO extends ExecutorRunOptions = ExecutorRunOptions,
+  T = unknown,
+> = {
+  run(script: string, options?: RO): Promise<T>;
 };

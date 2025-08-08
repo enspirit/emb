@@ -1,4 +1,4 @@
-FROM node:22 as dev
+FROM node:22 as development
 
 WORKDIR /home/app
 
@@ -10,7 +10,7 @@ COPY ./ ./
 
 CMD node dev.js
 
-FROM dev as builder
+FROM development as builder
 
 RUN node build.js
 

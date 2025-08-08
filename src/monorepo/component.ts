@@ -34,6 +34,13 @@ export class Component {
     return this.monorepo.defaults.docker?.tag || 'latest';
   }
 
+  get labels() {
+    return {
+      'emb/component': this.name,
+      ...this._config.labels,
+    };
+  }
+
   get name() {
     return this.config.name;
   }
@@ -84,7 +91,7 @@ export class Component {
         {
           ...this.monorepo.defaults.docker?.labels,
         },
-        this.config.labels || {},
+        this.labels,
       ),
       name: this.imageName,
       prerequisites: await this.getPrerequisites(),

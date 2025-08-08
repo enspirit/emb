@@ -8,7 +8,15 @@ export default class UpCommand extends Command {
   static description = 'Start the whole project.';
   static enableJsonFlag = true;
   static examples = ['<%= config.bin %> <%= command.id %>'];
-  static flags = {};
+  static flags = {
+    'force-recreate': Flags.boolean({
+      char: 'f',
+      default: false,
+      description:
+        "Recreate containers even if their configuration and image haven't changed",
+      name: 'force-recreate',
+    }),
+  };
 
   public async run(): Promise<void> {
     const { flags } = await this.parse(UpCommand);
@@ -46,11 +54,6 @@ export default class UpCommand extends Command {
       },
     ]);
 
-    try {
-      await runner.run();
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
+    await runner.run();
   }
 }

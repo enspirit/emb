@@ -46,11 +46,6 @@ export default class DownCommand extends Command {
       },
     ]);
 
-    try {
-      await runner.run();
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
+    await runner.run();
   }
 }
