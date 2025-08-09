@@ -1,7 +1,13 @@
 import { Writable } from 'node:stream';
 
 import { getContext } from '@/cli';
-import { decodeBuildkitStatusResponse, DockerComponentBuild } from '@/docker';
+import {
+  decodeBuildkitStatusResponse,
+  DockerComponentBuild,
+  getSentinelFile,
+} from '@/docker';
+import { Component } from '@/monorepo';
+import { FilePrerequisitePlugin } from '@/prerequisites';
 
 export type MobyTrace = { aux: unknown; error?: string; id: string };
 export type Progress = { error?: string; name?: string };
@@ -9,13 +15,49 @@ export type DockerBuildExtraOptions = {
   output?: Writable;
 };
 
+export type BuildDockerImageOutput = DockerComponentBuild & {
+  traces: Array<MobyTrace>;
+};
+
 export const buildDockerImage = async (
-  cmp: DockerComponentBuild,
+  component: Component,
   opts: DockerBuildExtraOptions = {},
   progress?: (progress: Progress) => void,
-): Promise<DockerComponentBuild & { traces: Array<MobyTrace> }> => {
+): Promise<BuildDockerImageOutput | undefined> => {
+  const cmp = await component.toDockerBuild();
   const files = (cmp.prerequisites || []).map((f) => f.path);
-  const { docker } = getContext();
+  const { docker, monorepo } = getContext();
+
+  /** SENTINEL LOGIC */
+  // TODO: make configurable
+  const prereqPlugin = new FilePrerequisitePlugin();
+
+  const preBuildMeta = await prereqPlugin.meta(
+    component,
+    cmp.prerequisites,
+    'pre',
+  );
+  const sentinelFile = getSentinelFile(component);
+
+  let lastValue: string | undefined;
+  try {
+    lastValue = (await monorepo.store.readFile(sentinelFile)).toString();
+  } catch {
+    lastValue = undefined;
+  }
+
+  if (lastValue) {
+    const diff = await prereqPlugin.diff(
+      component,
+      cmp.prerequisites,
+      lastValue,
+      preBuildMeta,
+    );
+
+    if (!diff) {
+      return;
+    }
+  }
 
   const stream = await docker.buildImage(
     {
@@ -35,6 +77,16 @@ export const buildDockerImage = async (
   if (opts.output) {
     stream.pipe(opts.output);
   }
+
+  stream.on('close', async () => {
+    const sentinelValue = await prereqPlugin.meta(
+      component,
+      cmp.prerequisites,
+      'post',
+    );
+
+    await monorepo.store.writeFile(sentinelFile, sentinelValue);
+  });
 
   return new Promise((resolve, reject) => {
     docker.modem.followProgress(

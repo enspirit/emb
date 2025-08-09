@@ -68,11 +68,12 @@ export class Monorepo {
   }
 
   // Helper to expand a record of strings
-  async expand(str: string): Promise<string>;
-  async expand<R extends Record<string, unknown>>(record: R): Promise<R>;
-  async expand(strOrRecord: unknown) {
-    const expander = new TemplateExpander();
-
+  async expand(str: string, expander?: TemplateExpander): Promise<string>;
+  async expand<R extends Record<string, unknown>>(
+    record: R,
+    expander?: TemplateExpander,
+  ): Promise<R>;
+  async expand(strOrRecord: unknown, expander = new TemplateExpander()) {
     const options = {
       default: 'vars',
       sources: {

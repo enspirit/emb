@@ -36,6 +36,7 @@
     "@oclif/plugin-plugins": "^5.4.46",
     "@oclif/table": "^0.4.12",
     "ajv": "^8.17.1",
+    "colorette": "^2.0.20",
     "docker-compose": "^1.2.0",
     "dockerode": "^4.0.7",
     "dotenv": "^17.2.1",
@@ -46,6 +47,7 @@
     "listr2": "^9.0.1",
     "luxon": "^3.7.1",
     "protobufjs": "^7.5.3",
+    "p-map": "^7.0.3",
     "simple-git": "^3.28.0",
     "yaml": "^2.8.1"
   },

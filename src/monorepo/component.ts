@@ -2,9 +2,9 @@ import deepmerge from '@fastify/deepmerge';
 import { join } from 'node:path';
 
 import { ComponentConfig } from '@/config';
-import { DockerComponentBuild, Prerequisite } from '@/docker';
-import { loadFilePrerequisites } from '@/git';
+import { DockerComponentBuild } from '@/docker';
 import { Monorepo, TaskInfo } from '@/monorepo';
+import { FilePrerequisite, GitPrerequisitePlugin } from '@/prerequisites';
 
 export class Component {
   constructor(
@@ -69,12 +69,14 @@ export class Component {
     );
   }
 
-  async getPrerequisites(): Promise<Array<Prerequisite>> {
-    return loadFilePrerequisites(this.rootdir);
+  async getPrerequisites(): Promise<Array<FilePrerequisite>> {
+    // TODO: move this to config with potential overridzs
+    const plugin = new GitPrerequisitePlugin();
+    return plugin.collect(this);
   }
 
   join(path: string) {
-    return this.monorepo.join(this.name, path);
+    return this.monorepo.join(this.context || this.name, path);
   }
 
   async toDockerBuild(): Promise<DockerComponentBuild> {

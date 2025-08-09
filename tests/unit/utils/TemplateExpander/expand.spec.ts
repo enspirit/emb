@@ -1,7 +1,7 @@
 /* eslint-disable no-template-curly-in-string */
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
-import { TemplateExpander } from '../../../src/utils/TemplateExpander.js';
+import { TemplateExpander } from '@/utils';
 
 describe('TemplateExpander', () => {
   let expander: TemplateExpander;
@@ -16,19 +16,23 @@ describe('TemplateExpander', () => {
     test('does not expand when unnecessary', async () => {
       await expandFn('Test', {});
       expect(expandFn).to.toHaveResolvedWith('Test');
+      expect(expander.expansionCount).to.equal(0);
       expandFn.mockReset();
 
       await expandFn('Test $NOTAVARIABLE', {});
       expect(expandFn).to.toHaveResolvedWith('Test $NOTAVARIABLE');
+      expect(expander.expansionCount).to.equal(0);
       expandFn.mockReset();
 
       await expandFn('Test ${INCOMPLETE', {});
       expect(expandFn).to.toHaveResolvedWith('Test ${INCOMPLETE');
+      expect(expander.expansionCount).to.equal(0);
       expandFn.mockReset();
     });
 
     test('supports escaping', async () => {
       await expandFn('Test \\${ESCAPED}', {});
+      expect(expander.expansionCount).to.equal(0);
       expect(expandFn).to.toHaveResolvedWith('Test ${ESCAPED}');
       expandFn.mockReset();
     });
@@ -51,6 +55,8 @@ describe('TemplateExpander', () => {
       await expandFn('Test ${LONG_VAR_NAME}', options);
       expect(expandFn).to.toHaveResolvedWith('Test 84');
       expandFn.mockReset();
+
+      expect(expander.expansionCount).to.equal(2);
     });
 
     test('supports explicit source', async () => {
@@ -70,6 +76,8 @@ describe('TemplateExpander', () => {
       await expandFn('Test ${env:LONG_VAR_NAME}', options);
       expect(expandFn).to.toHaveResolvedWith('Test 84');
       expandFn.mockReset();
+
+      expect(expander.expansionCount).to.equal(2);
     });
 
     test('supports default values', async () => {
@@ -86,6 +94,8 @@ describe('TemplateExpander', () => {
       });
       expect(expandFn).to.toHaveResolvedWith('Test otherDefault');
       expandFn.mockReset();
+
+      expect(expander.expansionCount).to.equal(2);
     });
 
     test('supports empty default values', async () => {
@@ -102,6 +112,8 @@ describe('TemplateExpander', () => {
       });
       expect(expandFn).to.toHaveResolvedWith('Test ');
       expandFn.mockReset();
+
+      expect(expander.expansionCount).to.equal(2);
     });
   });
 });

@@ -1,6 +1,6 @@
 import { describe, expect, test, vi } from 'vitest';
 
-import { TemplateExpander } from '../../../src/utils/TemplateExpander.js';
+import { TemplateExpander } from '@/utils';
 
 describe('Utils / expandRecord', () => {
   const expander = new TemplateExpander();
@@ -34,5 +34,7 @@ describe('Utils / expandRecord', () => {
       },
     });
     expandRecordFn.mockReset();
+
+    expect(expander.expansionCount).to.equal(1);
   });
 });
