@@ -1,7 +1,7 @@
+import { getContext } from '@';
 import { Command, Flags } from '@oclif/core';
 import { PruneImagesInfo } from 'dockerode';
 
-import { getContext } from '@/cli';
 import { pruneImages } from '@/docker';
 
 export default class ImagesPrune extends Command {

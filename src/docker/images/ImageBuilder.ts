@@ -1,3 +1,4 @@
+import { getContext } from '@';
 import { Manager } from '@listr2/manager';
 import { createColors } from 'colorette';
 import {
@@ -7,7 +8,6 @@ import {
   PRESET_TIMER,
 } from 'listr2';
 
-import { getContext } from '@/cli';
 import { buildDockerImage, DockerComponentBuild } from '@/docker';
 import { Component, findBuildOrder } from '@/monorepo';
 

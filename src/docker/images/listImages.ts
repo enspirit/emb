@@ -1,6 +1,5 @@
+import { getContext } from '@';
 import { ImageInfo, ListImagesOptions } from 'dockerode';
-
-import { getContext } from '@/cli';
 
 export const listImages = async (
   opts?: ListImagesOptions,

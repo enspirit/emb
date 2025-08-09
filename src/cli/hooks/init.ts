@@ -1,8 +1,8 @@
-import { Hook } from '@oclif/core';
+import { setContext } from '@';
 import 'dotenv/config';
+import { Hook } from '@oclif/core';
 import Dockerode from 'dockerode';
 
-import { setContext } from '@/cli';
 import { loadConfig } from '@/config';
 import { Monorepo } from '@/monorepo';
 

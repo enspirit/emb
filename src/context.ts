@@ -1,4 +1,4 @@
-import { EmbContext } from '../types.js';
+import { EmbContext } from './types.js';
 
 let context: EmbContext;
 

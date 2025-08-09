@@ -1,9 +1,9 @@
+import { getContext } from '@';
 import { Args, Command, Flags } from '@oclif/core';
 import { Listr, ListrTask } from 'listr2';
 import { PassThrough, Writable } from 'node:stream';
 
-import { getContext } from '@/cli';
-import { getContainer, listContainers } from '@/docker';
+import { getContainer, ListContainersOperation } from '@/docker';
 import { TaskInfo } from '@/monorepo';
 
 import { dockerExecutor } from '../../../executors/docker.js';
@@ -102,7 +102,7 @@ export default class RunTask extends Command {
   private async dockerExec(task: TaskInfo, out: Writable) {
     const { monorepo } = getContext();
 
-    const matching = await listContainers({
+    const matching = await monorepo.run(new ListContainersOperation(), {
       filters: {
         label: [
           `emb/project=${monorepo.name}`,

@@ -1,6 +1,7 @@
 import { join } from 'node:path';
 
 import { IMonorepoConfig } from '@/config';
+import { IOperation } from '@/operations/types.js';
 import { TemplateExpander } from '@/utils';
 
 import { Component } from './component.js';
@@ -126,6 +127,14 @@ export class Monorepo {
   // Helper to build relative path to the root dir
   join(...paths: string[]) {
     return join(this._config.project.rootDir, ...paths);
+  }
+
+  run<I, O>(operation: IOperation<I, O>, args: I): Promise<O>;
+  async run<I extends void, O extends void>(
+    operation: IOperation<I, O>,
+    args: I,
+  ) {
+    return operation.run(args);
   }
 
   async withFlavor(name: string) {

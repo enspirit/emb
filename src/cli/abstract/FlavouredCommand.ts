@@ -1,7 +1,5 @@
-// src/FlavoredCommand.ts
+import { getContext, setContext } from '@';
 import { Command, Flags, Interfaces } from '@oclif/core';
-
-import { getContext, setContext } from '../context.js';
 
 export type Flags<T extends typeof Command> = Interfaces.InferredFlags<
   (typeof FlavoredCommand)['baseFlags'] & T['flags']

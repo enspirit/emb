@@ -1,7 +1,8 @@
+import { getContext } from '@';
 import { Command, Flags } from '@oclif/core';
 import { printTable } from '@oclif/table';
 
-import { getContext, TABLE_DEFAULTS } from '@/cli';
+import { TABLE_DEFAULTS } from '@/cli';
 import { listImages, shortId } from '@/docker';
 import { timeAgo } from '@/utils';
 

@@ -1,7 +1,7 @@
+import { getContext } from '@';
 import { Command } from '@oclif/core';
 import { Listr } from 'listr2';
 
-import { getContext } from '@/cli';
 import { down } from '@/docker';
 
 export default class DownCommand extends Command {

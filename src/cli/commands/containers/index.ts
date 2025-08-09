@@ -1,9 +1,10 @@
+import { getContext } from '@';
 import { Command, Flags } from '@oclif/core';
 import { printTable } from '@oclif/table';
 import { ContainerInfo } from 'dockerode';
 
-import { getContext, TABLE_DEFAULTS } from '@/cli';
-import { listContainers, shortId } from '@/docker';
+import { TABLE_DEFAULTS } from '@/cli';
+import { ListContainersOperation, shortId } from '@/docker';
 import { timeAgo } from '@/utils';
 
 export default class ContainersIndex extends Command {
@@ -28,7 +29,7 @@ export default class ContainersIndex extends Command {
 
     const { monorepo } = context;
 
-    const containers = await listContainers({
+    const containers = await monorepo.run(new ListContainersOperation(), {
       all: flags.all,
       filters: {
         label: [`emb/project=${monorepo.name}`],

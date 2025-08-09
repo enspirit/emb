@@ -1,10 +1,9 @@
+import { getContext } from '@';
 import { Args, Command } from '@oclif/core';
 import { Listr } from 'listr2';
 import { spawn } from 'node:child_process';
 import fs from 'node:fs/promises';
 import { Readable } from 'node:stream';
-
-import { getContext } from '@/cli';
 
 export default class RunComponentScript extends Command {
   static args = {

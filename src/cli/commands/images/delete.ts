@@ -1,7 +1,7 @@
+import { getContext } from '@';
 import { Command, Flags } from '@oclif/core';
 import { Listr } from 'listr2';
 
-import { getContext } from '@/cli';
 import { deleteImage, listImages } from '@/docker';
 
 export default class ImagesDelete extends Command {

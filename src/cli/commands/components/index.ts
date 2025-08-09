@@ -1,7 +1,7 @@
 import { printTable } from '@oclif/table';
 
 import { FlavoredCommand, getContext, TABLE_DEFAULTS } from '@/cli';
-import { listContainers, shortId } from '@/docker';
+import { ListContainersOperation, shortId } from '@/docker';
 
 export type ComponentInfo = {
   container?: string;
@@ -25,11 +25,14 @@ export default class ComponentsIndex extends FlavoredCommand<
     // Get all running containers for this project
     // and then try to do a mapping. It's probably better than
     // doing N queries to list with specific filters
-    const runningContainers = await listContainers({
-      filters: {
-        label: [`emb/project=${monorepo.name}`],
+    const runningContainers = await monorepo.run(
+      new ListContainersOperation(),
+      {
+        filters: {
+          label: [`emb/project=${monorepo.name}`],
+        },
       },
-    });
+    );
 
     const components: Array<ComponentInfo> = await Promise.all(
       monorepo.components.map(async (cmp) => {

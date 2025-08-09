@@ -1,7 +1,8 @@
+import { getContext } from '@';
 import { Command } from '@oclif/core';
 import { printTable } from '@oclif/table';
 
-import { getContext, TABLE_DEFAULTS } from '@/cli';
+import { TABLE_DEFAULTS } from '@/cli';
 import { TaskInfo } from '@/monorepo';
 
 export default class TasksIndex extends Command {

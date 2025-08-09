@@ -1,6 +1,5 @@
+import { getContext } from '@';
 import { spawn } from 'node:child_process';
-
-import { getContext } from '@/cli';
 
 export type DockerComposeOptions = {
   cwd?: string;

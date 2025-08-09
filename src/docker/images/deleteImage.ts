@@ -1,4 +1,4 @@
-import { getContext } from '@/cli';
+import { getContext } from '@';
 
 export type ImageRemoveOptions = {
   force?: boolean;

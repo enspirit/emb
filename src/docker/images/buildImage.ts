@@ -1,6 +1,6 @@
+import { getContext } from '@';
 import { Writable } from 'node:stream';
 
-import { getContext } from '@/cli';
 import {
   decodeBuildkitStatusResponse,
   DockerComponentBuild,

@@ -1,7 +1,6 @@
+import { getContext } from '@';
 import { Command } from '@oclif/core';
 import { Listr } from 'listr2';
-
-import { getContext } from '@/cli';
 
 /**
  * For now, only cleans the stores (logs/sentinels)

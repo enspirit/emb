@@ -1,6 +1,5 @@
+import { getContext } from '@';
 import { PruneImagesInfo } from 'dockerode';
-
-import { getContext } from '@/cli';
 
 // For some reason it's not typed in dockerode
 export type PruneImagesOptions = {
