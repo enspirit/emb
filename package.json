@@ -1,7 +1,7 @@
 {
   "name": "@enspirit/emb",
   "type": "module",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "keywords": ["monorepo", "docker", "taskrunner", "ci", "docker compose", "sentinel", "makefile"],
   "author": "Louis Lambeau <louis.lambeau@enspirit.be>",
   "license": "ISC",
@@ -20,7 +20,6 @@
     "pack:macos": "oclif pack macos",
     "pack:deb": "oclif pack deb",
     "postpack": "shx rm -f oclif.manifest.json",
-    "postbuild": "oclif manifest --dir dist",
     "posttest": "npm run lint",
     "prepack": "oclif manifest && oclif readme",
     "test": "npm run build:types && npm run test:unit",
@@ -30,6 +29,7 @@
     "version": "oclif readme && git add README.md"
   },
   "dependencies": {
+    "@fastify/deepmerge": "^3.1.0",
     "@listr2/manager": "^3.0.1",
     "@oclif/core": "^4.5.2",
     "@oclif/plugin-autocomplete": "^3.2.34",
@@ -56,7 +56,6 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.32.0",
-    "@fastify/deepmerge": "^3.1.0",
     "@oclif/prettier-config": "^0.2.1",
     "@oclif/test": "^4",
     "@tsconfig/node20": "^20.1.6",
