@@ -1,17 +1,32 @@
 import { setContext } from '@';
 import 'dotenv/config';
-import { Hook } from '@oclif/core';
+import { Hook, Performance } from '@oclif/core';
 import Dockerode from 'dockerode';
 
 import { loadConfig } from '@/config';
 import { Monorepo } from '@/monorepo';
 
+const withMarker = async <T>(
+  owner: string,
+  name: string,
+  cb: () => Promise<T>,
+): Promise<T> => {
+  const marker = Performance.mark(owner, name);
+
+  const res = await cb();
+
+  marker?.stop();
+
+  return res;
+};
+
 const hook: Hook.Init = async function (options) {
   try {
-    const config = await loadConfig();
-    const monorepo = new Monorepo(config);
+    const config = await withMarker('emb:config', 'load', () => loadConfig());
 
-    await monorepo.init();
+    const monorepo = await withMarker('emb:monorepo', 'init', () => {
+      return new Monorepo(config).init();
+    });
 
     setContext({
       docker: new Dockerode(),

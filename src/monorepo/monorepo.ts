@@ -94,7 +94,7 @@ export class Monorepo {
   }
 
   // Initialize
-  async init() {
+  async init(): Promise<Monorepo> {
     if (this.initialized) {
       throw new Error('Monorepo already initialized');
     }
@@ -122,6 +122,8 @@ export class Monorepo {
     };
 
     this.initialized = true;
+
+    return this;
   }
 
   // Helper to build relative path to the root dir

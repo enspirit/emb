@@ -1,5 +1,11 @@
 #!/usr/bin/env node
 
-import { execute } from '@oclif/core';
+import { execute, Performance, settings } from '@oclif/core';
 
-await execute({ dir: import.meta.url });
+settings.performanceEnabled = Boolean(process.env.EMB_DEBUG_PERFS);
+
+await execute({ dir: import.meta.url }).finally(() => {
+  if (settings.performanceEnabled) {
+    console.log(Performance.results);
+  }
+});
