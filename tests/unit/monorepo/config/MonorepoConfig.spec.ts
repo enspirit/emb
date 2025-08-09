@@ -82,6 +82,46 @@ describe('Config - MonorepoConfig', () => {
     });
   });
 
+  describe('#with', () => {
+    test('deep merges properly', () => {
+      const config1 = new MonorepoConfig({
+        components: [],
+        defaults: {
+          docker: {
+            labels: {
+              'emb/project': 'test',
+            },
+          },
+        },
+        project: {
+          name: 'test',
+          rootDir: '/tmp',
+        },
+      });
+
+      const config2 = config1.with({
+        components: [
+          {
+            buildArgs: {
+              GREETING: 'test',
+            },
+            name: 'frontend',
+            tasks: [
+              {
+                name: 'test',
+                script: 'npm run test',
+              },
+            ],
+          },
+        ],
+      });
+
+      expect(config2.defaults.docker?.labels).to.include({
+        'emb/project': 'test',
+      });
+    });
+  });
+
   describe('#withFlavor(name)', () => {
     test('throws when flavour unknown', () => {
       expect(() => config.withFlavor('unknown')).to.throw(/Unknown flavor/);
