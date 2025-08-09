@@ -1,14 +1,12 @@
 import { getContext } from '@';
 import { Args, Command, Flags } from '@oclif/core';
 import { Listr, ListrTask } from 'listr2';
-import { PassThrough, Writable } from 'node:stream';
 
-import { getContainer, ListContainersOperation } from '@/docker';
 import { TaskInfo } from '@/monorepo';
-
-import { dockerExecutor } from '../../../executors/docker.js';
-import { ExecutorType } from '../../../executors/index.js';
-import { shellExecutor } from '../../../executors/shell.js';
+import {
+  ExecutorType,
+  RunTaskOperation,
+} from '@/monorepo/operations/tasks/RunTaskOperation.js';
 
 export default class RunTask extends Command {
   static args = {
@@ -24,7 +22,7 @@ export default class RunTask extends Command {
     executor: Flags.string({
       char: 'x',
       name: 'executor',
-      options: Object.keys(ExecutorType),
+      options: Object.values(ExecutorType),
     }),
   };
   static strict = false;
@@ -48,38 +46,20 @@ export default class RunTask extends Command {
         : monorepo.tasks;
 
     const runTasks: Array<ListrTask> = toRun.map((task) => {
+      const executor =
+        flags.executor ||
+        (task.component ? ExecutorType.container : ExecutorType.local);
+
       return {
         rendererOptions: { persistentOutput: true },
 
-        task: async (_ctx, listrTask) => {
-          const type: ExecutorType = flags.executor
-            ? (flags.executor as ExecutorType)
-            : ExecutorType.container;
-
-          const logStream: Writable = await monorepo.store.createWriteStream(
-            `logs/tasks/run/${task.id}.log`,
-          );
-
-          // Gonna log on both the logStream and stdout
-          const tee = new PassThrough();
-          tee.pipe(listrTask.stdout());
-          tee.pipe(logStream);
-
-          switch (type) {
-            case ExecutorType.container: {
-              return this.dockerExec(task, tee);
-            }
-
-            case ExecutorType.local: {
-              return this.shellExec(task, tee);
-            }
-
-            default: {
-              throw new Error(`Unsupported executor: ${type}`);
-            }
-          }
+        async task(_ctx, listrTask) {
+          await monorepo.run(new RunTaskOperation(listrTask.stdout()), {
+            executor,
+            task,
+          });
         },
-        title: `Running ${task.id}`,
+        title: `Running ${task.id} (${executor})`,
       };
     });
 
@@ -97,50 +77,5 @@ export default class RunTask extends Command {
     ]);
 
     await runner.run();
-  }
-
-  private async dockerExec(task: TaskInfo, out: Writable) {
-    const { monorepo } = getContext();
-
-    const matching = await monorepo.run(new ListContainersOperation(), {
-      filters: {
-        label: [
-          `emb/project=${monorepo.name}`,
-          `emb/component=${task.component}`,
-        ],
-      },
-    });
-
-    if (matching.length === 0) {
-      throw new Error(
-        `Could not find a running container for '${task.component}'`,
-      );
-    }
-
-    if (matching.length > 1) {
-      throw new Error(
-        `More than one running container found for '${task.component}'`,
-      );
-    }
-
-    const container = await getContainer(matching[0].Id);
-
-    return dockerExecutor.run(task.script, {
-      container,
-      out,
-    });
-  }
-
-  private async shellExec(task: TaskInfo, out: Writable) {
-    const { monorepo } = getContext();
-
-    const cwd = task.component
-      ? monorepo.component(task.component).rootdir
-      : monorepo.rootDir;
-
-    return shellExecutor.run(task.script, {
-      cwd,
-      out,
-    });
   }
 }

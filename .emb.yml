@@ -6,6 +6,10 @@ project:
 ## Plugins configs
 plugins:
   - name: autodiscover
+    config:
+      ignore:
+        - base/Dockerfile
+
   - name: dotenv
     config:
       - .env
@@ -44,9 +48,11 @@ components:
     # And we can define tasks
     tasks:
       - name: test
+        description: 'A simple unit test task'
         script: | # shell
           npm run test
       - name: fail
+        description: 'A task that will fail'
         script: | # shell
           npm run fail
 

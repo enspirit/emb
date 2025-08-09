@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import { deepMergeArray } from '../../../src/utils/index.js';
+import { deepMergeArray } from '@/utils';
 
 const byName = <T extends { name: string }>(item: T) => item.name;
 

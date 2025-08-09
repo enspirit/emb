@@ -1,7 +1,7 @@
 import { EmbContext, getContext } from '@';
 import * as z from 'zod';
 
-import { IOperation } from '../types.js';
+import { IOperation } from '@/operations';
 
 export abstract class AbstractOperation<S extends z.Schema, O = unknown>
   implements IOperation<z.infer<S>, O>

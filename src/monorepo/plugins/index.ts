@@ -3,7 +3,8 @@ import { AbstractPlugin } from './plugin.js';
 export * from './ComponentDiscoverPlugin.js';
 export * from './DotEnvPlugin.js';
 
-import { Monorepo } from '../monorepo.js';
+import { Monorepo } from '@/monorepo';
+
 import { ComponentDiscoverPlugin } from './ComponentDiscoverPlugin.js';
 import { DotEnvPlugin } from './DotEnvPlugin.js';
 

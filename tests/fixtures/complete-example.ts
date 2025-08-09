@@ -1,4 +1,4 @@
-import { IMonorepoConfig } from '../../src/config/index.js';
+import { IMonorepoConfig } from '@/config';
 
 export const CompleteExample: IMonorepoConfig = {
   components: [
