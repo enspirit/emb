@@ -2,10 +2,10 @@
   "name": "@enspirit/emb",
   "type": "module",
   "version": "0.0.1",
-  "keywords": [],
-  "author": "",
+  "keywords": ["monorepo", "docker", "taskrunner", "ci", "docker compose", "sentinel", "makefile"],
+  "author": "Louis Lambeau <louis.lambeau@enspirit.be>",
   "license": "ISC",
-  "description": "",
+  "description": "A replacement for our Makefile-for-monorepos",
   "bin": {
     "emb": "./bin/run.js"
   },
@@ -80,7 +80,7 @@
     "vitest": "^3.2.4"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   },
   "files": [
     "./bin",
