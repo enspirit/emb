@@ -3,17 +3,43 @@ import { glob } from 'glob';
 import { dirname } from 'node:path';
 
 import { ComponentConfig } from '@/config';
-import { MonorepoConfig } from '@/monorepo';
+import { Monorepo, MonorepoConfig } from '@/monorepo';
 
 import { AbstractPlugin } from './plugin.js';
 
-export class ComponentDiscoverPlugin extends AbstractPlugin {
+export type ComponentDiscoverPluginOptions = {
+  glob?: string;
+  ignore?: string | string[];
+};
+
+export const ComponentDiscoverPluginDefaultOptions = {
+  glob: '*/Dockerfile',
+};
+
+export class ComponentDiscoverPlugin extends AbstractPlugin<ComponentDiscoverPluginOptions> {
   static name = 'autodiscover';
 
+  constructor(
+    config: Partial<ComponentDiscoverPluginOptions>,
+    protected monorepo: Monorepo,
+  ) {
+    super(
+      {
+        ...ComponentDiscoverPluginDefaultOptions,
+        ...config,
+      },
+      monorepo,
+    );
+  }
+
   async extendConfig(config: MonorepoConfig): Promise<MonorepoConfig> {
-    const files = await glob('*/Dockerfile', {
-      cwd: config.project.rootDir,
-    });
+    const files = await glob(
+      this.config.glob || ComponentDiscoverPluginDefaultOptions.glob,
+      {
+        ...this.config,
+        cwd: config.project.rootDir,
+      },
+    );
 
     const overrides = files.map((path) => {
       const name = dirname(path);

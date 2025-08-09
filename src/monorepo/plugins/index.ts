@@ -1,10 +1,10 @@
 import { AbstractPlugin } from './plugin.js';
 
-export * from './ComponentsDiscover.js';
+export * from './ComponentDiscoverPlugin.js';
 export * from './DotEnvPlugin.js';
 
 import { Monorepo } from '../monorepo.js';
-import { ComponentDiscoverPlugin } from './ComponentsDiscover.js';
+import { ComponentDiscoverPlugin } from './ComponentDiscoverPlugin.js';
 import { DotEnvPlugin } from './DotEnvPlugin.js';
 
 export type AbstractPluginConstructor = new <C, P extends AbstractPlugin<C>>(
