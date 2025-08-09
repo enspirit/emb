@@ -4,3 +4,4 @@ tsconfig.tsbuildinfo
 tmp
 src/config/schema.ts
 .emb
+*.tgz
