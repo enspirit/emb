@@ -55,6 +55,9 @@ export default class ComponentsIndex extends FlavoredCommand<
         ...TABLE_DEFAULTS,
         columns: ['name', 'imageName', 'tag', 'container'],
         data: components,
+        sort: {
+          name: 'asc',
+        },
       });
     }
 
