@@ -1,7 +1,7 @@
 emb (Enspirit's Monorepo Builder)
 =================
 
-A CLI to help on Enspirit monorepos. This aims at replacing our aging [Makefile for monorepos](https://github.com/enspirit/makefile-for-monorepos/pulls)
+A CLI to help on Enspirit monorepos. This aims at replacing our aging [Makefile for monorepos](https://github.com/enspirit/makefile-for-monorepos)
 
 <!-- toc -->
 * [Usage](#usage)
