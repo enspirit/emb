@@ -121,6 +121,10 @@ export class BuildComponentsOperation extends AbstractOperation<
         // (This is when variables are expanded etc)
         {
           async task(ctx) {
+            // Reset the context to defaults (as apparently the context is shared amongst branches??)
+            // TODO understand and fix
+            ctx.skip = false;
+            //
             ctx.parentTask = parentTask;
             ctx.sentinelFile = getSentinelFile(cmp);
             ctx.plugin = new FilePrerequisitePlugin();

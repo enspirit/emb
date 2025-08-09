@@ -6,7 +6,7 @@ import { TemplateExpander } from '@/utils';
 
 import { Component } from './component.js';
 import { MonorepoConfig } from './config.js';
-import { getPlugin } from './plugins/index.js';
+import { AbstractPluginConstructor, getPlugin } from './plugins/index.js';
 import { EMBStore } from './store/index.js';
 import { TaskInfo } from './types.js';
 
@@ -32,10 +32,6 @@ export class Monorepo {
 
   get defaults() {
     return this._config.defaults;
-  }
-
-  get env(): Record<string, string | undefined> {
-    return this._env || {};
   }
 
   get flavors() {
@@ -78,7 +74,7 @@ export class Monorepo {
     const options = {
       default: 'vars',
       sources: {
-        env: this.env,
+        env: process.env,
         vars: this.vars,
       },
     };
@@ -103,11 +99,13 @@ export class Monorepo {
     await this._store.init();
 
     const plugins = this._config.plugins.map((p) => {
-      return { config: p.config, plugin: getPlugin(p.name) };
+      const PluginClass: AbstractPluginConstructor = getPlugin(p.name);
+
+      return new PluginClass(p.config, this);
     });
 
     this._config = await plugins.reduce(async (pConfig, plugin) => {
-      const newConfig = await plugin.plugin.extendConfig?.(await pConfig);
+      const newConfig = await plugin.extendConfig?.(await pConfig);
       return newConfig ?? pConfig;
     }, Promise.resolve(this._config));
 
@@ -121,16 +119,13 @@ export class Monorepo {
       },
     };
     const expanded = await expander.expandRecord(this._config.env, options);
-    this._env = {
-      ...process.env,
-      ...expanded,
-    };
+    Object.assign(process.env, expanded);
 
     this.initialized = true;
 
     await Promise.all(
       plugins.map(async (p) => {
-        await p.plugin.init?.(p.config, this);
+        await p.init?.();
       }),
     );
 

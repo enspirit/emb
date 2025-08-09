@@ -5,10 +5,10 @@ import { dirname } from 'node:path';
 import { ComponentConfig } from '@/config';
 import { MonorepoConfig } from '@/monorepo';
 
-import { IEMBPlugin } from './types.js';
+import { AbstractPlugin } from './plugin.js';
 
-export class ComponentDiscoverPlugin implements IEMBPlugin {
-  name = 'autodiscover';
+export class ComponentDiscoverPlugin extends AbstractPlugin {
+  static name = 'autodiscover';
 
   async extendConfig(config: MonorepoConfig): Promise<MonorepoConfig> {
     const files = await glob('*/Dockerfile', {

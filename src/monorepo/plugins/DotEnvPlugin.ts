@@ -1,14 +1,13 @@
 import { configDotenv } from 'dotenv';
 
-import { Monorepo } from '../monorepo.js';
-import { IEMBPlugin } from './types.js';
+import { AbstractPlugin } from './plugin.js';
 
-export class DotEnvPluging implements IEMBPlugin<Array<string>> {
-  name = 'dotenv';
+export class DotEnvPlugin extends AbstractPlugin<Array<string>> {
+  static name = 'dotenv';
 
-  async init(paths: Array<string>, monorepo: Monorepo) {
+  async init() {
     configDotenv({
-      path: paths.map((p) => monorepo.join(p)),
+      path: this.config.map((p) => this.monorepo.join(p)),
       quiet: true,
     });
   }

@@ -1,14 +1,20 @@
-import { IEMBPlugin } from './types.js';
+import { AbstractPlugin } from './plugin.js';
 
 export * from './ComponentsDiscover.js';
 export * from './DotEnvPlugin.js';
 
+import { Monorepo } from '../monorepo.js';
 import { ComponentDiscoverPlugin } from './ComponentsDiscover.js';
-import { DotEnvPluging } from './DotEnvPlugin.js';
+import { DotEnvPlugin } from './DotEnvPlugin.js';
 
-const PluginRegistry = new Map<string, IEMBPlugin>();
+export type AbstractPluginConstructor = new <C, P extends AbstractPlugin<C>>(
+  config: C,
+  monorepo: Monorepo,
+) => P;
 
-export const registerPlugin = (plugin: IEMBPlugin) => {
+const PluginRegistry = new Map<string, AbstractPluginConstructor>();
+
+export const registerPlugin = (plugin: AbstractPluginConstructor) => {
   if (PluginRegistry.has(plugin.name)) {
     throw new Error(`Plugin name confict: '${plugin.name}' already registered`);
   }
@@ -21,8 +27,9 @@ export const getPlugin = (name: string) => {
     throw new Error(`Unknown plugin: ${name}`);
   }
 
-  return PluginRegistry.get(name) as IEMBPlugin;
+  return PluginRegistry.get(name) as AbstractPluginConstructor;
 };
 
-registerPlugin(new ComponentDiscoverPlugin());
-registerPlugin(new DotEnvPluging());
+/** Not sure why we need casting */
+registerPlugin(ComponentDiscoverPlugin as AbstractPluginConstructor);
+registerPlugin(DotEnvPlugin as AbstractPluginConstructor);
