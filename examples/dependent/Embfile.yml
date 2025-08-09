@@ -1,0 +1,14 @@
+# yaml-language-server: $schema=../../src/config/schema.json#/$defs/component
+#
+# Sometimes we have inter-components dependencies
+# (for instance when reusing images)
+# This ensures that 'base' is built before 'dependent'
+#
+# (FYI: EMB will check and fail if it detects circular dependencies)
+name: dependent
+
+dependencies:
+  - base
+
+buildArgs:
+  BASE_IMAGE: emb/base:${env:DOCKER_TAG}

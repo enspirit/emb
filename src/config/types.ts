@@ -8,7 +8,7 @@ export type IProjectConfig = {
 };
 
 export type ComponentConfig = {
-  buildArgs?: Record<PropertyKey, string>;
+  buildArgs?: Record<string, string>;
   context?: string;
   dependencies?: Array<string>;
   dockerfile?: string;
@@ -20,7 +20,7 @@ export type ComponentConfig = {
 
 export type DefaultSettings = {
   docker?: {
-    buildArgs?: Record<string, unknown>;
+    buildArgs?: Record<string, string>;
     labels?: Record<string, string>;
     tag?: string;
     target?: string;

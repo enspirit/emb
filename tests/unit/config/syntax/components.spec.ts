@@ -10,30 +10,6 @@ describe('Config syntax - Components', () => {
     vConfig = vi.fn(validateUserConfig);
   });
 
-  test('allows for simple shortcuts', async () => {
-    await vConfig({ components: ['frontend'], project: 'test1' });
-
-    expect(vConfig).toHaveResolvedWith({
-      components: [
-        {
-          context: 'frontend',
-          name: 'frontend',
-        },
-      ],
-      defaults: {
-        docker: {
-          labels: {
-            'emb/project': 'test1',
-          },
-        },
-      },
-      project: {
-        name: 'test1',
-        rootDir: cwd(),
-      },
-    });
-  });
-
   test('allows for object format', async () => {
     await vConfig({
       components: [{ name: 'frontend' }],

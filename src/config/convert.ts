@@ -1,7 +1,7 @@
 import { resolve } from 'node:path';
 import { cwd } from 'node:process';
 
-import { Component, Flavor } from './schema.js';
+import { Flavor } from './schema.js';
 import {
   ComponentConfig,
   FlavorConfig,
@@ -13,14 +13,8 @@ import {
 export const toFlavor = (flavor: Flavor): FlavorConfig => {
   return {
     ...flavor,
-    components: flavor.components?.map(toComponent),
+    components: flavor.components,
   };
-};
-
-export const toComponent = (cmp: Component): ComponentConfig => {
-  return typeof cmp === 'string'
-    ? { context: cmp, name: cmp }
-    : (cmp as ComponentConfig);
 };
 
 export const toProjectConfig = (
@@ -40,9 +34,7 @@ export const toProjectConfig = (
     project.rootDir = rootDir || cwd();
   }
 
-  const components: Array<ComponentConfig> = (config.components || []).map(
-    (cmp) => toComponent(cmp),
-  );
+  const components: Array<ComponentConfig> = config.components || [];
 
   const { defaults, env, flavors, plugins, vars } = config;
 

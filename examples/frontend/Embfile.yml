@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=../../src/config/schema.json#/$defs/component
+
+name: frontend
+
+# Override the default docker target
+target: development
+
+# Some tasks
+tasks:
+  - name: test
+    description: 'A simple unit test task'
+    script: | # shell
+      npm run test
+
+  - name: fail
+    description: 'A task that will fail'
+    script: | # shell
+      npm run fail

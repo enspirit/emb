@@ -1,5 +1,7 @@
 import deepmerge from '@fastify/deepmerge';
 
+export const byName = <T extends { name: string }>(item: T) => item.name;
+
 export const deepMergeArray = <T>(
   target: Array<T>,
   source: Array<T>,

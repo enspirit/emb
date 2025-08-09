@@ -11,22 +11,33 @@ import {
 import { deepMergeArray } from '@/utils';
 
 export class MonorepoConfig implements IMonorepoConfig {
-  components: ComponentConfig[];
   defaults: DefaultSettings;
   env: Record<string, string>;
   flavors: Array<FlavorConfig>;
   plugins: Array<PluginConfig>;
   project: IProjectConfig;
   vars: Record<string, unknown>;
+  private _components: Map<string, ComponentConfig>;
 
   constructor(config: IMonorepoConfig) {
-    this.components = config.components;
+    this._components = config.components.reduce<Map<string, ComponentConfig>>(
+      (map, cmp) => {
+        map.set(cmp.name, cmp);
+
+        return map;
+      },
+      new Map(),
+    );
     this.defaults = config.defaults || {};
     this.project = config.project;
     this.vars = config.vars || {};
     this.flavors = config.flavors || [];
     this.env = config.env || {};
     this.plugins = config.plugins || [];
+  }
+
+  get components() {
+    return [...this._components.values()];
   }
 
   component(name: string): ComponentConfig {

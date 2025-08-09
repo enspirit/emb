@@ -20,7 +20,7 @@ export default class ConfigPrint extends FlavoredCommand<typeof ConfigPrint> {
     const { monorepo } = context;
 
     if (!flags.json) {
-      console.log(YAML.stringify(monorepo.config));
+      this.log(YAML.stringify(monorepo.config));
     }
 
     return monorepo.config;

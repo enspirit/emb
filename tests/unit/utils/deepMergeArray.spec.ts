@@ -1,8 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import { deepMergeArray } from '@/utils';
-
-const byName = <T extends { name: string }>(item: T) => item.name;
+import { byName, deepMergeArray } from '@/utils';
 
 describe('Utils / deepMergeArray', () => {
   describe('when not used with identifier function', () => {

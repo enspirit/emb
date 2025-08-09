@@ -89,7 +89,9 @@
             "target": { "type": "string" },
             "buildArgs": {
               "type": "object",
-              "additionalProperties": true
+              "additionalProperties": {
+                "type": "string"
+              }
             },
             "labels": {
               "type": "object",
@@ -125,60 +127,53 @@
       "additionalProperties": false
     },
     "component": {
-      "oneOf": [
-        {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": {
           "type": "string",
           "minLength": 3,
-          "description": "Shortcut for specifying the component name."
+          "description": "The name of the component."
         },
-        {
+        "context": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The directory of the component."
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "description": "A description of the component."
+        },
+        "buildArgs": {
           "type": "object",
-          "required": ["name"],
-          "properties": {
-            "name": {
-              "type": "string",
-              "minLength": 3,
-              "description": "The name of the component."
-            },
-            "context": {
-              "type": "string",
-              "minLength": 1,
-              "description": "The directory of the component."
-            },
-            "description": {
-              "type": "string",
-              "minLength": 1,
-              "description": "A description of the component."
-            },
-            "buildArgs": {
-              "type": "object",
-              "properties": {},
-              "additionalProperties": true
-            },
-            "dependencies": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "target": {
-              "type": "string",
-              "description": "The stage to target for the build"
-            },
-            "dockerfile": {
-              "type": "string",
-              "description": "The Dockerfile to use"
-            },
-            "tasks": {
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/task"
-              }
-            }
-          },
-          "additionalProperties": false
+          "properties": {},
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "target": {
+          "type": "string",
+          "description": "The stage to target for the build"
+        },
+        "dockerfile": {
+          "type": "string",
+          "description": "The Dockerfile to use"
+        },
+        "tasks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/task"
+          }
         }
-      ]
+      },
+      "additionalProperties": false
     },
     "flavor": {
       "type": "object",
