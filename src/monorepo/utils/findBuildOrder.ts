@@ -2,15 +2,8 @@ import graphlib from 'graphlib';
 
 import { Component } from '@/monorepo';
 
-export const findBuildOrder = (
-  components: Array<Component>,
-): Array<Component> => {
+const toGraph = (components: Array<Component>) => {
   const graph = new graphlib.Graph();
-  const hash = components.reduce<Record<string, Component>>((cmps, cmp) => {
-    cmps[cmp.name] = cmp;
-    return cmps;
-  }, {});
-
   // Add all components as nodes
   for (const comp of components) {
     graph.setNode(comp.name);
@@ -23,6 +16,20 @@ export const findBuildOrder = (
     }
   }
 
+  return graph;
+};
+
+export const findBuildOrder = (
+  components: Array<Component>,
+  selection?: Array<string>,
+): Array<Component> => {
+  const hash = components.reduce<Record<string, Component>>((cmps, cmp) => {
+    cmps[cmp.name] = cmp;
+    return cmps;
+  }, {});
+
+  const graph = toGraph(components);
+
   // Detect cycles
   const cycles = graphlib.alg.findCycles(graph);
   if (cycles.length > 0) {
@@ -31,7 +38,20 @@ export const findBuildOrder = (
     );
   }
 
+  // Pick nodes that we want to build and rebuild a graph only with these
+  const toBuild = selection || components.map((c) => c.name);
+  const includingDeps = toBuild
+    .reduce<Set<string>>((set, name) => {
+      graph.predecessors(name)?.forEach((name) => {
+        set.add(name);
+      });
+      return set;
+    }, new Set(toBuild))
+    .values();
+
+  const newGraph = toGraph([...includingDeps].map((name) => hash[name]));
+
   // Get build order
-  const order = graphlib.alg.topsort(graph);
+  const order = graphlib.alg.topsort(newGraph);
   return order.map((name) => hash[name]);
 };

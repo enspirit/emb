@@ -1,5 +1,5 @@
 import { EmbContext, getContext } from '@';
-import { beforeEach, describe, expect, Mock, test, vi } from 'vitest';
+import { beforeEach, describe, expect, Mock, test } from 'vitest';
 
 import { ListContainersOperation } from '@/docker';
 

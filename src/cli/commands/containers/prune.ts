@@ -2,7 +2,7 @@ import { getContext } from '@';
 import { Command } from '@oclif/core';
 import { PruneContainersInfo } from 'dockerode';
 
-import { pruneContainers } from '@/docker';
+import { PruneContainersOperation } from '@/docker/index.js';
 
 export default class ContainersPrune extends Command {
   static description = 'Prune containers.';
@@ -10,10 +10,12 @@ export default class ContainersPrune extends Command {
   static examples = ['<%= config.bin %> <%= command.id %>'];
 
   public async run(): Promise<PruneContainersInfo> {
-    const context = await getContext();
+    const { monorepo } = await getContext();
 
-    const info = await pruneContainers({
-      label: [`emb/project=${context.monorepo.name}`],
+    const info = await monorepo.run(new PruneContainersOperation(), {
+      filters: {
+        label: [`emb/project=${monorepo.name}`],
+      },
     });
 
     info.ContainersDeleted?.forEach((d) => {
