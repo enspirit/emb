@@ -3,6 +3,14 @@ project:
   name: emb
   rootDir: examples
 
+## Plugins configs
+plugins:
+  - name: autodiscover
+  - name: dotenv
+    config:
+      - .env
+      - .env.commons
+
 ## Add variables to the environment
 env:
   DOCKER_TAG: ${env:DOCKER_TAG:-latest}

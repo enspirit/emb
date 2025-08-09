@@ -1,5 +1,4 @@
 import { setContext } from '@';
-import 'dotenv/config';
 import { Hook, Performance } from '@oclif/core';
 import Dockerode from 'dockerode';
 

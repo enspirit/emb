@@ -6,7 +6,7 @@ import { TemplateExpander } from '@/utils';
 
 import { Component } from './component.js';
 import { MonorepoConfig } from './config.js';
-import { ComponentDiscoverPlugin } from './plugins/ComponentsDiscover.js';
+import { getPlugin } from './plugins/index.js';
 import { EMBStore } from './store/index.js';
 import { TaskInfo } from './types.js';
 
@@ -102,9 +102,14 @@ export class Monorepo {
     this._store = new EMBStore(this);
     await this._store.init();
 
-    // TODO: Introduce way to register plugins
-    const discover = new ComponentDiscoverPlugin();
-    this._config = await discover.run(this);
+    const plugins = this._config.plugins.map((p) => {
+      return { config: p.config, plugin: getPlugin(p.name) };
+    });
+
+    this._config = await plugins.reduce(async (pConfig, plugin) => {
+      const newConfig = await plugin.plugin.extendConfig?.(await pConfig);
+      return newConfig ?? pConfig;
+    }, Promise.resolve(this._config));
 
     // Expand env vars at the init and then we don't expand anymore
     // The only available source for them is the existing env
@@ -122,6 +127,12 @@ export class Monorepo {
     };
 
     this.initialized = true;
+
+    await Promise.all(
+      plugins.map(async (p) => {
+        await p.plugin.init?.(p.config, this);
+      }),
+    );
 
     return this;
   }

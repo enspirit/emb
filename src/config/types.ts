@@ -34,11 +34,17 @@ export type FlavorConfig = {
   name: string;
 };
 
+export type PluginConfig = {
+  config?: unknown;
+  name: string;
+};
+
 export type IMonorepoConfig = {
   components: Array<ComponentConfig>;
   defaults?: DefaultSettings;
   env?: Record<string, string>;
   flavors?: Array<FlavorConfig>;
+  plugins?: Array<PluginConfig>;
   project: IProjectConfig;
   vars?: Record<string, unknown>;
 };

@@ -30,6 +30,20 @@
         }
       ]
     },
+    "plugins": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "config": {}
+        },
+        "additionalProperties": false
+      }
+    },
     "env": {
       "type": "object",
       "description": "Variables to install on the environment",

@@ -6,6 +6,7 @@ import {
   FlavorConfig,
   IMonorepoConfig,
   IProjectConfig,
+  PluginConfig,
 } from '@/config';
 import { deepMergeArray } from '@/utils';
 
@@ -14,6 +15,7 @@ export class MonorepoConfig implements IMonorepoConfig {
   defaults: DefaultSettings;
   env: Record<string, string>;
   flavors: Array<FlavorConfig>;
+  plugins: Array<PluginConfig>;
   project: IProjectConfig;
   vars: Record<string, unknown>;
 
@@ -24,6 +26,7 @@ export class MonorepoConfig implements IMonorepoConfig {
     this.vars = config.vars || {};
     this.flavors = config.flavors || [];
     this.env = config.env || {};
+    this.plugins = config.plugins || [];
   }
 
   component(name: string): ComponentConfig {
@@ -52,6 +55,7 @@ export class MonorepoConfig implements IMonorepoConfig {
       defaults: this.defaults,
       env: this.env,
       flavors: this.flavors,
+      plugins: this.plugins,
       project: this.project,
       vars: this.vars,
     };
