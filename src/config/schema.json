@@ -70,6 +70,12 @@
       "items": {
         "$ref": "#/$defs/flavor"
       }
+    },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/task"
+      }
     }
   },
   "required": ["project"],
@@ -105,7 +111,11 @@
     },
     "task":{
       "type": "object",
-      "required": ["name", "script"],
+      "required": ["name"],
+      "anyOf": [
+        { "required": ["script"] },
+        { "required": ["pre"] }
+      ],
       "properties": {
         "name": {
           "type": "string"
@@ -122,6 +132,12 @@
         "options": {
           "type": "object",
           "additionalProperties": true
+        },
+        "pre": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "additionalProperties": false

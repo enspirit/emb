@@ -3,5 +3,6 @@ export type TaskInfo = {
   description?: string;
   id: string;
   name: string;
-  script: string;
+  script?: string;
+  pre?: Array<string>;
 };

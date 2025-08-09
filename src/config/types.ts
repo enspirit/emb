@@ -48,5 +48,6 @@ export type IMonorepoConfig = {
   flavors?: Array<FlavorConfig>;
   plugins?: Array<PluginConfig>;
   project: IProjectConfig;
+  tasks?: Array<Task>;
   vars?: Record<string, unknown>;
 };

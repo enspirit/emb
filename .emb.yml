@@ -40,6 +40,25 @@ components:
   # - the Dockerfile 'simple/Dockerfile' exists
   - name: simple
 
+## Tasks
+tasks:
+  - name: prereq
+    script: | # shell
+      echo "I should run before task 'dependent'";
+      sleep 2
+      echo "cool?";
+
+  - name: dependent
+    script: | # shell
+      echo I should run after task 'prereq'
+      echo "pas cool"
+      ls -la /
+    pre: ['prereq']
+
+  - name: ps
+    script: | # shell
+      docker compose ps
+
 ## Flavours
 flavors:
   - name: production

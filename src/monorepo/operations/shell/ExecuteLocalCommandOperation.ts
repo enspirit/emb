@@ -1,5 +1,5 @@
-import { execa, ResultPromise } from 'execa';
-import { Writable } from 'node:stream';
+import { execa } from 'execa';
+import { Readable } from 'node:stream';
 import * as z from 'zod';
 
 import { AbstractOperation } from '@/operations';
@@ -23,23 +23,19 @@ const schema = z.object({
 
 export class ExecuteLocalCommandOperation extends AbstractOperation<
   typeof schema,
-  ResultPromise
+  Readable
 > {
-  constructor(protected out?: Writable) {
+  constructor() {
     super(schema);
   }
 
-  protected async _run(input: z.input<typeof schema>): Promise<ResultPromise> {
+  protected async _run(input: z.input<typeof schema>): Promise<Readable> {
     const process = execa(input.script, {
       all: true,
       cwd: input.workingDir,
       shell: true,
     });
 
-    if (this.out) {
-      process.all?.pipe(this.out);
-    }
-
-    return process;
+    return process.all;
   }
 }

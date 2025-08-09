@@ -36,9 +36,10 @@ export const toProjectConfig = (
 
   const components: Array<ComponentConfig> = config.components || [];
 
-  const { defaults, env, flavors, plugins, vars } = config;
+  const { defaults, flavors, ...rest } = config;
 
   return {
+    ...rest,
     components,
     defaults: {
       ...defaults,
@@ -50,12 +51,9 @@ export const toProjectConfig = (
         },
       },
     },
-    env,
     flavors: flavors?.map(toFlavor),
-    plugins,
     project: {
       ...project,
     } as IProjectConfig,
-    vars,
   };
 };
