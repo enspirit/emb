@@ -16,16 +16,20 @@ describe('Config - MonorepoConfig', () => {
     const config = new MonorepoConfig({
       components: [
         {
-          context: 'frontend',
           name: 'frontend',
+          docker: {
+            context: 'frontend',
+          },
         },
         {
-          buildArgs: {
-            API_KEY: 'secret',
-          },
-          context: 'backend',
           name: 'backend',
-          target: 'production',
+          docker: {
+            buildArgs: {
+              API_KEY: 'secret',
+            },
+            context: 'backend',
+            target: 'production',
+          },
         },
       ],
       env: {
@@ -35,10 +39,12 @@ describe('Config - MonorepoConfig', () => {
         {
           components: [
             {
-              buildArgs: {
-                API_KEY: 'production secret',
-              },
               name: 'frontend',
+              docker: {
+                buildArgs: {
+                  API_KEY: 'production secret',
+                },
+              },
             },
           ],
           name: 'production',
@@ -102,8 +108,10 @@ describe('Config - MonorepoConfig', () => {
       const config2 = config1.with({
         components: [
           {
-            buildArgs: {
-              GREETING: 'test',
+            docker: {
+              buildArgs: {
+                GREETING: 'test',
+              },
             },
             name: 'frontend',
             tasks: [
@@ -143,8 +151,12 @@ describe('Config - MonorepoConfig', () => {
       );
 
       // Override per component
-      expect(config.component('frontend').target).to.equal('development');
-      expect(production.component('frontend').target).to.equal('production');
+      expect(config.component('frontend').docker?.target).to.equal(
+        'development',
+      );
+      expect(production.component('frontend').docker?.target).to.equal(
+        'production',
+      );
 
       // Override defaults
       // eslint-disable-next-line no-template-curly-in-string

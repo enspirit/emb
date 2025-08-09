@@ -4,30 +4,38 @@ export const CompleteExample: IMonorepoConfig = {
   components: [
     // Simplest component
     {
-      context: 'gateway',
       name: 'gateway',
+      docker: {
+        context: 'gateway',
+      },
     },
     // Build args
     {
-      buildArgs: {
-        API_KEY: 'secret',
-      },
-      context: 'backend',
-      dependencies: ['base'],
       name: 'backend',
+      docker: {
+        buildArgs: {
+          API_KEY: 'secret',
+        },
+        context: 'backend',
+        dependencies: ['base'],
+      },
     },
     // Docker build targets
     {
-      context: 'frontend',
-      dependencies: ['base'],
       name: 'frontend',
-      target: 'development',
+      docker: {
+        context: 'frontend',
+        dependencies: ['base'],
+        target: 'development',
+      },
     },
     // Base image for backend/frontend
     {
-      context: 'base',
       name: 'base',
-      target: 'development',
+      docker: {
+        context: 'base',
+        target: 'development',
+      },
     },
   ],
   defaults: {
@@ -44,9 +52,11 @@ export const CompleteExample: IMonorepoConfig = {
     {
       components: [
         {
-          context: 'frontend',
           name: 'frontend',
-          target: 'production',
+          docker: {
+            context: 'frontend',
+            target: 'production',
+          },
         },
       ],
       defaults: {
@@ -59,9 +69,11 @@ export const CompleteExample: IMonorepoConfig = {
     {
       components: [
         {
-          context: 'frontend',
           name: 'frontend',
-          target: 'production',
+          docker: {
+            context: 'frontend',
+            target: 'production',
+          },
         },
       ],
       defaults: {

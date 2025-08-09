@@ -3,7 +3,8 @@
 name: frontend
 
 # Override the default docker target
-target: development
+docker:
+  target: development
 
 # Some tasks
 tasks:

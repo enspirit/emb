@@ -17,12 +17,12 @@ export class Component {
   }
 
   get context() {
-    return this.config.context;
+    return this.config.docker?.context || this.name;
   }
 
   get dependencies() {
     return this.monorepo.components.filter((c) =>
-      this.config.dependencies?.includes(c.name),
+      this.config.docker?.dependencies?.includes(c.name),
     );
   }
 
@@ -37,7 +37,7 @@ export class Component {
   get labels() {
     return {
       'emb/component': this.name,
-      ...this._config.labels,
+      ...this._config.docker?.labels,
     };
   }
 
@@ -84,11 +84,11 @@ export class Component {
       buildArgs: await this.monorepo.expand(
         deepmerge()(
           this.monorepo.defaults.docker?.buildArgs || {},
-          this.config.buildArgs || {},
+          this.config.docker?.buildArgs || {},
         ),
       ),
       context: this.rootdir,
-      dockerfile: this.config.dockerfile || 'Dockerfile',
+      dockerfile: this.config.docker?.dockerfile || 'Dockerfile',
       labels: deepmerge()(
         {
           ...this.monorepo.defaults.docker?.labels,
@@ -100,7 +100,8 @@ export class Component {
       tag: this.imageTag
         ? await this.monorepo.expand(this.imageTag as string)
         : 'latest',
-      target: this.config.target || this.monorepo.defaults?.docker?.target,
+      target:
+        this.config.docker?.target || this.monorepo.defaults?.docker?.target,
     };
   }
 }

@@ -47,4 +47,5 @@ flavors:
       DOCKER_TAG: production
     components:
       - name: frontend
-        target: production
+        docker:
+          target: production

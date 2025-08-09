@@ -7,8 +7,8 @@
 # (FYI: EMB will check and fail if it detects circular dependencies)
 name: dependent
 
-dependencies:
-  - base
-
-buildArgs:
-  BASE_IMAGE: emb/base:${env:DOCKER_TAG}
+docker:
+  dependencies:
+    - base
+  buildArgs:
+    BASE_IMAGE: emb/base:${env:DOCKER_TAG}

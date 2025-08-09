@@ -10,7 +10,7 @@ describe('Config syntax - Components', () => {
     vConfig = vi.fn(validateUserConfig);
   });
 
-  test('allows for object format', async () => {
+  test('allows for simplest object format', async () => {
     await vConfig({
       components: [{ name: 'frontend' }],
       project: 'test2',
@@ -36,8 +36,10 @@ describe('Config syntax - Components', () => {
     await vConfig({
       components: [
         {
-          buildArgs: {
-            GREETING: 'test',
+          docker: {
+            buildArgs: {
+              GREETING: 'test',
+            },
           },
           name: 'frontend',
         },
@@ -55,8 +57,10 @@ describe('Config syntax - Components', () => {
     expect(vConfig).toHaveResolvedWith({
       components: [
         {
-          buildArgs: {
-            GREETING: 'test',
+          docker: {
+            buildArgs: {
+              GREETING: 'test',
+            },
           },
           name: 'frontend',
         },

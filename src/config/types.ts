@@ -8,13 +8,15 @@ export type IProjectConfig = {
 };
 
 export type ComponentConfig = {
-  buildArgs?: Record<string, string>;
-  context?: string;
-  dependencies?: Array<string>;
-  dockerfile?: string;
-  labels?: Record<string, string>;
   name: string;
-  target?: string;
+  docker?: {
+    buildArgs?: Record<string, string>;
+    context?: string;
+    dependencies?: Array<string>;
+    dockerfile?: string;
+    labels?: Record<string, string>;
+    target?: string;
+  };
   tasks?: Array<Task>;
 };
 

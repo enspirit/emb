@@ -135,36 +135,42 @@
           "minLength": 3,
           "description": "The name of the component."
         },
-        "context": {
-          "type": "string",
-          "minLength": 1,
-          "description": "The directory of the component."
+        "docker": {
+          "type": "object",
+          "properties": {
+            "context": {
+              "type": "string",
+              "minLength": 1,
+              "description": "The directory of the component."
+            },
+            "buildArgs": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "dependencies": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "target": {
+              "type": "string",
+              "description": "The stage to target for the build"
+            },
+            "dockerfile": {
+              "type": "string",
+              "description": "The Dockerfile to use"
+            }
+          },
+          "additionalProperties": false
         },
         "description": {
           "type": "string",
           "minLength": 1,
           "description": "A description of the component."
-        },
-        "buildArgs": {
-          "type": "object",
-          "properties": {},
-          "additionalProperties": {
-            "type": "string"
-          }
-        },
-        "dependencies": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "target": {
-          "type": "string",
-          "description": "The stage to target for the build"
-        },
-        "dockerfile": {
-          "type": "string",
-          "description": "The Dockerfile to use"
         },
         "tasks": {
           "type": "array",

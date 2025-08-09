@@ -46,8 +46,10 @@ export class ComponentDiscoverPlugin extends AbstractPlugin<ComponentDiscoverPlu
       const component = config.components.find((cmp) => cmp.name === name);
 
       const cfg: ComponentConfig = {
-        context: name,
         name,
+        docker: {
+          context: name,
+        },
       };
 
       return component ? deepmerge()(component, cfg) : cfg;
