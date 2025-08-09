@@ -24,17 +24,22 @@ USAGE
 # Commands
 <!-- commands -->
 * [`emb autocomplete [SHELL]`](#emb-autocomplete-shell)
+* [`emb clean`](#emb-clean)
+* [`emb components`](#emb-components)
+* [`emb components build [COMPONENT]`](#emb-components-build-component)
+* [`emb config print`](#emb-config-print)
+* [`emb containers`](#emb-containers)
+* [`emb containers prune`](#emb-containers-prune)
+* [`emb down`](#emb-down)
 * [`emb help [COMMAND]`](#emb-help-command)
-* [`emb plugins`](#emb-plugins)
-* [`emb plugins add PLUGIN`](#emb-plugins-add-plugin)
-* [`emb plugins:inspect PLUGIN...`](#emb-pluginsinspect-plugin)
-* [`emb plugins install PLUGIN`](#emb-plugins-install-plugin)
-* [`emb plugins link PATH`](#emb-plugins-link-path)
-* [`emb plugins remove [PLUGIN]`](#emb-plugins-remove-plugin)
-* [`emb plugins reset`](#emb-plugins-reset)
-* [`emb plugins uninstall [PLUGIN]`](#emb-plugins-uninstall-plugin)
-* [`emb plugins unlink [PLUGIN]`](#emb-plugins-unlink-plugin)
-* [`emb plugins update`](#emb-plugins-update)
+* [`emb images`](#emb-images)
+* [`emb images delete`](#emb-images-delete)
+* [`emb images prune`](#emb-images-prune)
+* [`emb ps`](#emb-ps)
+* [`emb run COMPONENT SCRIPT`](#emb-run-component-script)
+* [`emb tasks`](#emb-tasks)
+* [`emb tasks run [TASK]`](#emb-tasks-run-task)
+* [`emb up`](#emb-up)
 
 ## `emb autocomplete [SHELL]`
 
@@ -67,6 +72,150 @@ EXAMPLES
 
 _See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v3.2.34/src/commands/autocomplete/index.ts)_
 
+## `emb clean`
+
+Clean the project.
+
+```
+USAGE
+  $ emb clean [--json]
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Clean the project.
+
+EXAMPLES
+  $ emb clean
+```
+
+## `emb components`
+
+List components.
+
+```
+USAGE
+  $ emb components [--json] [--flavor <value>]
+
+FLAGS
+  --flavor=<value>  Specify the flavor to use.
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  List components.
+
+EXAMPLES
+  $ emb components
+```
+
+## `emb components build [COMPONENT]`
+
+Build the components of the monorepo
+
+```
+USAGE
+  $ emb components build [COMPONENT...] [--json] [--flavor <value>]
+
+ARGUMENTS
+  COMPONENT...  List of components to build
+
+FLAGS
+  --flavor=<value>  Specify the flavor to use.
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Build the components of the monorepo
+
+EXAMPLES
+  $ emb components build build --flavor development
+```
+
+## `emb config print`
+
+Print the current config.
+
+```
+USAGE
+  $ emb config print [--json] [--flavor <value>]
+
+FLAGS
+  --flavor=<value>  Specify the flavor to use.
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Print the current config.
+
+EXAMPLES
+  $ emb config print
+```
+
+## `emb containers`
+
+List docker containers.
+
+```
+USAGE
+  $ emb containers [--json] [-a]
+
+FLAGS
+  -a, --all  Retun all containers. By default, only running containers are shown
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  List docker containers.
+
+ALIASES
+  $ emb ps
+
+EXAMPLES
+  $ emb containers
+```
+
+## `emb containers prune`
+
+Prune containers.
+
+```
+USAGE
+  $ emb containers prune [--json]
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Prune containers.
+
+EXAMPLES
+  $ emb containers prune
+```
+
+## `emb down`
+
+Stop the whole project.
+
+```
+USAGE
+  $ emb down [--json]
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Stop the whole project.
+
+EXAMPLES
+  $ emb down
+```
+
 ## `emb help [COMMAND]`
 
 Display help for emb.
@@ -87,293 +236,170 @@ DESCRIPTION
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.2.32/src/commands/help.ts)_
 
-## `emb plugins`
+## `emb images`
 
-List installed plugins.
+List docker images.
 
 ```
 USAGE
-  $ emb plugins [--json] [--core]
+  $ emb images [--json] [-a]
 
 FLAGS
-  --core  Show core plugins.
+  -a, --all  Show all images. Only images from a final layer (no children) are shown by default.
 
 GLOBAL FLAGS
   --json  Format output as json.
 
 DESCRIPTION
-  List installed plugins.
+  List docker images.
 
 EXAMPLES
-  $ emb plugins
+  $ emb images
 ```
 
-_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v5.4.46/src/commands/plugins/index.ts)_
+## `emb images delete`
 
-## `emb plugins add PLUGIN`
-
-Installs a plugin into emb.
+Delete project images.
 
 ```
 USAGE
-  $ emb plugins add PLUGIN... [--json] [-f] [-h] [-s | -v]
-
-ARGUMENTS
-  PLUGIN...  Plugin to install.
+  $ emb images delete [--json] [-f]
 
 FLAGS
-  -f, --force    Force npm to fetch remote resources even if a local copy exists on disk.
-  -h, --help     Show CLI help.
-  -s, --silent   Silences npm output.
-  -v, --verbose  Show verbose npm output.
+  -f, --force  Remove the image even if it is being used by stopped containers or has other tags
 
 GLOBAL FLAGS
   --json  Format output as json.
 
 DESCRIPTION
-  Installs a plugin into emb.
-
-  Uses npm to install plugins.
-
-  Installation of a user-installed plugin will override a core plugin.
-
-  Use the EMB_NPM_LOG_LEVEL environment variable to set the npm loglevel.
-  Use the EMB_NPM_REGISTRY environment variable to set the npm registry.
-
-ALIASES
-  $ emb plugins add
+  Delete project images.
 
 EXAMPLES
-  Install a plugin from npm registry.
-
-    $ emb plugins add myplugin
-
-  Install a plugin from a github url.
-
-    $ emb plugins add https://github.com/someuser/someplugin
-
-  Install a plugin from a github slug.
-
-    $ emb plugins add someuser/someplugin
+  $ emb images delete
 ```
 
-## `emb plugins:inspect PLUGIN...`
+## `emb images prune`
 
-Displays installation properties of a plugin.
+Prune project images.
 
 ```
 USAGE
-  $ emb plugins inspect PLUGIN...
-
-ARGUMENTS
-  PLUGIN...  [default: .] Plugin to inspect.
+  $ emb images prune [--json] [-a]
 
 FLAGS
-  -h, --help     Show CLI help.
-  -v, --verbose
+  -a, --all  Prune all images. When set to true all images will be pruned, not only dangling ones
 
 GLOBAL FLAGS
   --json  Format output as json.
 
 DESCRIPTION
-  Displays installation properties of a plugin.
+  Prune project images.
 
 EXAMPLES
-  $ emb plugins inspect myplugin
+  $ emb images prune
 ```
 
-_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v5.4.46/src/commands/plugins/inspect.ts)_
+## `emb ps`
 
-## `emb plugins install PLUGIN`
-
-Installs a plugin into emb.
+List docker containers.
 
 ```
 USAGE
-  $ emb plugins install PLUGIN... [--json] [-f] [-h] [-s | -v]
-
-ARGUMENTS
-  PLUGIN...  Plugin to install.
+  $ emb ps [--json] [-a]
 
 FLAGS
-  -f, --force    Force npm to fetch remote resources even if a local copy exists on disk.
-  -h, --help     Show CLI help.
-  -s, --silent   Silences npm output.
-  -v, --verbose  Show verbose npm output.
+  -a, --all  Retun all containers. By default, only running containers are shown
 
 GLOBAL FLAGS
   --json  Format output as json.
 
 DESCRIPTION
-  Installs a plugin into emb.
-
-  Uses npm to install plugins.
-
-  Installation of a user-installed plugin will override a core plugin.
-
-  Use the EMB_NPM_LOG_LEVEL environment variable to set the npm loglevel.
-  Use the EMB_NPM_REGISTRY environment variable to set the npm registry.
+  List docker containers.
 
 ALIASES
-  $ emb plugins add
+  $ emb ps
 
 EXAMPLES
-  Install a plugin from npm registry.
-
-    $ emb plugins install myplugin
-
-  Install a plugin from a github url.
-
-    $ emb plugins install https://github.com/someuser/someplugin
-
-  Install a plugin from a github slug.
-
-    $ emb plugins install someuser/someplugin
+  $ emb ps
 ```
 
-_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v5.4.46/src/commands/plugins/install.ts)_
+## `emb run COMPONENT SCRIPT`
 
-## `emb plugins link PATH`
-
-Links a plugin into the CLI for development.
+Run an npm script from a component's package.json
 
 ```
 USAGE
-  $ emb plugins link PATH [-h] [--install] [-v]
+  $ emb run COMPONENT SCRIPT
 
 ARGUMENTS
-  PATH  [default: .] path to plugin
-
-FLAGS
-  -h, --help          Show CLI help.
-  -v, --verbose
-      --[no-]install  Install dependencies after linking the plugin.
+  COMPONENT  Component name
+  SCRIPT     NPM script to run
 
 DESCRIPTION
-  Links a plugin into the CLI for development.
-
-  Installation of a linked plugin will override a user-installed or core plugin.
-
-  e.g. If you have a user-installed or core plugin that has a 'hello' command, installing a linked plugin with a 'hello'
-  command will override the user-installed or core plugin implementation. This is useful for development work.
-
-
-EXAMPLES
-  $ emb plugins link myplugin
+  Run an npm script from a component's package.json
 ```
 
-_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v5.4.46/src/commands/plugins/link.ts)_
+## `emb tasks`
 
-## `emb plugins remove [PLUGIN]`
-
-Removes a plugin from the CLI.
+List tasks.
 
 ```
 USAGE
-  $ emb plugins remove [PLUGIN...] [-h] [-v]
+  $ emb tasks [--json]
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  List tasks.
+
+EXAMPLES
+  $ emb tasks
+```
+
+## `emb tasks run [TASK]`
+
+Run a task.
+
+```
+USAGE
+  $ emb tasks run [TASK...] [--json] [-x container|local]
 
 ARGUMENTS
-  PLUGIN...  plugin to uninstall
+  TASK...  List of tasks ids to run (eg: component:task)
 
 FLAGS
-  -h, --help     Show CLI help.
-  -v, --verbose
+  -x, --executor=<option>  <options: container|local>
+
+GLOBAL FLAGS
+  --json  Format output as json.
 
 DESCRIPTION
-  Removes a plugin from the CLI.
-
-ALIASES
-  $ emb plugins unlink
-  $ emb plugins remove
+  Run a task.
 
 EXAMPLES
-  $ emb plugins remove myplugin
+  $ emb tasks run
 ```
 
-## `emb plugins reset`
+## `emb up`
 
-Remove all user-installed and linked plugins.
-
-```
-USAGE
-  $ emb plugins reset [--hard] [--reinstall]
-
-FLAGS
-  --hard       Delete node_modules and package manager related files in addition to uninstalling plugins.
-  --reinstall  Reinstall all plugins after uninstalling.
-```
-
-_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v5.4.46/src/commands/plugins/reset.ts)_
-
-## `emb plugins uninstall [PLUGIN]`
-
-Removes a plugin from the CLI.
+Start the whole project.
 
 ```
 USAGE
-  $ emb plugins uninstall [PLUGIN...] [-h] [-v]
-
-ARGUMENTS
-  PLUGIN...  plugin to uninstall
+  $ emb up [--json] [--flavor <value>] [-f]
 
 FLAGS
-  -h, --help     Show CLI help.
-  -v, --verbose
+  -f, --force-recreate  Recreate containers even if their configuration and image haven't changed
+      --flavor=<value>  Specify the flavor to use.
+
+GLOBAL FLAGS
+  --json  Format output as json.
 
 DESCRIPTION
-  Removes a plugin from the CLI.
-
-ALIASES
-  $ emb plugins unlink
-  $ emb plugins remove
+  Start the whole project.
 
 EXAMPLES
-  $ emb plugins uninstall myplugin
+  $ emb up
 ```
-
-_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v5.4.46/src/commands/plugins/uninstall.ts)_
-
-## `emb plugins unlink [PLUGIN]`
-
-Removes a plugin from the CLI.
-
-```
-USAGE
-  $ emb plugins unlink [PLUGIN...] [-h] [-v]
-
-ARGUMENTS
-  PLUGIN...  plugin to uninstall
-
-FLAGS
-  -h, --help     Show CLI help.
-  -v, --verbose
-
-DESCRIPTION
-  Removes a plugin from the CLI.
-
-ALIASES
-  $ emb plugins unlink
-  $ emb plugins remove
-
-EXAMPLES
-  $ emb plugins unlink myplugin
-```
-
-## `emb plugins update`
-
-Update installed plugins.
-
-```
-USAGE
-  $ emb plugins update [-h] [-v]
-
-FLAGS
-  -h, --help     Show CLI help.
-  -v, --verbose
-
-DESCRIPTION
-  Update installed plugins.
-```
-
-_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v5.4.46/src/commands/plugins/update.ts)_
 <!-- commandsstop -->

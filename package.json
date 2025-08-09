@@ -20,6 +20,7 @@
     "pack:macos": "oclif pack macos",
     "pack:deb": "oclif pack deb",
     "postpack": "shx rm -f oclif.manifest.json",
+    "postbuild": "oclif manifest --dir dist",
     "posttest": "npm run lint",
     "prepack": "oclif manifest && oclif readme",
     "test": "npm run build:types && npm run test:unit",
@@ -34,7 +35,6 @@
     "@oclif/plugin-autocomplete": "^3.2.34",
     "@oclif/plugin-help": "^6.2.32",
     "@oclif/plugin-not-found": "^3.2.63",
-    "@oclif/plugin-plugins": "^5.4.46",
     "@oclif/table": "^0.4.12",
     "ajv": "^8.17.1",
     "colorette": "^2.0.20",
@@ -104,14 +104,10 @@
     "plugins": [
       "@oclif/plugin-help",
       "@oclif/plugin-autocomplete",
-      "@oclif/plugin-not-found",
-      "@oclif/plugin-plugins"
+      "@oclif/plugin-not-found"
     ],
     "topicSeparator": " ",
     "topics": {
-      "hello": {
-        "description": "Say hello to the world and others"
-      }
     }
   }
 }
