@@ -14,7 +14,7 @@ $ npm install -g @enspirit/emb
 $ emb COMMAND
 running command...
 $ emb (--version)
-@enspirit/emb/0.0.5 darwin-x64 node-v22.12.0
+@enspirit/emb/0.0.6 darwin-x64 node-v22.12.0
 $ emb --help [COMMAND]
 USAGE
   $ emb COMMAND
@@ -36,7 +36,6 @@ USAGE
 * [`emb images delete`](#emb-images-delete)
 * [`emb images prune`](#emb-images-prune)
 * [`emb ps`](#emb-ps)
-* [`emb run COMPONENT SCRIPT`](#emb-run-component-script)
 * [`emb tasks`](#emb-tasks)
 * [`emb tasks run [TASK]`](#emb-tasks-run-task)
 * [`emb up`](#emb-up)
@@ -321,22 +320,6 @@ ALIASES
 
 EXAMPLES
   $ emb ps
-```
-
-## `emb run COMPONENT SCRIPT`
-
-Run an npm script from a component's package.json
-
-```
-USAGE
-  $ emb run COMPONENT SCRIPT
-
-ARGUMENTS
-  COMPONENT  Component name
-  SCRIPT     NPM script to run
-
-DESCRIPTION
-  Run an npm script from a component's package.json
 ```
 
 ## `emb tasks`
