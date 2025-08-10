@@ -146,9 +146,13 @@ describe('Config - MonorepoConfig', () => {
     });
 
     test('returns a new config', () => {
+      // before
+      expect(config.currentFlavor).to.equal('default');
+
       const newConfig = config.withFlavor('production');
       expect(newConfig).to.not.equal(config);
       expect(newConfig).to.be.an.instanceOf(MonorepoConfig);
+      expect(newConfig.currentFlavor).to.equal('production');
     });
 
     test('uses the flavour overrides accordingly', () => {

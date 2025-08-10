@@ -42,6 +42,7 @@ export type PluginConfig = {
 };
 
 export type IMonorepoConfig = {
+  currentFlavor?: string;
   components: Array<ComponentConfig>;
   defaults?: DefaultSettings;
   env?: Record<string, string>;

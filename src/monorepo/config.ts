@@ -12,6 +12,9 @@ import { Task } from '@/config/schema.js';
 import { deepMergeArray } from '@/utils';
 
 export class MonorepoConfig implements IMonorepoConfig {
+  // the flavor we come from
+  currentFlavor: string;
+  //
   defaults: DefaultSettings;
   env: Record<string, string>;
   flavors: Array<FlavorConfig>;
@@ -37,6 +40,7 @@ export class MonorepoConfig implements IMonorepoConfig {
     this.env = config.env || {};
     this.plugins = config.plugins || [];
     this.tasks = config.tasks || [];
+    this.currentFlavor = config.currentFlavor || 'default';
   }
 
   get components() {
@@ -63,8 +67,9 @@ export class MonorepoConfig implements IMonorepoConfig {
     return flavor;
   }
 
-  toJSON(): Required<IMonorepoConfig> {
+  toJSON(): IMonorepoConfig {
     return {
+      currentFlavor: this.currentFlavor,
       components: this.components,
       defaults: this.defaults,
       env: this.env,
@@ -79,6 +84,7 @@ export class MonorepoConfig implements IMonorepoConfig {
   with(overrides: Partial<IMonorepoConfig>): MonorepoConfig {
     const newConfig: IMonorepoConfig = {
       ...this.toJSON(),
+      ...overrides,
       components: deepMerge({
         mergeArray() {
           // Merge components by identifying them by name
@@ -98,6 +104,9 @@ export class MonorepoConfig implements IMonorepoConfig {
   }
 
   withFlavor(name: string): MonorepoConfig {
-    return this.with(this.flavor(name));
+    return this.with({
+      ...this.flavor(name),
+      currentFlavor: name,
+    });
   }
 }

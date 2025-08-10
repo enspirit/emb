@@ -15,9 +15,13 @@ export class EMBStore {
 
   constructor(
     private monorepo: Monorepo,
-    dirname = '.emb',
+    dirname?: string,
   ) {
-    this.path = this.monorepo.join(dirname);
+    // By default, we use the flavor name to build that root of the store
+    // so that logs and sentinel files for different flavors are keps separate
+    this.path = this.monorepo.join(
+      dirname || join(`.emb`, this.monorepo.currentFlavor),
+    );
   }
 
   async createReadStream(path: string) {

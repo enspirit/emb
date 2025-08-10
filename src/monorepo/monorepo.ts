@@ -46,6 +46,10 @@ export class Monorepo {
     return this._config.project.rootDir;
   }
 
+  get currentFlavor() {
+    return this._config.currentFlavor;
+  }
+
   get store() {
     return this._store;
   }
