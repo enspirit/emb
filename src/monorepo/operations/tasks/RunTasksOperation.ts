@@ -3,10 +3,9 @@ import { Manager } from '@listr2/manager';
 import { ListrTask } from 'listr2';
 import { Writable } from 'node:stream';
 
-import { ContainerExecOperation } from '@/docker/index.js';
-import { TaskInfo } from '@/monorepo/types.js';
-import { EMBCollection, findRunOrder } from '@/monorepo/utils/findRunOrder.js';
-import { IOperation } from '@/operations/types.js';
+import { ContainerExecOperation } from '@/docker';
+import { EMBCollection, findRunOrder, TaskInfo } from '@/monorepo';
+import { IOperation } from '@/operations';
 
 import {
   ExecuteLocalCommandOperation,

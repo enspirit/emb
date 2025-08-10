@@ -1,7 +1,6 @@
 import * as z from 'zod';
 
-import { decodeBuildkitStatusResponse } from '@/docker';
-import { MobyTrace } from '@/docker/images/buildImage.js';
+import { decodeBuildkitStatusResponse, MobyTrace } from '@/docker';
 import { AbstractOperation } from '@/operations';
 
 /**

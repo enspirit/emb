@@ -1,7 +1,7 @@
 import { Args } from '@oclif/core';
 
 import { FlavoredCommand, getContext } from '@/cli';
-import { BuildComponentsOperation } from '@/monorepo/operations/index.js';
+import { BuildComponentsOperation } from '@/monorepo';
 
 export default class BuildCommand extends FlavoredCommand<typeof BuildCommand> {
   static args = {

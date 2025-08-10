@@ -7,8 +7,8 @@ import {
   IMonorepoConfig,
   IProjectConfig,
   PluginConfig,
+  Task,
 } from '@/config';
-import { Task } from '@/config/schema.js';
 import { deepMergeArray } from '@/utils';
 
 export class MonorepoConfig implements IMonorepoConfig {

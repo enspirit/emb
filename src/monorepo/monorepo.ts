@@ -1,7 +1,7 @@
 import { join } from 'node:path';
 
 import { IMonorepoConfig } from '@/config';
-import { IOperation } from '@/operations/types.js';
+import { IOperation } from '@/operations';
 import { TemplateExpander } from '@/utils';
 
 import { Component } from './component.js';

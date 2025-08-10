@@ -1,10 +1,7 @@
 import { getContext } from '@';
 import { Args, Command, Flags } from '@oclif/core';
 
-import {
-  ExecutorType,
-  RunTasksOperation,
-} from '@/monorepo/operations/tasks/RunTasksOperation.js';
+import { ExecutorType, RunTasksOperation } from '@/monorepo';
 
 export default class RunTask extends Command {
   static args = {

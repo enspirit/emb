@@ -16,12 +16,10 @@ import {
   BuildImageOperation,
   DockerComponentBuild,
   getSentinelFile,
-} from '@/docker/index.js';
-import { Component } from '@/monorepo/component.js';
-import { EMBCollection, findRunOrder } from '@/monorepo/utils/findRunOrder.js';
+} from '@/docker';
+import { Component, EMBCollection, findRunOrder } from '@/monorepo';
 import { AbstractOperation } from '@/operations';
-import { FilePrerequisitePlugin } from '@/prerequisites/FilePrerequisitePlugin.js';
-import { PrerequisiteType } from '@/prerequisites/types.js';
+import { FilePrerequisitePlugin, PrerequisiteType } from '@/prerequisites';
 
 type BuildComponentContext = {
   build: DockerComponentBuild;

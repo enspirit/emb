@@ -1,8 +1,8 @@
 import { getContext } from '@';
 import { ContainerInfo } from 'dockerode';
 
-import { ListContainersOperation } from '@/docker/index.js';
-import { Component } from '@/monorepo/component.js';
+import { ListContainersOperation } from '@/docker';
+import { Component } from '@/monorepo';
 import { IOperation } from '@/operations';
 
 export class GetComponentContainerOperation
