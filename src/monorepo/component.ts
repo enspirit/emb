@@ -21,9 +21,7 @@ export class Component {
   }
 
   get dependencies() {
-    return this.monorepo.components.filter((c) =>
-      this.config.docker?.dependencies?.includes(c.name),
-    );
+    return this.config.docker?.dependencies || [];
   }
 
   get imageName() {

@@ -54,6 +54,12 @@ describe('Config - MonorepoConfig', () => {
         name: 'test',
         rootDir: cwd(),
       },
+      tasks: [
+        {
+          name: 'status',
+          script: 'git status',
+        },
+      ],
     });
 
     expect(config.project.name).to.equal('test');
@@ -66,6 +72,10 @@ describe('Config - MonorepoConfig', () => {
 
     expect(config.flavors).to.have.length(1);
     expect(config.flavors[0].name).to.equal('production');
+
+    expect(config.tasks).to.have.length(1);
+    expect(config.tasks[0].name).to.equal('status');
+    expect(config.tasks[0].script).to.equal('git status');
   });
 
   describe('#flavor(name)', () => {

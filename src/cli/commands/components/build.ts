@@ -6,7 +6,7 @@ import { BuildComponentsOperation } from '@/monorepo/operations/index.js';
 export default class BuildCommand extends FlavoredCommand<typeof BuildCommand> {
   static args = {
     component: Args.string({
-      description: 'List of components to build',
+      description: 'List of components to build (defaults to all)',
       required: false,
     }),
   };
@@ -22,7 +22,10 @@ export default class BuildCommand extends FlavoredCommand<typeof BuildCommand> {
     const { monorepo } = getContext();
 
     await monorepo.run(new BuildComponentsOperation(), {
-      components: argv.length > 0 ? (argv as string[]) : undefined,
+      components:
+        argv.length > 0
+          ? (argv as string[])
+          : monorepo.components.map((c) => c.name),
     });
   }
 }

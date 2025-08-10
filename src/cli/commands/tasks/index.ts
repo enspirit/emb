@@ -13,15 +13,25 @@ export default class TasksIndex extends Command {
 
   public async run(): Promise<Array<TaskInfo>> {
     const { flags } = await this.parse(TasksIndex);
-    const context = await getContext();
-    const { monorepo } = context;
-    const { tasks } = monorepo;
+    const {
+      monorepo: { tasks },
+    } = await getContext();
 
     if (!flags.json)
       printTable({
         ...TABLE_DEFAULTS,
-        columns: ['id', 'component', 'name', 'description'],
-        data: tasks,
+        columns: ['name', 'component', 'description', 'id'],
+        data: tasks.toSorted((a, b) => {
+          if (a.component === b.component) {
+            return a.name < b.name ? -1 : 1;
+          }
+
+          if (!a.component && b.component) {
+            return -1;
+          }
+
+          return 0;
+        }),
       });
 
     return tasks;

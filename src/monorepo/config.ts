@@ -8,6 +8,7 @@ import {
   IProjectConfig,
   PluginConfig,
 } from '@/config';
+import { Task } from '@/config/schema.js';
 import { deepMergeArray } from '@/utils';
 
 export class MonorepoConfig implements IMonorepoConfig {
@@ -17,6 +18,7 @@ export class MonorepoConfig implements IMonorepoConfig {
   plugins: Array<PluginConfig>;
   project: IProjectConfig;
   vars: Record<string, unknown>;
+  tasks: Array<Task>;
   private _components: Map<string, ComponentConfig>;
 
   constructor(config: IMonorepoConfig) {
@@ -34,6 +36,7 @@ export class MonorepoConfig implements IMonorepoConfig {
     this.flavors = config.flavors || [];
     this.env = config.env || {};
     this.plugins = config.plugins || [];
+    this.tasks = config.tasks || [];
   }
 
   get components() {
@@ -69,6 +72,7 @@ export class MonorepoConfig implements IMonorepoConfig {
       plugins: this.plugins,
       project: this.project,
       vars: this.vars,
+      tasks: this.tasks,
     };
   }
 

@@ -1,3 +1,4 @@
+import { getContext } from '@';
 import { Manager } from '@listr2/manager';
 import { createColors } from 'colorette';
 import {
@@ -17,7 +18,7 @@ import {
   getSentinelFile,
 } from '@/docker/index.js';
 import { Component } from '@/monorepo/component.js';
-import { findBuildOrder } from '@/monorepo/utils/findBuildOrder.js';
+import { EMBCollection, findRunOrder } from '@/monorepo/utils/findRunOrder.js';
 import { AbstractOperation } from '@/operations';
 import { FilePrerequisitePlugin } from '@/prerequisites/FilePrerequisitePlugin.js';
 import { PrerequisiteType } from '@/prerequisites/types.js';
@@ -52,9 +53,20 @@ export class BuildComponentsOperation extends AbstractOperation<
   }
 
   protected async _run(input: z.input<typeof schema>): Promise<Array<unknown>> {
-    const ordered = findBuildOrder(
-      this.context.monorepo.components,
-      input.components,
+    const { monorepo } = getContext();
+    const selection = (input.components || []).map((t) =>
+      monorepo.component(t),
+    );
+
+    const collection = new EMBCollection(this.context.monorepo.components, {
+      idField: 'name',
+      depField: 'dependencies',
+      forbidIdNameCollision: true,
+    });
+
+    const ordered = findRunOrder(
+      selection.map((s) => s.name),
+      collection,
     );
 
     const tasks: Array<ListrTask> = await Promise.all(

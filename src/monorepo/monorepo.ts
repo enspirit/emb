@@ -51,9 +51,16 @@ export class Monorepo {
   }
 
   get tasks() {
+    const globalTasks = (this._config.tasks || [])?.map((t) => {
+      return {
+        ...t,
+        id: `global:${t.name}`,
+      };
+    });
+
     return this.components.reduce<Array<TaskInfo>>((tasks, cmp) => {
       return [...tasks, ...cmp.tasks];
-    }, []);
+    }, globalTasks);
   }
 
   get vars(): Record<string, unknown> {
@@ -62,6 +69,28 @@ export class Monorepo {
 
   component(name: string) {
     return new Component(this._config.component(name), this);
+  }
+
+  task(nameOrId: string): TaskInfo {
+    const byId = this.tasks.find((t) => t.id === nameOrId);
+
+    if (byId) {
+      return byId;
+    }
+
+    const found = this.tasks.filter((t) => t.name === nameOrId);
+
+    if (found.length > 1) {
+      throw new Error(
+        `Task name ambigous, found multiple matches: ${nameOrId}`,
+      );
+    }
+
+    if (found.length === 0) {
+      throw new Error(`Task not found: ${nameOrId}`);
+    }
+
+    return found[0];
   }
 
   // Helper to expand a record of strings
