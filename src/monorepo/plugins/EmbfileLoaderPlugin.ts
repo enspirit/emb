@@ -7,37 +7,38 @@ import { Monorepo, MonorepoConfig } from '@/monorepo';
 import { AbstractPlugin } from './plugin.js';
 
 export type EmbfileLoaderPluginOptions = {
-  glob?: string;
+  glob?: string | string[];
 };
 
 export const EmbfileLoaderPluginDefaultOptions = {
   glob: '*/Embfile.{yaml,yml}',
 };
 
-export class EmbfileLoaderPlugin extends AbstractPlugin<EmbfileLoaderPluginOptions> {
+export class EmbfileLoaderPlugin extends AbstractPlugin<
+  Required<EmbfileLoaderPluginOptions>
+> {
   static name = 'embfiles';
 
   constructor(
-    config: Partial<EmbfileLoaderPluginOptions>,
+    cfg: Partial<EmbfileLoaderPluginOptions>,
     protected monorepo: Monorepo,
   ) {
-    super(
-      {
-        ...EmbfileLoaderPluginDefaultOptions,
-        ...config,
-      },
-      monorepo,
-    );
+    const config = {
+      ...EmbfileLoaderPluginDefaultOptions,
+      ...cfg,
+    };
+    if (!Array.isArray(config.glob)) {
+      config.glob = [config.glob];
+    }
+
+    super(config, monorepo);
   }
 
   async extendConfig(config: MonorepoConfig): Promise<MonorepoConfig> {
-    const files = await glob(
-      this.config.glob || EmbfileLoaderPluginDefaultOptions.glob,
-      {
-        ...this.config,
-        cwd: config.project.rootDir,
-      },
-    );
+    const files = await glob(this.config.glob, {
+      ...this.config,
+      cwd: config.project.rootDir,
+    });
 
     const newConfig = await files.reduce<Promise<MonorepoConfig>>(
       async (pConfig, path) => {
