@@ -1,4 +1,4 @@
-import { getContext } from '@';
+import { AmbiguousTaskError, getContext } from '@';
 import { Args, Command, Flags } from '@oclif/core';
 
 import { ExecutorType, RunTasksOperation } from '@/monorepo';
@@ -21,6 +21,12 @@ export default class RunTask extends Command {
       description: 'Where to run the task. (experimental!)',
       options: Object.values(ExecutorType),
     }),
+    'all-matching': Flags.boolean({
+      name: 'all-matching',
+      char: 'a',
+      description: 'Run all tasks matching (when multiple matches)',
+      default: false,
+    }),
   };
   static strict = false;
 
@@ -28,9 +34,20 @@ export default class RunTask extends Command {
     const { argv, flags } = await this.parse(RunTask);
     const { monorepo } = await getContext();
 
-    await monorepo.run(new RunTasksOperation(), {
-      tasks: argv as Array<string>,
-      executor: flags.executor as ExecutorType,
-    });
+    try {
+      await monorepo.run(new RunTasksOperation(), {
+        tasks: argv as Array<string>,
+        executor: flags.executor as ExecutorType,
+        allMatching: flags['all-matching'],
+      });
+    } catch (error) {
+      if (error instanceof AmbiguousTaskError) {
+        throw error.toCliError([
+          `Specify just one. Eg: \`emb tasks run ${error.options[0]}\``,
+          'Run the same command with --all-matches / -a',
+          'Review the list of tasks by running `emb tasks`',
+        ]);
+      }
+    }
   }
 }

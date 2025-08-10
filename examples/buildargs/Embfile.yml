@@ -5,3 +5,7 @@ docker:
   buildArgs:
     # Inject some env var as build arg
     GREETING: Hello ${env:USER}
+
+tasks:
+  - name: test
+    script: echo "It's working"

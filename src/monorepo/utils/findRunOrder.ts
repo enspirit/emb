@@ -1,5 +1,12 @@
 import graphlib from 'graphlib';
 
+import {
+  AmbiguousTaskError,
+  CircularDependencyError,
+  TaskNameCollisionError,
+  UnkownReferenceError,
+} from '@/errors.js';
+
 type DepList = readonly string[] | string[] | undefined;
 
 type CollectionConfig<IDK extends PropertyKey, DPK extends PropertyKey> = {
@@ -102,8 +109,10 @@ export class EMBCollection<
         );
       }
 
-      // eslint-disable-next-line unicorn/error-message
-      throw new Error(parts.join('\n\n'));
+      throw new TaskNameCollisionError(
+        'Collision between task names and ids',
+        parts,
+      );
     }
   }
 
@@ -128,14 +137,15 @@ export class EMBCollection<
 
     const nameHits = this.byName.get(ref) ?? [];
     if (nameHits.length === 0) {
-      throw new Error(`Unknown reference "${ref}"`);
+      throw new UnkownReferenceError(`Unknown reference "${ref}"`);
     }
 
     if (opts?.multiple) return nameHits;
     if (nameHits.length > 1) {
-      const ids = nameHits.map((t) => this.idOf(t)).join(', ');
-      throw new Error(
-        `Ambiguous reference "${ref}" matches multiple ids: [${ids}]`,
+      const ids = nameHits.map((t) => this.idOf(t));
+      throw new AmbiguousTaskError(
+        `Ambiguous reference "${ref}" matches multiple id/name`,
+        ids,
       );
     }
 
@@ -218,7 +228,7 @@ export function findRunOrder<
 
   const cycles = graphlib.alg.findCycles(g);
   if (cycles.length > 0) {
-    throw new Error(
+    throw new CircularDependencyError(
       `Circular dependencies detected: ${JSON.stringify(cycles)}`,
     );
   }

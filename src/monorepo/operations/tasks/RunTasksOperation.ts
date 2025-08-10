@@ -20,14 +20,13 @@ export enum ExecutorType {
 export type RunTasksOperationParams = {
   tasks: Array<string>;
   executor?: ExecutorType | undefined;
+  allMatching?: boolean;
 };
 
 export type TaskWithScript = TaskInfo & { script: string };
 export class RunTasksOperation
   implements IOperation<RunTasksOperationParams, Array<TaskInfo>>
 {
-  constructor(protected out?: Writable) {}
-
   async run(params: RunTasksOperationParams): Promise<Array<TaskInfo>> {
     const { monorepo } = getContext();
 
@@ -37,7 +36,9 @@ export class RunTasksOperation
       depField: 'pre',
     });
 
-    const ordered = findRunOrder(params.tasks, collection);
+    const ordered = findRunOrder(params.tasks, collection, {
+      onAmbiguous: params.allMatching ? 'runAll' : 'error',
+    });
 
     const runner = new Manager({
       concurrent: false,
