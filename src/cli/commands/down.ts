@@ -1,7 +1,7 @@
 import { Listr } from 'listr2';
 
 import { FlavoredCommand, getContext } from '@/cli';
-import { ComposeUpOperation } from '@/docker';
+import { ComposeDownOperation, ComposeUpOperation } from '@/docker';
 
 export default class DownCommand extends FlavoredCommand<typeof DownCommand> {
   static description = 'Stop the whole project.';
@@ -16,7 +16,7 @@ export default class DownCommand extends FlavoredCommand<typeof DownCommand> {
       {
         rendererOptions: { persistentOutput: true },
         async task() {
-          return monorepo.run(new ComposeUpOperation(), {});
+          return monorepo.run(new ComposeDownOperation(), {});
         },
         title: 'Stopping project',
       },
