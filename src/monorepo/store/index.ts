@@ -19,9 +19,7 @@ export class EMBStore {
   ) {
     // By default, we use the flavor name to build that root of the store
     // so that logs and sentinel files for different flavors are keps separate
-    this.path = this.monorepo.join(
-      dirname || join(`.emb`, this.monorepo.currentFlavor),
-    );
+    this.path = this.monorepo.join(dirname || '.emb');
   }
 
   async createReadStream(path: string) {
@@ -60,7 +58,7 @@ export class EMBStore {
   }
 
   join(path: string) {
-    return join(this.path, path);
+    return join(this.path, this.monorepo.currentFlavor, path);
   }
 
   async mkdirp(path: string) {
