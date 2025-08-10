@@ -109,6 +109,11 @@
     ],
     "topicSeparator": " ",
     "topics": {
+      "images": {"description": "List, delete, prune docker containers" },
+      "containers": {"description": "List, delete, prune docker images" },
+      "components": {"description": "List & build components resources" },
+      "config": {"description": "It's all about config" },
+      "tasks": {"description": "List and run tasks" }
     }
   }
 }
