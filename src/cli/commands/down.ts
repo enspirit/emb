@@ -1,7 +1,7 @@
 import { Listr } from 'listr2';
 
 import { FlavoredCommand, getContext } from '@/cli';
-import { ComposeDownOperation, ComposeUpOperation } from '@/docker';
+import { ComposeDownOperation } from '@/docker';
 
 export default class DownCommand extends FlavoredCommand<typeof DownCommand> {
   static description = 'Stop the whole project.';
