@@ -3,7 +3,6 @@ import { Manager } from '@listr2/manager';
 import { createColors } from 'colorette';
 import {
   DefaultRenderer,
-  delay,
   ListrDefaultRendererLogLevels,
   ListrTask,
   ListrTaskWrapper,
@@ -21,18 +20,14 @@ import { Component, EMBCollection, findRunOrder } from '@/monorepo';
 import { AbstractOperation } from '@/operations';
 import { FilePrerequisitePlugin, PrerequisiteType } from '@/prerequisites';
 
-type BuildComponentContext = {
+export type BuildComponentMeta = {
+  // if we running dryMode, we keep going through to collect meta info
+  dryRun?: boolean;
+  // if we detect a cache hit, the rest of the tasks can skip
+  cacheHit?: boolean;
   build: DockerComponentBuild;
-  parentTask: ListrTaskWrapper<
-    unknown,
-    typeof DefaultRenderer,
-    typeof SimpleRenderer
-  >;
-  plugin: FilePrerequisitePlugin;
   preBuildMeta?: string;
   sentinelFile: string;
-  // if we detect a cache hit, the rest of the tasks can skip
-  skip?: boolean;
 };
 
 const schema = z.object({
@@ -40,45 +35,30 @@ const schema = z.object({
     .array(z.string())
     .describe('The list of components to build')
     .optional(),
+  dryRun: z
+    .boolean()
+    .optional()
+    .describe(
+      'Do not build but return the config that would be used to build the images',
+    ),
+  silent: z.boolean().optional().describe('Produce no logs on the terminal'),
 });
 
 export class BuildComponentsOperation extends AbstractOperation<
   typeof schema,
-  Array<unknown>
+  Record<string, BuildComponentMeta>
 > {
   constructor() {
     super(schema);
   }
 
-  protected async _run(input: z.input<typeof schema>): Promise<Array<unknown>> {
+  protected async _run(
+    input: z.input<typeof schema>,
+  ): Promise<Record<string, BuildComponentMeta>> {
     const { monorepo } = getContext();
-    const selection = (input.components || []).map((t) =>
-      monorepo.component(t),
-    );
-
-    const collection = new EMBCollection(this.context.monorepo.components, {
-      idField: 'name',
-      depField: 'dependencies',
-      forbidIdNameCollision: true,
-    });
-
-    const ordered = findRunOrder(
-      selection.map((s) => s.name),
-      collection,
-    );
-
-    const tasks: Array<ListrTask> = await Promise.all(
-      ordered.map((cmp) => {
-        return {
-          task: async (context, task) => {
-            return this.buildComponent(cmp, task);
-          },
-          title: `Building ${cmp.name}`,
-        };
-      }),
-    );
 
     const manager = new Manager({
+      ctx: {} as Record<string, BuildComponentMeta>,
       collectErrors: 'minimal',
       concurrent: false,
       exitOnError: true,
@@ -99,6 +79,38 @@ export class BuildComponentsOperation extends AbstractOperation<
       },
     });
 
+    if (input.silent) {
+      // @ts-expect-error not sure how to do this in a more elegant
+      // way
+      manager.options!.renderer = 'silent';
+    }
+
+    const selection = (input.components || []).map((t) =>
+      monorepo.component(t),
+    );
+
+    const collection = new EMBCollection(this.context.monorepo.components, {
+      idField: 'name',
+      depField: 'dependencies',
+      forbidIdNameCollision: true,
+    });
+
+    const ordered = findRunOrder(
+      selection.map((s) => s.name),
+      collection,
+    );
+
+    const tasks: Array<ListrTask> = await Promise.all(
+      ordered.map((cmp) => {
+        return {
+          task: async (context, task) => {
+            return this.buildComponent(cmp, task, context, input.dryRun);
+          },
+          title: `Building ${cmp.name}`,
+        };
+      }),
+    );
+
     manager.add([
       {
         async task(_context, task) {
@@ -112,9 +124,9 @@ export class BuildComponentsOperation extends AbstractOperation<
       },
     ]);
 
-    await manager.runAll();
+    const results = await manager.runAll();
 
-    return ordered;
+    return results;
   }
 
   private async buildComponent(
@@ -124,20 +136,20 @@ export class BuildComponentsOperation extends AbstractOperation<
       typeof DefaultRenderer,
       typeof SimpleRenderer
     >,
+    parentContext: Record<string, BuildComponentMeta>,
+    dryRun: boolean = false,
   ) {
-    return parentTask.newListr<BuildComponentContext>(
+    const prereqPlugin = new FilePrerequisitePlugin();
+
+    const list = parentTask.newListr<BuildComponentMeta>(
       [
         // Collect all the prerequisites and other build infos
         // (This is when variables are expanded etc)
         {
           async task(ctx) {
-            // Reset the context to defaults (as apparently the context is shared amongst branches??)
-            // TODO understand and fix
-            ctx.skip = false;
-            //
-            ctx.parentTask = parentTask;
+            // Install the context for this specific component build chain
+            ctx.cacheHit = false;
             ctx.sentinelFile = getSentinelFile(cmp);
-            ctx.plugin = new FilePrerequisitePlugin();
             ctx.build = await cmp.toDockerBuild();
           },
           title: 'Prepare build context',
@@ -145,7 +157,7 @@ export class BuildComponentsOperation extends AbstractOperation<
         // Check for sentinal information to see if the build can be skipped
         {
           task: async (ctx) => {
-            ctx.preBuildMeta = await ctx.plugin.meta(
+            ctx.preBuildMeta = await prereqPlugin.meta(
               cmp,
               ctx.build.prerequisites,
               'pre',
@@ -161,7 +173,7 @@ export class BuildComponentsOperation extends AbstractOperation<
             }
 
             if (lastValue) {
-              const diff = await ctx.plugin.diff(
+              const diff = await prereqPlugin.diff(
                 cmp,
                 ctx.build.prerequisites,
                 lastValue,
@@ -169,8 +181,8 @@ export class BuildComponentsOperation extends AbstractOperation<
               );
 
               if (!diff) {
-                ctx.skip = true;
-                ctx.parentTask.skip(`${ctx.parentTask.title} (cache hit)`);
+                ctx.cacheHit = true;
+                parentTask.skip(`${parentTask.title} (cache hit)`);
               }
             }
           },
@@ -178,11 +190,9 @@ export class BuildComponentsOperation extends AbstractOperation<
         },
         {
           task: async (ctx, task) => {
-            if (ctx.skip) {
+            if (ctx.cacheHit || ctx.dryRun) {
               return task.skip();
             }
-
-            await delay(500);
 
             const title = `Building image ${ctx.build.name}:${ctx.build.tag}`;
             task.title = title;
@@ -209,11 +219,11 @@ export class BuildComponentsOperation extends AbstractOperation<
         // Update sentinel file
         {
           task: async (ctx, task) => {
-            if (ctx.skip) {
+            if (ctx.cacheHit || ctx.dryRun) {
               return task.skip();
             }
 
-            const sentinelValue = await ctx.plugin.meta(
+            const sentinelValue = await prereqPlugin.meta(
               cmp,
               ctx.build.prerequisites,
               'post',
@@ -226,12 +236,25 @@ export class BuildComponentsOperation extends AbstractOperation<
           },
           title: 'Dumping cache info',
         },
+        {
+          // Return build meta data
+          async task(ctx) {
+            parentContext[cmp.name] = ctx;
+
+            if (ctx.dryRun) {
+              parentTask.skip(`${parentTask.title} (dry run)`);
+            }
+          },
+        },
       ],
       {
+        ctx: { dryRun } as BuildComponentMeta,
         rendererOptions: {
           collapseSubtasks: true,
         },
       },
     );
+
+    return list;
   }
 }
