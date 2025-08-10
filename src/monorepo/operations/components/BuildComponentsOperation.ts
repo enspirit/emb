@@ -147,7 +147,7 @@ export class BuildComponentsOperation extends AbstractOperation<
 
               if (!diff) {
                 ctx.cacheHit = true;
-                // parentTask.skip(`${parentTask.title} (cache hit)`);
+                parentTask.skip(`${parentTask.title} (cache hit)`);
               }
             }
           },
@@ -207,7 +207,7 @@ export class BuildComponentsOperation extends AbstractOperation<
             parentContext[cmp.name] = ctx;
 
             if (ctx.dryRun) {
-              // parentTask.skip(`${parentTask.title} (dry run)`);
+              parentTask.skip(`${parentTask.title} (dry run)`);
             }
           },
         },
