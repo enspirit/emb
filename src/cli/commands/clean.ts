@@ -1,5 +1,5 @@
 import { getContext } from '@';
-import { Command } from '@oclif/core';
+import { Command, Flags } from '@oclif/core';
 import { Listr } from 'listr2';
 
 /**
@@ -13,10 +13,17 @@ export default class CleanCommand extends Command {
   static description = 'Clean the project.';
   static enableJsonFlag = true;
   static examples = ['<%= config.bin %> <%= command.id %>'];
-  static flags = {};
+  static flags = {
+    force: Flags.boolean({
+      name: 'force',
+      char: 'f',
+      description: 'Force the deletion of containers & images',
+    }),
+  };
 
   public async run(): Promise<void> {
     const { monorepo } = getContext();
+    const { flags } = await this.parse(CleanCommand);
 
     const runner = new Listr([
       {
@@ -29,5 +36,19 @@ export default class CleanCommand extends Command {
     ]);
 
     await runner.run();
+
+    await this.config.runCommand('down');
+
+    await this.config.runCommand('containers:prune');
+
+    await this.config.runCommand(
+      'images:delete',
+      flags.force ? ['--force'] : undefined,
+    );
+
+    await this.config.runCommand(
+      'images:prune',
+      flags.force ? ['-a'] : undefined,
+    );
   }
 }
