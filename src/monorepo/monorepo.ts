@@ -125,6 +125,20 @@ export class Monorepo {
     await this._store.init();
   }
 
+  private async installEnv() {
+    // Expand env vars at the init and then we don't expand anymore
+    // The only available source for them is the existing env
+    const expander = new TemplateExpander();
+    const options = {
+      default: 'env',
+      sources: {
+        env: process.env,
+      },
+    };
+    const expanded = await expander.expandRecord(this._config.env, options);
+    Object.assign(process.env, expanded);
+  }
+
   // Initialize
   async init(): Promise<Monorepo> {
     if (this.initialized) {
@@ -144,17 +158,7 @@ export class Monorepo {
       return newConfig ?? pConfig;
     }, Promise.resolve(this._config));
 
-    // Expand env vars at the init and then we don't expand anymore
-    // The only available source for them is the existing env
-    const expander = new TemplateExpander();
-    const options = {
-      default: 'env',
-      sources: {
-        env: process.env,
-      },
-    };
-    const expanded = await expander.expandRecord(this._config.env, options);
-    Object.assign(process.env, expanded);
+    await this.installEnv();
 
     this.initialized = true;
 
@@ -184,6 +188,7 @@ export class Monorepo {
     const repo = new Monorepo(this._config.withFlavor(name));
 
     await repo.installStore();
+    await repo.installEnv();
 
     return repo;
   }
