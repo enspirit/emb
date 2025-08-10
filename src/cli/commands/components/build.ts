@@ -30,6 +30,7 @@ export default class BuildCommand extends FlavoredCommand<typeof BuildCommand> {
 
     return monorepo.run(new BuildComponentsOperation(), {
       dryRun: flags['dry-run'],
+      silent: flags.json,
       components:
         argv.length > 0
           ? (argv as string[])

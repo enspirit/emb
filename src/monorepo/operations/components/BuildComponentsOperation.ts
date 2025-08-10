@@ -42,6 +42,10 @@ const schema = z.object({
     .describe(
       'Do not build but return the config that would be used to build the images',
     ),
+  silent: z
+    .boolean()
+    .optional()
+    .describe('Do not produce any output on the terminal'),
 });
 
 export class BuildComponentsOperation extends AbstractOperation<
@@ -85,6 +89,7 @@ export class BuildComponentsOperation extends AbstractOperation<
     );
 
     const list = manager.newListr([...tasks], {
+      renderer: input.silent ? 'silent' : 'default',
       rendererOptions: { persistentOutput: true },
       ctx: {} as Record<string, BuildComponentMeta>,
     });
