@@ -12,13 +12,11 @@ import { TaskInfo } from './types.js';
 
 export class Monorepo {
   private _config: MonorepoConfig;
-  private _env!: Record<string, string | undefined>;
   private _store!: EMBStore;
   private initialized = false;
 
   constructor(config: IMonorepoConfig) {
     this._config = new MonorepoConfig(config);
-    this._env = config.env || {};
   }
 
   // TODO: cache/improve
@@ -122,14 +120,18 @@ export class Monorepo {
     );
   }
 
+  private async installStore(store?: EMBStore) {
+    this._store = store || new EMBStore(this);
+    await this._store.init();
+  }
+
   // Initialize
   async init(): Promise<Monorepo> {
     if (this.initialized) {
       throw new Error('Monorepo already initialized');
     }
 
-    this._store = new EMBStore(this);
-    await this._store.init();
+    await this.installStore();
 
     const plugins = this._config.plugins.map((p) => {
       const PluginClass: AbstractPluginConstructor = getPlugin(p.name);
@@ -180,7 +182,8 @@ export class Monorepo {
 
   async withFlavor(name: string) {
     const repo = new Monorepo(this._config.withFlavor(name));
-    await repo.init();
+
+    await repo.installStore();
 
     return repo;
   }

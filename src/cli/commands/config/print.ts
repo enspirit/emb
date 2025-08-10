@@ -17,12 +17,11 @@ export default class ConfigPrint extends FlavoredCommand<typeof ConfigPrint> {
   public async run(): Promise<IMonorepoConfig> {
     const { flags } = await this.parse(ConfigPrint);
     const context = await getContext();
-    const { monorepo } = context;
 
     if (!flags.json) {
-      this.log(YAML.stringify(monorepo.config));
+      this.log(YAML.stringify(context.monorepo.config));
     }
 
-    return monorepo.config;
+    return context.monorepo.config;
   }
 }

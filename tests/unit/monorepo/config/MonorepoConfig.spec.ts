@@ -41,6 +41,7 @@ describe('Config - MonorepoConfig', () => {
             {
               name: 'frontend',
               docker: {
+                target: 'production',
                 buildArgs: {
                   API_KEY: 'production secret',
                 },
