@@ -14,7 +14,7 @@ $ npm install -g @enspirit/emb
 $ emb COMMAND
 running command...
 $ emb (--version)
-@enspirit/emb/0.0.6 darwin-x64 node-v22.12.0
+@enspirit/emb/0.0.7 darwin-x64 node-v22.12.0
 $ emb --help [COMMAND]
 USAGE
   $ emb COMMAND
@@ -37,8 +37,9 @@ USAGE
 * [`emb images prune`](#emb-images-prune)
 * [`emb ps`](#emb-ps)
 * [`emb tasks`](#emb-tasks)
-* [`emb tasks run [TASK]`](#emb-tasks-run-task)
+* [`emb tasks run TASK`](#emb-tasks-run-task)
 * [`emb up`](#emb-up)
+* [`emb update [CHANNEL]`](#emb-update-channel)
 
 ## `emb autocomplete [SHELL]`
 
@@ -77,7 +78,10 @@ Clean the project.
 
 ```
 USAGE
-  $ emb clean [--json]
+  $ emb clean [--json] [-f]
+
+FLAGS
+  -f, --force  Force the deletion of containers & images
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -116,12 +120,13 @@ Build the components of the monorepo
 
 ```
 USAGE
-  $ emb components build [COMPONENT...] [--json] [--flavor <value>]
+  $ emb components build [COMPONENT...] [--json] [--flavor <value>] [--dry-run]
 
 ARGUMENTS
-  COMPONENT...  List of components to build
+  COMPONENT...  List of components to build (defaults to all)
 
 FLAGS
+  --dry-run         Do not build the components but only produce build meta information
   --flavor=<value>  Specify the flavor to use.
 
 GLOBAL FLAGS
@@ -203,7 +208,10 @@ Stop the whole project.
 
 ```
 USAGE
-  $ emb down [--json]
+  $ emb down [--json] [--flavor <value>]
+
+FLAGS
+  --flavor=<value>  Specify the flavor to use.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -340,25 +348,26 @@ EXAMPLES
   $ emb tasks
 ```
 
-## `emb tasks run [TASK]`
+## `emb tasks run TASK`
 
-Run a task.
+Run tasks.
 
 ```
 USAGE
-  $ emb tasks run [TASK...] [--json] [-x container|local]
+  $ emb tasks run TASK... [--json] [-x container|local]
 
 ARGUMENTS
-  TASK...  List of tasks ids to run (eg: component:task)
+  TASK...  List of tasks to run. You can provide either ids or names (eg: component:task or task)
 
 FLAGS
-  -x, --executor=<option>  <options: container|local>
+  -x, --executor=<option>  Where to run the task. (experimental!)
+                           <options: container|local>
 
 GLOBAL FLAGS
   --json  Format output as json.
 
 DESCRIPTION
-  Run a task.
+  Run tasks.
 
 EXAMPLES
   $ emb tasks run
@@ -373,7 +382,7 @@ USAGE
   $ emb up [--json] [--flavor <value>] [-f]
 
 FLAGS
-  -f, --force-recreate  Recreate containers even if their configuration and image haven't changed
+  -f, --force           Bypass caches, force the recreation of containers, etc
       --flavor=<value>  Specify the flavor to use.
 
 GLOBAL FLAGS
@@ -385,4 +394,42 @@ DESCRIPTION
 EXAMPLES
   $ emb up
 ```
+
+## `emb update [CHANNEL]`
+
+update the emb CLI
+
+```
+USAGE
+  $ emb update [CHANNEL] [--force |  | [-a | -v <value> | -i]] [-b ]
+
+FLAGS
+  -a, --available        See available versions.
+  -b, --verbose          Show more details about the available versions.
+  -i, --interactive      Interactively select version to install. This is ignored if a channel is provided.
+  -v, --version=<value>  Install a specific version.
+      --force            Force a re-download of the requested version.
+
+DESCRIPTION
+  update the emb CLI
+
+EXAMPLES
+  Update to the stable channel:
+
+    $ emb update stable
+
+  Update to a specific version:
+
+    $ emb update --version 1.0.0
+
+  Interactively select version:
+
+    $ emb update --interactive
+
+  See available versions:
+
+    $ emb update --available
+```
+
+_See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v4.7.3/src/commands/update.ts)_
 <!-- commandsstop -->

@@ -1,7 +1,7 @@
 {
   "name": "@enspirit/emb",
   "type": "module",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "keywords": ["monorepo", "docker", "taskrunner", "ci", "docker compose", "sentinel", "makefile"],
   "author": "Louis Lambeau <louis.lambeau@enspirit.be>",
   "license": "ISC",
@@ -35,6 +35,7 @@
     "@oclif/plugin-autocomplete": "^3.2.34",
     "@oclif/plugin-help": "^6.2.32",
     "@oclif/plugin-not-found": "^3.2.63",
+    "@oclif/plugin-update": "^4.7.3",
     "@oclif/table": "^0.4.12",
     "ajv": "^8.17.1",
     "colorette": "^2.0.20",
@@ -103,7 +104,8 @@
     "plugins": [
       "@oclif/plugin-help",
       "@oclif/plugin-autocomplete",
-      "@oclif/plugin-not-found"
+      "@oclif/plugin-not-found",
+      "@oclif/plugin-update"
     ],
     "topicSeparator": " ",
     "topics": {
