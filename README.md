@@ -14,7 +14,7 @@ $ npm install -g @enspirit/emb
 $ emb COMMAND
 running command...
 $ emb (--version)
-@enspirit/emb/0.0.7 darwin-x64 node-v22.12.0
+@enspirit/emb/0.0.8 darwin-x64 node-v22.12.0
 $ emb --help [COMMAND]
 USAGE
   $ emb COMMAND
@@ -354,12 +354,13 @@ Run tasks.
 
 ```
 USAGE
-  $ emb tasks run TASK... [--json] [-x container|local]
+  $ emb tasks run TASK... [--json] [-x container|local] [-a]
 
 ARGUMENTS
   TASK...  List of tasks to run. You can provide either ids or names (eg: component:task or task)
 
 FLAGS
+  -a, --all-matching       Run all tasks matching (when multiple matches)
   -x, --executor=<option>  Where to run the task. (experimental!)
                            <options: container|local>
 
