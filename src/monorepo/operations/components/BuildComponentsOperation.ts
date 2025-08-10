@@ -1,12 +1,8 @@
 import { getContext } from '@';
-import { Manager } from '@listr2/manager';
-import { createColors } from 'colorette';
 import {
   DefaultRenderer,
-  ListrDefaultRendererLogLevels,
   ListrTask,
   ListrTaskWrapper,
-  PRESET_TIMER,
   SimpleRenderer,
 } from 'listr2';
 import * as z from 'zod';
@@ -16,7 +12,12 @@ import {
   DockerComponentBuild,
   getSentinelFile,
 } from '@/docker';
-import { Component, EMBCollection, findRunOrder } from '@/monorepo';
+import {
+  Component,
+  EMBCollection,
+  findRunOrder,
+  taskManagerFactory,
+} from '@/monorepo';
 import { AbstractOperation } from '@/operations';
 import { FilePrerequisitePlugin, PrerequisiteType } from '@/prerequisites';
 
@@ -41,7 +42,6 @@ const schema = z.object({
     .describe(
       'Do not build but return the config that would be used to build the images',
     ),
-  silent: z.boolean().optional().describe('Produce no logs on the terminal'),
 });
 
 export class BuildComponentsOperation extends AbstractOperation<
@@ -56,34 +56,7 @@ export class BuildComponentsOperation extends AbstractOperation<
     input: z.input<typeof schema>,
   ): Promise<Record<string, BuildComponentMeta>> {
     const { monorepo } = getContext();
-
-    const manager = new Manager({
-      ctx: {} as Record<string, BuildComponentMeta>,
-      collectErrors: 'minimal',
-      concurrent: false,
-      exitOnError: true,
-      rendererOptions: {
-        collapseErrors: false,
-        collapseSubtasks: false,
-        color: {
-          // @ts-expect-error not sure why
-          [ListrDefaultRendererLogLevels.SKIPPED_WITH_COLLAPSE]:
-            createColors().green,
-        },
-        icon: {
-          [ListrDefaultRendererLogLevels.SKIPPED_WITH_COLLAPSE]: '♺',
-        },
-        timer: {
-          ...PRESET_TIMER,
-        },
-      },
-    });
-
-    if (input.silent) {
-      // @ts-expect-error not sure how to do this in a more elegant
-      // way
-      manager.options!.renderer = 'silent';
-    }
+    const manager = taskManagerFactory<Record<string, BuildComponentMeta>>();
 
     const selection = (input.components || []).map((t) =>
       monorepo.component(t),
@@ -111,20 +84,12 @@ export class BuildComponentsOperation extends AbstractOperation<
       }),
     );
 
-    manager.add([
-      {
-        async task(_context, task) {
-          return task.newListr([...tasks], {
-            rendererOptions: {
-              collapseSubtasks: false,
-            },
-          });
-        },
-        title: 'Building components',
-      },
-    ]);
+    const list = manager.newListr([...tasks], {
+      rendererOptions: { persistentOutput: true },
+      ctx: {} as Record<string, BuildComponentMeta>,
+    });
 
-    const results = await manager.runAll();
+    const results = await list.run();
 
     return results;
   }
@@ -182,7 +147,7 @@ export class BuildComponentsOperation extends AbstractOperation<
 
               if (!diff) {
                 ctx.cacheHit = true;
-                parentTask.skip(`${parentTask.title} (cache hit)`);
+                // parentTask.skip(`${parentTask.title} (cache hit)`);
               }
             }
           },
@@ -242,16 +207,13 @@ export class BuildComponentsOperation extends AbstractOperation<
             parentContext[cmp.name] = ctx;
 
             if (ctx.dryRun) {
-              parentTask.skip(`${parentTask.title} (dry run)`);
+              // parentTask.skip(`${parentTask.title} (dry run)`);
             }
           },
         },
       ],
       {
         ctx: { dryRun } as BuildComponentMeta,
-        rendererOptions: {
-          collapseSubtasks: true,
-        },
       },
     );
 

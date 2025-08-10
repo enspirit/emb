@@ -1,4 +1,5 @@
 import { getContext } from '@';
+import { Listr } from 'listr2';
 import { Readable } from 'node:stream';
 import * as z from 'zod';
 
@@ -19,15 +20,12 @@ const schema = z
   })
   .optional();
 
-export class ComposeUpOperation extends AbstractOperation<
-  typeof schema,
-  Readable
-> {
+export class ComposeUpOperation extends AbstractOperation<typeof schema, void> {
   constructor() {
     super(schema);
   }
 
-  protected async _run(input: z.input<typeof schema>): Promise<Readable> {
+  protected async _run(input: z.input<typeof schema>): Promise<void> {
     const { monorepo } = getContext();
 
     const command = ['docker', 'compose', 'up', '-d'];
@@ -35,9 +33,17 @@ export class ComposeUpOperation extends AbstractOperation<
       command.push('--force-recreate');
     }
 
-    return monorepo.run(new ExecuteLocalCommandOperation(), {
-      script: command.join(' '),
-      workingDir: monorepo.rootDir,
+    const task = new Listr({
+      rendererOptions: { persistentOutput: true },
+      async task() {
+        return monorepo.run(new ExecuteLocalCommandOperation(), {
+          script: command.join(' '),
+          workingDir: monorepo.rootDir,
+        });
+      },
+      title: 'Starting project',
     });
+
+    await task.run();
   }
 }

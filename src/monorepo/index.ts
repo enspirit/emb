@@ -4,5 +4,6 @@ export * from './monorepo.js';
 export * from './operations/index.js';
 export * from './plugins/index.js';
 export * from './store/index.js';
+export * from './taskManagerFactory.js';
 export * from './types.js';
 export * from './utils/index.js';
