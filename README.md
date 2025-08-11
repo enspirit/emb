@@ -14,7 +14,7 @@ $ npm install -g @enspirit/emb
 $ emb COMMAND
 running command...
 $ emb (--version)
-@enspirit/emb/0.0.8 darwin-x64 node-v22.12.0
+@enspirit/emb/0.0.9 darwin-x64 node-v22.18.0
 $ emb --help [COMMAND]
 USAGE
   $ emb COMMAND
@@ -120,14 +120,15 @@ Build the components of the monorepo
 
 ```
 USAGE
-  $ emb components build [COMPONENT...] [--json] [--flavor <value>] [--dry-run]
+  $ emb components build [COMPONENT...] [--json] [--flavor <value>] [--dry-run] [-f]
 
 ARGUMENTS
   COMPONENT...  List of components to build (defaults to all)
 
 FLAGS
-  --dry-run         Do not build the components but only produce build meta information
-  --flavor=<value>  Specify the flavor to use.
+  -f, --force           Bypass the cache and force the build
+      --dry-run         Do not build the components but only produce build meta information
+      --flavor=<value>  Specify the flavor to use.
 
 GLOBAL FLAGS
   --json  Format output as json.
