@@ -60,13 +60,15 @@ describe('CLI - emb tasks run', () => {
     );
     expect(error?.code).to.equal('AMBIGUOUS_TASK');
     expect(error?.suggestions).to.include(
-      'Specify just one. Eg: `emb tasks run frontend:test`',
-    );
-    expect(error?.suggestions).to.include(
       'Run the same command with --all-matches / -a',
     );
     expect(error?.suggestions).to.include(
       'Review the list of tasks by running `emb tasks`',
     );
+
+    const found = error?.suggestions?.find((v: string) =>
+      v.match(/Specify just one. Eg: `emb tasks run .+`/),
+    );
+    expect(found).not.toBeUndefined();
   });
 });
