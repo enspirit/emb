@@ -1,11 +1,11 @@
-# yaml-language-server: $schema=../../src/config/schema.json#/$defs/component
-name: buildargs
-
-docker:
-  buildArgs:
-    # Inject some env var as build arg
-    GREETING: Hello ${env:USER}
+# yaml-language-server: $schema=../../src/config/schema.json#/$defs/ComponentConfig
+resources:
+  image:
+    type: docker/image
+    params:
+      buildArgs:
+        GREETING: Hello ${env:USER}
 
 tasks:
-  - name: test
+  test:
     script: echo "It's working"

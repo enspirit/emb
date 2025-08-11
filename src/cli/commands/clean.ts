@@ -27,18 +27,6 @@ export default class CleanCommand extends BaseCommand {
     const { monorepo } = getContext();
     const { flags } = await this.parse(CleanCommand);
 
-    const runner = new Listr([
-      {
-        rendererOptions: { persistentOutput: true },
-        async task() {
-          await monorepo.store.trash();
-        },
-        title: 'Cleaning project',
-      },
-    ]);
-
-    await runner.run();
-
     await this.config.runCommand('down');
 
     await this.config.runCommand('containers:prune');
@@ -52,5 +40,17 @@ export default class CleanCommand extends BaseCommand {
       'images:prune',
       flags.force ? ['-a'] : undefined,
     );
+
+    const runner = new Listr([
+      {
+        rendererOptions: { persistentOutput: true },
+        async task() {
+          await monorepo.store.trash();
+        },
+        title: 'Cleaning project',
+      },
+    ]);
+
+    await runner.run();
   }
 }

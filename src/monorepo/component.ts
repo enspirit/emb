@@ -1,70 +1,80 @@
-import deepmerge from '@fastify/deepmerge';
+import jsonpatch from 'fast-json-patch';
 import { join } from 'node:path';
 
-import { ComponentConfig } from '@/config';
-import { DockerComponentBuild } from '@/docker';
-import { Monorepo, TaskInfo } from '@/monorepo';
+import { ComponentConfig, ComponentFlavorConfig } from '@/config/schema.js';
+import {
+  ComponentFlavors,
+  Monorepo,
+  ResourceInfo,
+  Resources,
+  Tasks,
+  toIdentifedHash,
+} from '@/monorepo';
 import { FilePrerequisite, GitPrerequisitePlugin } from '@/prerequisites';
 
-export class Component {
+export class Component implements ComponentConfig {
+  public readonly tasks: Tasks;
+  public readonly resources: Resources;
+  public readonly flavors: ComponentFlavors;
+
   constructor(
-    protected _config: ComponentConfig,
+    public readonly name: string,
+    public readonly config: ComponentConfig,
     protected monorepo: Monorepo,
-  ) {}
-
-  get config() {
-    return structuredClone(this._config);
+  ) {
+    this.tasks = toIdentifedHash(config.tasks || {}, this.name);
+    this.resources = toIdentifedHash(
+      // Due to the schema.json -> typescript conversion weirdness
+      (config.resources as { [k: string]: ResourceInfo }) || {},
+      this.name,
+    );
+    this.flavors = toIdentifedHash(config.flavors || {}, this.name);
   }
 
-  get context() {
-    return this.config.docker?.context || this.name;
+  get rootDir() {
+    return this.monorepo.join(this.name);
   }
 
-  get dependencies() {
-    return this.config.docker?.dependencies || [];
+  flavor(name: string, mustExist = true): ComponentFlavorConfig {
+    const flavor = this.flavors[name];
+
+    if (!flavor && mustExist) {
+      throw new Error(`Unknown flavor: ${name}`);
+    }
+
+    return flavor;
   }
 
-  get imageName() {
-    return join(this.monorepo.name, this.name);
-  }
-
-  get imageTag() {
-    return this.monorepo.defaults.docker?.tag || 'latest';
-  }
-
-  get labels() {
-    return {
-      'emb/component': this.name,
-      ...this._config.docker?.labels,
-    };
-  }
-
-  get name() {
-    return this.config.name;
-  }
-
-  get rootdir() {
-    return this.monorepo.join(this.context || this.name);
-  }
-
-  get tasks(): Array<TaskInfo> {
-    return (this.config.tasks || [])?.map((t) => {
-      return {
-        ...t,
-        component: this.name,
-        id: `${this.name}:${t.name}`,
-      };
-    });
-  }
-
-  cloneWith(config: Partial<ComponentConfig>) {
+  cloneWith(config: Partial<ComponentConfig>): ComponentConfig {
     return new Component(
+      this.name,
       {
         ...this.config,
         ...config,
       },
       this.monorepo,
     );
+  }
+
+  toJSON(): ComponentConfig {
+    return structuredClone(this.config);
+  }
+
+  withFlavor(name: string): Component {
+    const original = this.toJSON();
+    const patches = this.flavor(name).patches || [];
+
+    const errors = jsonpatch.validate(patches, original);
+
+    if (errors) {
+      throw new Error('Invalid patch(es) detected');
+    }
+
+    const patched = patches.reduce((doc, patch, index) => {
+      return jsonpatch.applyReducer(doc, patch, index);
+    }, original);
+
+    return new Component(this.name, patched, this.monorepo);
   }
 
   async getPrerequisites(): Promise<Array<FilePrerequisite>> {
@@ -74,32 +84,6 @@ export class Component {
   }
 
   join(path: string) {
-    return this.monorepo.join(this.context || this.name, path);
-  }
-
-  async toDockerBuild(): Promise<DockerComponentBuild> {
-    return {
-      buildArgs: await this.monorepo.expand(
-        deepmerge()(
-          this.monorepo.defaults.docker?.buildArgs || {},
-          this.config.docker?.buildArgs || {},
-        ),
-      ),
-      context: this.rootdir,
-      dockerfile: this.config.docker?.dockerfile || 'Dockerfile',
-      labels: deepmerge()(
-        {
-          ...this.monorepo.defaults.docker?.labels,
-        },
-        this.labels,
-      ),
-      name: this.imageName,
-      prerequisites: await this.getPrerequisites(),
-      tag: this.imageTag
-        ? await this.monorepo.expand(this.imageTag as string)
-        : 'latest',
-      target:
-        this.config.docker?.target || this.monorepo.defaults?.docker?.target,
-    };
+    return join(this.rootDir, path);
   }
 }

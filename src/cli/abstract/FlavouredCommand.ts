@@ -46,7 +46,7 @@ export abstract class FlavoredCommand<
     // complain properly if incorrect
     const { flavor } = this.flags;
     if (flavor) {
-      setContext({
+      this.context = setContext({
         ...context,
         monorepo: await context.monorepo.withFlavor(flavor),
       });

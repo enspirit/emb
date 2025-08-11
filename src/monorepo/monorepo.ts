@@ -1,6 +1,7 @@
+import jsonpatch from 'fast-json-patch';
 import { join } from 'node:path';
 
-import { IMonorepoConfig } from '@/config';
+import { UserConfig } from '@/config/types.js';
 import { IOperation } from '@/operations';
 import { TemplateExpander } from '@/utils';
 
@@ -8,23 +9,21 @@ import { Component } from './component.js';
 import { MonorepoConfig } from './config.js';
 import { AbstractPluginConstructor, getPlugin } from './plugins/index.js';
 import { EMBStore } from './store/index.js';
-import { TaskInfo } from './types.js';
+import { ResourceInfo, TaskInfo } from './types.js';
 
 export class Monorepo {
   private _config: MonorepoConfig;
   private _store!: EMBStore;
   private initialized = false;
 
-  constructor(config: IMonorepoConfig) {
+  constructor(
+    config: UserConfig,
+    private defaultFlavor: string = 'default',
+  ) {
     this._config = new MonorepoConfig(config);
   }
 
-  // TODO: cache/improve
-  get components() {
-    return this._config.components.map((c) => new Component(c, this));
-  }
-
-  get config(): IMonorepoConfig {
+  get config(): UserConfig {
     return this._config.toJSON();
   }
 
@@ -33,7 +32,7 @@ export class Monorepo {
   }
 
   get flavors() {
-    return this._config.flavors.map((f) => f.name);
+    return this._config.flavors;
   }
 
   get name() {
@@ -45,32 +44,46 @@ export class Monorepo {
   }
 
   get currentFlavor() {
-    return this._config.currentFlavor;
+    return this.defaultFlavor;
   }
 
   get store() {
     return this._store;
   }
 
-  get tasks() {
-    const globalTasks = (this._config.tasks || [])?.map((t) => {
-      return {
-        ...t,
-        id: `global:${t.name}`,
-      };
-    });
-
-    return this.components.reduce<Array<TaskInfo>>((tasks, cmp) => {
-      return [...tasks, ...cmp.tasks];
-    }, globalTasks);
-  }
-
-  get vars(): Record<string, unknown> {
-    return this._config.vars;
+  get components() {
+    return Object.entries(this._config.components).map(
+      ([name, c]) => new Component(name, c, this),
+    );
   }
 
   component(name: string) {
-    return new Component(this._config.component(name), this);
+    return new Component(name, this._config.component(name), this);
+  }
+
+  get tasks() {
+    const globalTasks = Object.entries(this._config.tasks || {}).map(
+      ([name, task]) => {
+        return {
+          ...task,
+          name,
+          id: `global:${name}`,
+        };
+      },
+    );
+
+    return this.components.reduce<Array<TaskInfo>>((tasks, cmp) => {
+      const cmpTasks = Object.entries(cmp.tasks || {}).map(([name, task]) => {
+        return {
+          ...task,
+          name,
+          component: cmp.name,
+          id: `${cmp.name}:${name}`,
+        };
+      });
+
+      return [...tasks, ...cmpTasks];
+    }, globalTasks);
   }
 
   task(nameOrId: string): TaskInfo {
@@ -93,6 +106,48 @@ export class Monorepo {
     }
 
     return found[0];
+  }
+
+  get resources(): Array<ResourceInfo> {
+    return this.components.reduce<Array<ResourceInfo>>((resources, cmp) => {
+      const cmpResources = Object.entries(cmp.resources || {}).map(
+        ([name, task]) => {
+          return {
+            ...task,
+            name,
+            id: `${cmp.name}:${name}`,
+          };
+        },
+      );
+
+      return [...resources, ...cmpResources];
+    }, []);
+  }
+
+  resource(nameOrId: string): ResourceInfo {
+    const byId = this.resources.find((t) => t.id === nameOrId);
+
+    if (byId) {
+      return byId;
+    }
+
+    const found = this.resources.filter((t) => t.name === nameOrId);
+
+    if (found.length > 1) {
+      throw new Error(
+        `Resource name ambigous, found multiple matches: ${nameOrId}`,
+      );
+    }
+
+    if (found.length === 0) {
+      throw new Error(`Resource not found: ${nameOrId}`);
+    }
+
+    return found[0];
+  }
+
+  get vars(): Record<string, unknown> {
+    return this._config.vars;
   }
 
   // Helper to expand a record of strings
@@ -184,12 +239,46 @@ export class Monorepo {
     return operation.run(args);
   }
 
-  async withFlavor(name: string) {
-    const repo = new Monorepo(this._config.withFlavor(name));
+  async withFlavor(flavorName: string): Promise<Monorepo> {
+    const patches = this._config.flavor(flavorName).patches || [];
+    const original = this._config.toJSON();
+    const errors = jsonpatch.validate(patches || [], original);
 
+    if (errors) {
+      throw new Error('Invalid patch(es) detected');
+    }
+
+    const withComponentPatches = this.components.reduce((config, cmp) => {
+      const componentPatches = cmp.flavor(flavorName, false)?.patches || [];
+
+      const errors = jsonpatch.validate(
+        componentPatches || [],
+        config.components[cmp.name],
+      );
+
+      if (errors) {
+        throw new Error('Invalid patch(es) detected');
+      }
+
+      config.components[cmp.name] = componentPatches.reduce(
+        (doc, patch, index) => {
+          return jsonpatch.applyReducer(doc, patch, index);
+        },
+        config.components[cmp.name],
+      );
+
+      return config;
+    }, original);
+
+    const withGlobalPatches = patches.reduce((doc, patch, index) => {
+      return jsonpatch.applyReducer(doc, patch, index);
+    }, withComponentPatches);
+
+    const newConfig = new MonorepoConfig(withGlobalPatches);
+
+    const repo = new Monorepo(newConfig, flavorName);
     await repo.installStore();
     await repo.installEnv();
-
     return repo;
   }
 }

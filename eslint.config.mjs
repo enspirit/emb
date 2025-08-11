@@ -42,6 +42,7 @@ export default defineConfig([
           varsIgnorePattern: '^_',
         },
       ],
+      curly: 'error',
       'no-unused-vars': 'off',
       'perfectionist/sort-object-types': 'off',
       'perfectionist/sort-objects': 'off',

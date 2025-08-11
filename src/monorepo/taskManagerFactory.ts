@@ -10,15 +10,7 @@ import {
 export function taskManagerFactory<
   Ctx = ListrContext,
   FallbackRenderer extends ListrRendererValue = ListrSecondaryRendererValue,
->(
-  renderer?: ListrRendererValue,
-): Manager<Ctx, ListrRendererValue, FallbackRenderer> {
-  if (renderer === 'silent') {
-    return new Manager({
-      renderer: 'silent',
-    });
-  }
-
+>(): Manager<Ctx, ListrRendererValue, FallbackRenderer> {
   return new Manager({
     collectErrors: 'minimal',
     concurrent: false,

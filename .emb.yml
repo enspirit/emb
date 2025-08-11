@@ -3,10 +3,10 @@ project:
   name: emb
   rootDir: examples
 
-## Plugins configs
+# ## Plugins configs
 plugins:
   # Auto-discover components (default: folders with */Dockerfile)
-  - name: autodiscover
+  - name: autodocker
 
   # Load some .env files
   - name: dotenv
@@ -30,45 +30,28 @@ defaults:
   docker:
     tag: ${env:DOCKER_TAG}
 
-# The order is not important
-# as we will build a dependency graph
-components:
-  # The most simple way to add a component
-  # This should not be necessary when using autodiscovery
-  # This component will assume:
-  # - the folder 'simple/' exists
-  # - the Dockerfile 'simple/Dockerfile' exists
-  - name: simple
-
 ## Tasks
 tasks:
-  - name: prereq
+  prereq:
     script: | # shell
       echo "I should run before task 'dependent'";
       sleep 2
       echo "cool?";
 
-  - name: dependent
+  dependent:
     script: | # shell
       echo I should run after task 'prereq'
       echo "pas cool"
       ls -la /
     pre: ['prereq']
 
-  - name: greet
+  greet:
     script: | # shell
       echo "Hello world!"
 
-  - name: ps
+  ps:
     script: | # shell
       docker compose ps
 
-## Flavours
 flavors:
-  - name: production
-    env:
-      DOCKER_TAG: production
-    components:
-      - name: frontend
-        docker:
-          target: production
+  production: {}

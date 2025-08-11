@@ -12,34 +12,28 @@ describe('Config syntax - Plugins', () => {
 
   test('allows for plugins', async () => {
     await vConfig({
+      project: { name: 'test1' },
       plugins: [
         {
           config: ['.env', '.env.commons'],
           name: 'dotenv',
         },
       ],
-      project: 'test1',
     });
 
     expect(vConfig).toHaveResolvedWith({
-      components: [],
-      defaults: {
-        docker: {
-          labels: {
-            'emb/project': 'test1',
-          },
-        },
-      },
-      plugins: [
-        {
-          config: ['.env', '.env.commons'],
-          name: 'dotenv',
-        },
-      ],
       project: {
         name: 'test1',
         rootDir: cwd(),
       },
+      components: {},
+      flavors: {},
+      plugins: [
+        {
+          config: ['.env', '.env.commons'],
+          name: 'dotenv',
+        },
+      ],
     });
   });
 });

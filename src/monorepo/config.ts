@@ -1,64 +1,48 @@
+import { ProjectFlavors, Tasks, toIdentifedHash } from '@';
 import deepMerge from '@fastify/deepmerge';
 
 import {
   ComponentConfig,
-  DefaultSettings,
-  FlavorConfig,
-  IMonorepoConfig,
-  IProjectConfig,
+  DefaultsConfig,
   PluginConfig,
-  Task,
+  ProjectConfig,
+  ProjectFlavorConfig,
+  UserConfig,
 } from '@/config';
-import { deepMergeArray } from '@/utils';
 
-export class MonorepoConfig implements IMonorepoConfig {
-  // the flavor we come from
-  currentFlavor: string;
-  //
-  defaults: DefaultSettings;
+export class MonorepoConfig implements UserConfig {
+  project: ProjectConfig;
+  defaults: DefaultsConfig;
   env: Record<string, string>;
-  flavors: Array<FlavorConfig>;
+  flavors: ProjectFlavors;
   plugins: Array<PluginConfig>;
-  project: IProjectConfig;
   vars: Record<string, unknown>;
-  tasks: Array<Task>;
-  private _components: Map<string, ComponentConfig>;
+  tasks: Tasks;
+  components: Record<string, ComponentConfig>;
 
-  constructor(config: IMonorepoConfig) {
-    this._components = config.components.reduce<Map<string, ComponentConfig>>(
-      (map, cmp) => {
-        map.set(cmp.name, cmp);
-
-        return map;
-      },
-      new Map(),
-    );
+  constructor(config: UserConfig) {
     this.defaults = config.defaults || {};
     this.project = config.project;
     this.vars = config.vars || {};
-    this.flavors = config.flavors || [];
+    this.flavors = config.flavors || {};
     this.env = config.env || {};
     this.plugins = config.plugins || [];
-    this.tasks = config.tasks || [];
-    this.currentFlavor = config.currentFlavor || 'default';
+    this.tasks = toIdentifedHash(config.tasks || {}, 'global');
+    this.components = config.components || {};
   }
 
-  get components() {
-    return [...this._components.values()];
-  }
-
-  component(name: string): ComponentConfig {
-    const config = this.components.find((c) => c.name === name);
+  component(id: string): ComponentConfig {
+    const config = this.components[id];
 
     if (!config) {
-      throw new Error(`Unknown component ${name}`);
+      throw new Error(`Unknown component ${id}`);
     }
 
     return config;
   }
 
-  flavor(name: string): FlavorConfig {
-    const flavor = this.flavors.find((f) => f.name === name);
+  flavor(name: string): ProjectFlavorConfig {
+    const flavor = this.flavors[name];
 
     if (!flavor) {
       throw new Error(`Unknown flavor: ${name}`);
@@ -67,46 +51,23 @@ export class MonorepoConfig implements IMonorepoConfig {
     return flavor;
   }
 
-  toJSON(): IMonorepoConfig {
-    return {
-      currentFlavor: this.currentFlavor,
+  toJSON(): Required<UserConfig> {
+    return structuredClone({
       components: this.components,
       defaults: this.defaults,
       env: this.env,
       flavors: this.flavors,
       plugins: this.plugins,
       project: this.project,
-      vars: this.vars,
       tasks: this.tasks,
-    };
-  }
-
-  with(overrides: Partial<IMonorepoConfig>): MonorepoConfig {
-    const newConfig: IMonorepoConfig = {
-      ...this.toJSON(),
-      ...overrides,
-      components: deepMerge({
-        mergeArray() {
-          // Merge components by identifying them by name
-          return (target, source) =>
-            deepMergeArray(target, source, (item) => {
-              return item.name;
-            });
-        },
-      })(this.components, overrides?.components || []),
-      defaults: deepMerge()(this.defaults || {}, overrides.defaults || {}),
-      env: deepMerge()(this.env, overrides?.env || {}),
-      project: deepMerge()(this.project, overrides?.project || {}),
-      vars: deepMerge()(this.vars, overrides?.vars || {}),
-    };
-
-    return new MonorepoConfig(newConfig);
-  }
-
-  withFlavor(name: string): MonorepoConfig {
-    return this.with({
-      ...this.flavor(name),
-      currentFlavor: name,
+      vars: this.vars,
     });
+  }
+
+  with(overrides: Partial<UserConfig>): MonorepoConfig {
+    const oldConfig = this.toJSON();
+    const newConfig = deepMerge()(oldConfig, overrides);
+
+    return new MonorepoConfig(newConfig as UserConfig);
   }
 }

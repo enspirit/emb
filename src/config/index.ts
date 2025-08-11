@@ -1,16 +1,15 @@
 import { findUp } from 'find-up';
 import { dirname } from 'node:path';
 
-import { toProjectConfig } from './convert.js';
-import { IMonorepoConfig } from './types.js';
+import { toUserConfig } from './convert.js';
+import { UserConfig } from './types.js';
 import { validateUserConfig } from './validation.js';
 
 export * from './convert.js';
-export * from './schema.js';
 export * from './types.js';
 export * from './validation.js';
 
-let config: IMonorepoConfig;
+let config: UserConfig;
 export const loadConfig = async (force = false) => {
   if (config && !force) {
     return config;
@@ -22,7 +21,7 @@ export const loadConfig = async (force = false) => {
     throw new Error('Could not find EMB config anywhere');
   }
 
-  config = toProjectConfig(await validateUserConfig(path), dirname(path));
+  config = toUserConfig(await validateUserConfig(path), dirname(path));
 
   return config;
 };

@@ -35,10 +35,11 @@ export class CliError extends EMBError {
   }
 }
 
-export class AmbiguousTaskError extends EMBError {
+export class AmbiguousReferenceError extends EMBError {
   constructor(
     msg: string,
-    public options: string[],
+    public ref: string,
+    public matches: string[],
   ) {
     super('AMBIGUOUS_TASK', msg);
   }
@@ -53,17 +54,20 @@ export class UnkownReferenceError extends EMBError {
   }
 }
 
-export class TaskNameCollisionError extends EMBError {
+export class ItemCollisionsError extends EMBError {
   constructor(
     msg: string,
     public collisions: Array<string>,
   ) {
-    super('UNKNOWN_REF', msg);
+    super('ITEM_COLLISIONS', msg);
   }
 }
 
 export class CircularDependencyError extends EMBError {
-  constructor(msg: string) {
+  constructor(
+    msg: string,
+    public readonly deps: Array<Array<string>>,
+  ) {
     super('CIRCULAR_DEPS', msg);
   }
 }

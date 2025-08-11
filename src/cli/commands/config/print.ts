@@ -1,7 +1,7 @@
 import YAML from 'yaml';
 
 import { FlavoredCommand, getContext } from '@/cli';
-import { IMonorepoConfig } from '@/config';
+import { EMBConfig } from '@/config/schema.js';
 
 export type TaskInfo = {
   component?: string;
@@ -14,7 +14,7 @@ export default class ConfigPrint extends FlavoredCommand<typeof ConfigPrint> {
   static enableJsonFlag = true;
   static examples = ['<%= config.bin %> <%= command.id %>'];
 
-  public async run(): Promise<IMonorepoConfig> {
+  public async run(): Promise<EMBConfig> {
     const { flags } = await this.parse(ConfigPrint);
     const context = await getContext();
 

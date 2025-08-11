@@ -67,8 +67,16 @@ export class EMBStore {
     await mkdir(this.join(normalized), { recursive: true });
   }
 
-  async readFile(path: string) {
-    return readFile(this.join(path));
+  async readFile(path: string, mustExist = true) {
+    try {
+      return (await readFile(this.join(path))).toString();
+    } catch (error) {
+      if ((error as { code: string }).code === 'ENOENT' && !mustExist) {
+        return;
+      }
+
+      throw error;
+    }
   }
 
   async trash() {

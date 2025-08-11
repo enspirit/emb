@@ -12,9 +12,9 @@ export class GitPrerequisitePlugin
   implements PrerequisitePlugin<PrerequisiteType.file, FilePrerequisite>
 {
   async collect(component: Component): Promise<Array<FilePrerequisite>> {
-    const repo = simpleGit(component.rootdir);
+    const repo = simpleGit(component.rootDir);
 
-    return (await repo.raw('ls-files', component.rootdir))
+    return (await repo.raw('ls-files', component.rootDir))
       .split('\n')
       .map((s) => s.trim())
       .filter(Boolean)

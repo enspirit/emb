@@ -2,7 +2,6 @@ import { Flags } from '@oclif/core';
 
 import { FlavoredCommand, getContext } from '@/cli';
 import { ComposeUpOperation } from '@/docker/index.js';
-import { BuildComponentsOperation } from '@/monorepo/index.js';
 
 export default class UpCommand extends FlavoredCommand<typeof UpCommand> {
   static description = 'Start the whole project.';
@@ -21,9 +20,7 @@ export default class UpCommand extends FlavoredCommand<typeof UpCommand> {
     const { flags } = await this.parse(UpCommand);
     const { monorepo } = getContext();
 
-    await monorepo.run(new BuildComponentsOperation(), {
-      components: monorepo.components.map((c) => c.name),
-    });
+    await this.config.runCommand('resources:build');
 
     await monorepo.run(new ComposeUpOperation(), {
       forceRecreate: flags.force,

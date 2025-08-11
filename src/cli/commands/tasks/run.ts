@@ -1,4 +1,4 @@
-import { AmbiguousTaskError, getContext, UnkownReferenceError } from '@';
+import { AmbiguousReferenceError, getContext, UnkownReferenceError } from '@';
 import { Args, Flags } from '@oclif/core';
 
 import { BaseCommand } from '@/cli/index.js';
@@ -42,9 +42,9 @@ export default class RunTask extends BaseCommand {
         allMatching: flags['all-matching'],
       });
     } catch (error) {
-      if (error instanceof AmbiguousTaskError) {
+      if (error instanceof AmbiguousReferenceError) {
         throw error.toCliError([
-          `Specify just one. Eg: \`emb tasks run ${error.options[0]}\``,
+          `Specify just one. Eg: \`emb tasks run ${error.matches[0]}\``,
           'Run the same command with --all-matches / -a',
           'Review the list of tasks by running `emb tasks`',
         ]);

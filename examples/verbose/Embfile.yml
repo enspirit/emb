@@ -1,0 +1,20 @@
+# yaml-language-server: $schema=../../src/config/schema.json#/$defs/ComponentConfig
+resources:
+  image:
+    type: docker/image
+    dependencies:
+      - base:image
+    params:
+      buildArgs:
+        SOME_ARG: some-value
+      target: "development"
+
+  local.env:
+    type: file
+
+flavors:
+  production:
+    patches:
+      - op: replace
+        path: "/resources/image/params/target"
+        value: production

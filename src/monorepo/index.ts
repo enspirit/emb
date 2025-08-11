@@ -3,6 +3,7 @@ export * from './config.js';
 export * from './monorepo.js';
 export * from './operations/index.js';
 export * from './plugins/index.js';
+export * from './resources/index.js';
 export * from './store/index.js';
 export * from './taskManagerFactory.js';
 export * from './types.js';

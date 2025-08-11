@@ -28,6 +28,7 @@ export type RunTasksOperationParams = {
 };
 
 export type TaskWithScript = TaskInfo & { script: string };
+
 export class RunTasksOperation
   implements IOperation<RunTasksOperationParams, Array<TaskInfo>>
 {
@@ -114,7 +115,7 @@ export class RunTasksOperation
     const { monorepo } = getContext();
 
     const cwd = task.component
-      ? monorepo.component(task.component).rootdir
+      ? monorepo.component(task.component).rootDir
       : monorepo.rootDir;
 
     return monorepo.run(new ExecuteLocalCommandOperation(), {

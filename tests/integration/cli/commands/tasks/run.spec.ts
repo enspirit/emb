@@ -17,7 +17,7 @@ describe('CLI - emb tasks run', () => {
   test('fails on unknown task (single)', async () => {
     const { error } = await runCommand('tasks run unknown');
 
-    expect(error?.message).to.match(/Unknown reference "unknown"/);
+    expect(error?.message).to.match(/Unknown reference `unknown`/);
     expect(error?.code).to.equal('UNKNOWN_REF');
     expect(error?.suggestions).to.include(
       'Check the list of tasks available by running: `emb tasks`',
@@ -27,7 +27,7 @@ describe('CLI - emb tasks run', () => {
   test('fails on unknown task (mutiple)', async () => {
     const { error } = await runCommand('tasks run unknown anotherunknown');
 
-    expect(error?.message).to.match(/Unknown reference "unknown"/);
+    expect(error?.message).to.match(/Unknown reference `unknown`/);
     expect(error?.code).to.equal('UNKNOWN_REF');
     expect(error?.suggestions).to.include(
       'Check the list of tasks available by running: `emb tasks`',
@@ -38,7 +38,7 @@ describe('CLI - emb tasks run', () => {
     const { error } = await runCommand('tasks run test');
 
     expect(error?.message).to.match(
-      /Ambiguous reference "test" matches multiple/,
+      /Ambiguous reference `test` matches multiple/,
     );
     expect(error?.code).to.equal('AMBIGUOUS_TASK');
     expect(error?.suggestions).to.include(
@@ -56,7 +56,7 @@ describe('CLI - emb tasks run', () => {
     const { error } = await runCommand('tasks run greet test');
 
     expect(error?.message).to.match(
-      /Ambiguous reference "test" matches multiple/,
+      /Ambiguous reference `test` matches multiple/,
     );
     expect(error?.code).to.equal('AMBIGUOUS_TASK');
     expect(error?.suggestions).to.include(

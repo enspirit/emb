@@ -61,22 +61,30 @@ export class TemplateExpander {
     );
   }
 
-  async expandRecord<R extends Record<string, unknown>>(
+  expandRecord<R extends Record<string, unknown>>(
     record: R,
-    options: ExpandOptions = {},
-  ): Promise<R> {
-    return Object.entries(record).reduce(
+    options: ExpandOptions,
+  ): Promise<R>;
+  expandRecord<R extends Array<unknown>>(
+    record: R,
+    options: ExpandOptions,
+  ): Promise<R>;
+  async expandRecord(record: unknown, options: ExpandOptions = {}) {
+    if (Array.isArray(record)) {
+      return Promise.all(record.map((v) => this.expand(v as string, options)));
+    }
+
+    return Object.entries(record as Record<string, unknown>).reduce(
       async (vars, [name, str]) => {
         const previous = await vars;
 
-        // @ts-expect-error dunno
         previous[name] = await (typeof str === 'object'
           ? this.expandRecord(str as Record<string, unknown>, options)
           : this.expand(str as string, options));
 
         return previous;
       },
-      Promise.resolve({}) as Promise<R>,
+      Promise.resolve({}) as Promise<Record<string, unknown>>,
     );
   }
 

@@ -12,19 +12,13 @@ describe('Config syntax - Components', () => {
 
   test('allows for simplest object format', async () => {
     await vConfig({
-      components: [{ name: 'frontend' }],
-      project: 'test2',
+      components: { frontend: {} },
+      project: { name: 'test2' },
     });
 
     expect(vConfig).toHaveResolvedWith({
-      components: [{ name: 'frontend' }],
-      defaults: {
-        docker: {
-          labels: {
-            'emb/project': 'test2',
-          },
-        },
-      },
+      components: { frontend: {} },
+      flavors: {},
       project: {
         name: 'test2',
         rootDir: cwd(),
@@ -34,16 +28,21 @@ describe('Config syntax - Components', () => {
 
   test('allows for build args', async () => {
     await vConfig({
-      components: [
-        {
-          docker: {
-            buildArgs: {
-              GREETING: 'test',
+      project: { name: 'test2' },
+      components: {
+        frontend: {
+          resources: {
+            image: {
+              type: 'docker/image',
+              params: {
+                buildArgs: {
+                  GREETING: 'test',
+                },
+              },
             },
           },
-          name: 'frontend',
         },
-      ],
+      },
       defaults: {
         docker: {
           labels: {
@@ -51,20 +50,24 @@ describe('Config syntax - Components', () => {
           },
         },
       },
-      project: 'test2',
     });
 
     expect(vConfig).toHaveResolvedWith({
-      components: [
-        {
-          docker: {
-            buildArgs: {
-              GREETING: 'test',
+      components: {
+        frontend: {
+          resources: {
+            image: {
+              type: 'docker/image',
+              params: {
+                buildArgs: {
+                  GREETING: 'test',
+                },
+              },
             },
           },
-          name: 'frontend',
         },
-      ],
+      },
+      flavors: {},
       defaults: {
         docker: {
           labels: {

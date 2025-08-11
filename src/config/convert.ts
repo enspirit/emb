@@ -1,59 +1,25 @@
 import { resolve } from 'node:path';
 import { cwd } from 'node:process';
 
-import { Flavor } from './schema.js';
-import {
-  ComponentConfig,
-  FlavorConfig,
-  IMonorepoConfig,
-  IProjectConfig,
-  UserConfig,
-} from './types.js';
+import { EMBConfig, ProjectConfig, UserConfig } from './types.js';
 
-export const toFlavor = (flavor: Flavor): FlavorConfig => {
-  return {
-    ...flavor,
-    components: flavor.components,
-  };
-};
-
-export const toProjectConfig = (
-  config: UserConfig,
+export const toUserConfig = (
+  config: EMBConfig,
   rootDir?: string,
-): IMonorepoConfig => {
-  const project: Partial<IProjectConfig> =
-    typeof config.project === 'string'
-      ? { name: config.project }
-      : (config.project as IProjectConfig);
-
-  if (project.rootDir) {
-    project.rootDir = rootDir
-      ? resolve(rootDir, project.rootDir)
-      : project.rootDir;
-  } else {
-    project.rootDir = rootDir || cwd();
-  }
-
-  const components: Array<ComponentConfig> = config.components || [];
-
-  const { defaults, flavors, ...rest } = config;
+): UserConfig => {
+  const project: ProjectConfig = {
+    ...config.project,
+    rootDir: config.project.rootDir
+      ? rootDir
+        ? resolve(rootDir, config.project.rootDir)
+        : config.project.rootDir
+      : rootDir || cwd(),
+  };
 
   return {
-    ...rest,
-    components,
-    defaults: {
-      ...defaults,
-      docker: {
-        ...defaults?.docker,
-        labels: {
-          ...defaults?.docker?.labels,
-          'emb/project': project.name!,
-        },
-      },
-    },
-    flavors: flavors?.map(toFlavor),
-    project: {
-      ...project,
-    } as IProjectConfig,
+    ...config,
+    components: config.components || {},
+    flavors: config.flavors || {},
+    project,
   };
 };
