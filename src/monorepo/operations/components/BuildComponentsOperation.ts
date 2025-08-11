@@ -65,7 +65,9 @@ export class BuildComponentsOperation extends AbstractOperation<
     input: z.input<typeof schema>,
   ): Promise<Record<string, BuildComponentMeta>> {
     const { monorepo } = getContext();
-    const manager = taskManagerFactory<Record<string, BuildComponentMeta>>();
+    const manager = taskManagerFactory<Record<string, BuildComponentMeta>>(
+      input.silent ? 'silent' : 'default',
+    );
 
     const selection = (input.components || []).map((t) =>
       monorepo.component(t),
@@ -94,7 +96,7 @@ export class BuildComponentsOperation extends AbstractOperation<
       };
     });
 
-    manager.add(
+    return manager.run(
       [
         {
           title: 'Build images',
@@ -115,10 +117,6 @@ export class BuildComponentsOperation extends AbstractOperation<
         ctx: {} as Record<string, BuildComponentMeta>,
       },
     );
-
-    const results = await manager.runAll();
-
-    return results;
   }
 
   private async buildComponent(

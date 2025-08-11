@@ -1,13 +1,24 @@
 import { Manager } from '@listr2/manager';
 import {
-  ListrBaseClassOptions,
+  ListrContext,
   ListrDefaultRendererLogLevels,
+  ListrRendererValue,
+  ListrSecondaryRendererValue,
   PRESET_TIMER,
 } from 'listr2';
 
-export function taskManagerFactory<T extends Record<PropertyKey, unknown>>(
-  override?: ListrBaseClassOptions,
-): Manager<T> {
+export function taskManagerFactory<
+  Ctx = ListrContext,
+  FallbackRenderer extends ListrRendererValue = ListrSecondaryRendererValue,
+>(
+  renderer?: ListrRendererValue,
+): Manager<Ctx, ListrRendererValue, FallbackRenderer> {
+  if (renderer === 'silent') {
+    return new Manager({
+      renderer: 'silent',
+    });
+  }
+
   return new Manager({
     collectErrors: 'minimal',
     concurrent: false,
@@ -23,6 +34,5 @@ export function taskManagerFactory<T extends Record<PropertyKey, unknown>>(
         ...PRESET_TIMER,
       },
     },
-    ...override,
   });
 }
