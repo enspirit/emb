@@ -40,12 +40,15 @@ export class AmbiguousTaskError extends EMBError {
     msg: string,
     public options: string[],
   ) {
-    super('AMBIG_TASK', msg);
+    super('AMBIGUOUS_TASK', msg);
   }
 }
 
 export class UnkownReferenceError extends EMBError {
-  constructor(msg: string, public ref: string) {
+  constructor(
+    msg: string,
+    public ref: string,
+  ) {
     super('UNKNOWN_REF', msg);
   }
 }

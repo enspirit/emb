@@ -55,6 +55,10 @@ tasks:
       ls -la /
     pre: ['prereq']
 
+  - name: greet
+    script: | # shell
+      echo "Hello world!"
+
   - name: ps
     script: | # shell
       docker compose ps
