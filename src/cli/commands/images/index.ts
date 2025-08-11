@@ -1,8 +1,8 @@
 import { getContext } from '@';
-import { Command, Flags } from '@oclif/core';
+import { Flags } from '@oclif/core';
 import { printTable } from '@oclif/table';
 
-import { TABLE_DEFAULTS } from '@/cli';
+import { BaseCommand, TABLE_DEFAULTS } from '@/cli';
 import { listImages, shortId } from '@/docker';
 import { timeAgo } from '@/utils';
 
@@ -14,7 +14,7 @@ export type ImageInfo = {
   tag: string;
 };
 
-export default class ImagesIndex extends Command {
+export default class ImagesIndex extends BaseCommand {
   static description = 'List docker images.';
   static enableJsonFlag = true;
   static examples = ['<%= config.bin %> <%= command.id %>'];

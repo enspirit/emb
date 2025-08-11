@@ -1,10 +1,10 @@
 import { getContext } from '@';
-import { Command } from '@oclif/core';
 import { PruneContainersInfo } from 'dockerode';
 
+import { BaseCommand } from '@/cli/abstract/BaseCommand.js';
 import { PruneContainersOperation } from '@/docker';
 
-export default class ContainersPrune extends Command {
+export default class ContainersPrune extends BaseCommand {
   static description = 'Prune containers.';
   static enableJsonFlag = true;
   static examples = ['<%= config.bin %> <%= command.id %>'];

@@ -1,6 +1,8 @@
 import { getContext, setContext } from '@';
 import { Command, Flags, Interfaces } from '@oclif/core';
 
+import { BaseCommand } from './BaseCommand.js';
+
 export type Flags<T extends typeof Command> = Interfaces.InferredFlags<
   (typeof FlavoredCommand)['baseFlags'] & T['flags']
 >;
@@ -8,7 +10,7 @@ export type Args<T extends typeof Command> = Interfaces.InferredArgs<T['args']>;
 
 export abstract class FlavoredCommand<
   T extends typeof Command,
-> extends Command {
+> extends BaseCommand {
   // define flags that can be inherited by any command that extends FlavoredCommand
   static baseFlags = {
     flavor: Flags.string({

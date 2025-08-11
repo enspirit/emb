@@ -1,10 +1,11 @@
 import { getContext } from '@';
-import { Command, Flags } from '@oclif/core';
+import { Flags } from '@oclif/core';
 import { PruneImagesInfo } from 'dockerode';
 
+import { BaseCommand } from '@/cli/index.js';
 import { pruneImages } from '@/docker';
 
-export default class ImagesPrune extends Command {
+export default class ImagesPrune extends BaseCommand {
   static description = 'Prune project images.';
   static enableJsonFlag = true;
   static examples = ['<%= config.bin %> <%= command.id %>'];

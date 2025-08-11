@@ -1,10 +1,11 @@
 import { getContext } from '@';
-import { Command, Flags } from '@oclif/core';
+import { Flags } from '@oclif/core';
 import { Listr } from 'listr2';
 
+import { BaseCommand } from '@/cli/index.js';
 import { deleteImage, listImages } from '@/docker';
 
-export default class ImagesDelete extends Command {
+export default class ImagesDelete extends BaseCommand {
   static description = 'Delete project images.';
   static enableJsonFlag = true;
   static examples = ['<%= config.bin %> <%= command.id %>'];

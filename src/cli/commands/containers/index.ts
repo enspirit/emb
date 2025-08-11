@@ -1,13 +1,13 @@
 import { getContext } from '@';
-import { Command, Flags } from '@oclif/core';
+import { Flags } from '@oclif/core';
 import { printTable } from '@oclif/table';
 import { ContainerInfo } from 'dockerode';
 
-import { TABLE_DEFAULTS } from '@/cli';
+import { BaseCommand, TABLE_DEFAULTS } from '@/cli';
 import { ListContainersOperation, shortId } from '@/docker';
 import { timeAgo } from '@/utils';
 
-export default class ContainersIndex extends Command {
+export default class ContainersIndex extends BaseCommand {
   static aliases = ['ps'];
   static description = 'List docker containers.';
   static enableJsonFlag = true;

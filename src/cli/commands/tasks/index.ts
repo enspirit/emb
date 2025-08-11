@@ -1,11 +1,10 @@
 import { getContext } from '@';
-import { Command } from '@oclif/core';
 import { printTable } from '@oclif/table';
 
-import { TABLE_DEFAULTS } from '@/cli';
+import { BaseCommand, TABLE_DEFAULTS } from '@/cli';
 import { TaskInfo } from '@/monorepo';
 
-export default class TasksIndex extends Command {
+export default class TasksIndex extends BaseCommand {
   static description = 'List tasks.';
   static enableJsonFlag = true;
   static examples = ['<%= config.bin %> <%= command.id %>'];

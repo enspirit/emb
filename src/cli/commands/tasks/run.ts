@@ -1,9 +1,10 @@
 import { AmbiguousTaskError, getContext, UnkownReferenceError } from '@';
-import { Args, Command, Flags } from '@oclif/core';
+import { Args, Flags } from '@oclif/core';
 
+import { BaseCommand } from '@/cli/index.js';
 import { ExecutorType, RunTasksOperation } from '@/monorepo';
 
-export default class RunTask extends Command {
+export default class RunTask extends BaseCommand {
   static args = {
     task: Args.string({
       description:

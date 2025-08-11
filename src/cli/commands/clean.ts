@@ -1,6 +1,8 @@
 import { getContext } from '@';
-import { Command, Flags } from '@oclif/core';
+import { Flags } from '@oclif/core';
 import { Listr } from 'listr2';
+
+import { BaseCommand } from '../abstract/BaseCommand.js';
 
 /**
  * For now, only cleans the stores (logs/sentinels)
@@ -9,7 +11,7 @@ import { Listr } from 'listr2';
  * Eg: --containers --volumes --images --networks
  * Or: --all
  */
-export default class CleanCommand extends Command {
+export default class CleanCommand extends BaseCommand {
   static description = 'Clean the project.';
   static enableJsonFlag = true;
   static examples = ['<%= config.bin %> <%= command.id %>'];
