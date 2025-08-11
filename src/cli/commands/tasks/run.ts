@@ -1,4 +1,4 @@
-import { AmbiguousTaskError, getContext } from '@';
+import { AmbiguousTaskError, getContext, UnkownReferenceError } from '@';
 import { Args, Command, Flags } from '@oclif/core';
 
 import { ExecutorType, RunTasksOperation } from '@/monorepo';
@@ -48,6 +48,14 @@ export default class RunTask extends Command {
           'Review the list of tasks by running `emb tasks`',
         ]);
       }
+
+      if (error instanceof UnkownReferenceError) {
+        throw error.toCliError([
+          `Check the list of tasks available by running: \`emb tasks\``,
+        ]);
+      }
+
+      throw error;
     }
   }
 }

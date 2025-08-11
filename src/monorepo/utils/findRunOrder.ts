@@ -137,7 +137,7 @@ export class EMBCollection<
 
     const nameHits = this.byName.get(ref) ?? [];
     if (nameHits.length === 0) {
-      throw new UnkownReferenceError(`Unknown reference "${ref}"`);
+      throw new UnkownReferenceError(`Unknown reference "${ref}"`, ref);
     }
 
     if (opts?.multiple) return nameHits;
