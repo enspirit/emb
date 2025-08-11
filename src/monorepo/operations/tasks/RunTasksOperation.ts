@@ -1,10 +1,14 @@
 import { getContext } from '@';
-import { Manager } from '@listr2/manager';
 import { ListrTask } from 'listr2';
 import { Writable } from 'node:stream';
 
 import { ContainerExecOperation } from '@/docker';
-import { EMBCollection, findRunOrder, TaskInfo } from '@/monorepo';
+import {
+  EMBCollection,
+  findRunOrder,
+  TaskInfo,
+  taskManagerFactory,
+} from '@/monorepo';
 import { IOperation } from '@/operations';
 
 import {
@@ -40,16 +44,9 @@ export class RunTasksOperation
       onAmbiguous: params.allMatching ? 'runAll' : 'error',
     });
 
-    const runner = new Manager({
-      concurrent: false,
-      exitOnError: false,
-      rendererOptions: {
-        collapseSubtasks: false,
-        collapseSkips: false,
-      },
-    });
+    const manager = taskManagerFactory();
 
-    const list = runner.newListr(
+    manager.add(
       ordered.map((task) => {
         return {
           rendererOptions: {
@@ -92,7 +89,7 @@ export class RunTasksOperation
       }) as Array<ListrTask>,
     );
 
-    await list.run();
+    await manager.runAll();
 
     return ordered;
   }

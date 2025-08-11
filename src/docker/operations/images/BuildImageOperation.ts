@@ -74,7 +74,7 @@ export class BuildImageOperation extends AbstractOperation<
                 trace.aux as string,
               );
               vertexes.forEach((v: { name: string }) => {
-                logStream.write(JSON.stringify(v) + '\n');
+                // logStream.write(JSON.stringify(v) + '\n');
                 this.observer?.(v.name);
               });
             } catch (error) {

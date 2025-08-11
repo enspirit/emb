@@ -15,6 +15,7 @@ export function taskManagerFactory<T extends Record<PropertyKey, unknown>>(
     rendererOptions: {
       collapseErrors: false,
       collapseSubtasks: false,
+      collapseSkips: false,
       icon: {
         [ListrDefaultRendererLogLevels.SKIPPED_WITH_COLLAPSE]: '♺',
       },

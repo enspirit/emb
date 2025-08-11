@@ -1,8 +1,7 @@
 import { getContext } from '@';
-import { Listr } from 'listr2';
 import * as z from 'zod';
 
-import { ExecuteLocalCommandOperation } from '@/monorepo';
+import { ExecuteLocalCommandOperation, taskManagerFactory } from '@/monorepo';
 import { AbstractOperation } from '@/operations';
 
 /**
@@ -26,23 +25,25 @@ export class ComposeUpOperation extends AbstractOperation<typeof schema, void> {
 
   protected async _run(input: z.input<typeof schema>): Promise<void> {
     const { monorepo } = getContext();
+    const manager = taskManagerFactory();
 
     const command = ['docker', 'compose', 'up', '-d'];
     if (input?.forceRecreate) {
       command.push('--force-recreate');
     }
 
-    const task = new Listr({
-      rendererOptions: { persistentOutput: true },
-      async task() {
-        return monorepo.run(new ExecuteLocalCommandOperation(), {
-          script: command.join(' '),
-          workingDir: monorepo.rootDir,
-        });
+    manager.add([
+      {
+        async task() {
+          return monorepo.run(new ExecuteLocalCommandOperation(), {
+            script: command.join(' '),
+            workingDir: monorepo.rootDir,
+          });
+        },
+        title: 'Starting project',
       },
-      title: 'Starting project',
-    });
+    ]);
 
-    await task.run();
+    await manager.runAll();
   }
 }

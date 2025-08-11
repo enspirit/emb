@@ -26,6 +26,7 @@ export type BuildComponentMeta = {
   dryRun?: boolean;
   // if we detect a cache hit, the rest of the tasks can skip
   cacheHit?: boolean;
+  force?: boolean;
   build: DockerComponentBuild;
   preBuildMeta?: string;
   sentinelFile: string;
@@ -46,6 +47,10 @@ const schema = z.object({
     .boolean()
     .optional()
     .describe('Do not produce any output on the terminal'),
+  force: z
+    .boolean()
+    .optional()
+    .describe('Bypass the cache and force the build'),
 });
 
 export class BuildComponentsOperation extends AbstractOperation<
@@ -77,24 +82,41 @@ export class BuildComponentsOperation extends AbstractOperation<
       collection,
     );
 
-    const tasks: Array<ListrTask> = await Promise.all(
-      ordered.map((cmp) => {
-        return {
-          task: async (context, task) => {
-            return this.buildComponent(cmp, task, context, input.dryRun);
-          },
-          title: `Building ${cmp.name}`,
-        };
-      }),
-    );
-
-    const list = manager.newListr([...tasks], {
-      renderer: input.silent ? 'silent' : 'default',
-      rendererOptions: { persistentOutput: true },
-      ctx: {} as Record<string, BuildComponentMeta>,
+    const tasks: Array<ListrTask> = ordered.map((cmp) => {
+      return {
+        task: async (context, task) => {
+          return this.buildComponent(cmp, task, context, {
+            dryRun: input.dryRun,
+            force: input.force,
+          });
+        },
+        title: `Building ${cmp.name}`,
+      };
     });
 
-    const results = await list.run();
+    manager.add(
+      [
+        {
+          title: 'Build images',
+          async task(ctx, task) {
+            return task.newListr([...tasks], {
+              rendererOptions: {
+                collapseSubtasks: true,
+              },
+            });
+          },
+        },
+      ],
+      {
+        rendererOptions: {
+          collapseSkips: false,
+          collapseSubtasks: false,
+        },
+        ctx: {} as Record<string, BuildComponentMeta>,
+      },
+    );
+
+    const results = await manager.runAll();
 
     return results;
   }
@@ -107,7 +129,10 @@ export class BuildComponentsOperation extends AbstractOperation<
       typeof SimpleRenderer
     >,
     parentContext: Record<string, BuildComponentMeta>,
-    dryRun: boolean = false,
+    options?: {
+      dryRun?: boolean;
+      force?: boolean;
+    },
   ) {
     const prereqPlugin = new FilePrerequisitePlugin();
 
@@ -119,6 +144,7 @@ export class BuildComponentsOperation extends AbstractOperation<
           async task(ctx) {
             // Install the context for this specific component build chain
             ctx.cacheHit = false;
+            ctx.force = options?.force;
             ctx.sentinelFile = getSentinelFile(cmp);
             ctx.build = await cmp.toDockerBuild();
           },
@@ -126,6 +152,9 @@ export class BuildComponentsOperation extends AbstractOperation<
         },
         // Check for sentinal information to see if the build can be skipped
         {
+          skip(ctx) {
+            return Boolean(ctx.force);
+          },
           task: async (ctx) => {
             ctx.preBuildMeta = await prereqPlugin.meta(
               cmp,
@@ -150,7 +179,7 @@ export class BuildComponentsOperation extends AbstractOperation<
                 ctx.preBuildMeta,
               );
 
-              if (!diff) {
+              if (!ctx.force && !diff) {
                 ctx.cacheHit = true;
                 parentTask.skip(`${parentTask.title} (cache hit)`);
               }
@@ -159,11 +188,9 @@ export class BuildComponentsOperation extends AbstractOperation<
           title: 'Checking prerequisites',
         },
         {
+          skip: (ctx) =>
+            !ctx.force && (Boolean(ctx.cacheHit) || Boolean(ctx.dryRun)),
           task: async (ctx, task) => {
-            if (ctx.cacheHit || ctx.dryRun) {
-              return task.skip();
-            }
-
             const title = `Building image ${ctx.build.name}:${ctx.build.tag}`;
             task.title = title;
 
@@ -188,11 +215,9 @@ export class BuildComponentsOperation extends AbstractOperation<
         },
         // Update sentinel file
         {
-          task: async (ctx, task) => {
-            if (ctx.cacheHit || ctx.dryRun) {
-              return task.skip();
-            }
-
+          skip: (ctx) =>
+            !ctx.force && (Boolean(ctx.cacheHit) || Boolean(ctx.dryRun)),
+          task: async (ctx) => {
             const sentinelValue = await prereqPlugin.meta(
               cmp,
               ctx.build.prerequisites,
@@ -211,14 +236,16 @@ export class BuildComponentsOperation extends AbstractOperation<
           async task(ctx) {
             parentContext[cmp.name] = ctx;
 
-            if (ctx.dryRun) {
+            if (!ctx.force && ctx.dryRun) {
               parentTask.skip(`${parentTask.title} (dry run)`);
             }
           },
         },
       ],
       {
-        ctx: { dryRun } as BuildComponentMeta,
+        ctx: {
+          ...options,
+        } as BuildComponentMeta,
       },
     );
 

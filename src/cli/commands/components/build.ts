@@ -20,6 +20,12 @@ export default class BuildCommand extends FlavoredCommand<typeof BuildCommand> {
       description:
         'Do not build the components but only produce build meta information',
     }),
+    force: Flags.boolean({
+      name: 'force',
+      char: 'f',
+      required: false,
+      description: 'Bypass the cache and force the build',
+    }),
   };
   static enableJsonFlag = true;
   static strict = false;
@@ -30,6 +36,7 @@ export default class BuildCommand extends FlavoredCommand<typeof BuildCommand> {
 
     return monorepo.run(new BuildComponentsOperation(), {
       dryRun: flags['dry-run'],
+      force: flags.force,
       silent: flags.json,
       components:
         argv.length > 0
