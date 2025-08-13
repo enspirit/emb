@@ -1,5 +1,3 @@
-import type { Stats } from 'node:fs';
-
 import { stat, statfs } from 'node:fs/promises';
 import { join } from 'node:path';
 import pMap from 'p-map';
