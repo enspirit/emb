@@ -14,7 +14,7 @@ $ npm install -g @enspirit/emb
 $ emb COMMAND
 running command...
 $ emb (--version)
-@enspirit/emb/0.0.9 darwin-x64 node-v22.18.0
+@enspirit/emb/0.1.0 darwin-x64 node-v22.12.0
 $ emb --help [COMMAND]
 USAGE
   $ emb COMMAND
@@ -26,7 +26,6 @@ USAGE
 * [`emb autocomplete [SHELL]`](#emb-autocomplete-shell)
 * [`emb clean`](#emb-clean)
 * [`emb components`](#emb-components)
-* [`emb components build [COMPONENT]`](#emb-components-build-component)
 * [`emb config print`](#emb-config-print)
 * [`emb containers`](#emb-containers)
 * [`emb containers prune`](#emb-containers-prune)
@@ -36,6 +35,8 @@ USAGE
 * [`emb images delete`](#emb-images-delete)
 * [`emb images prune`](#emb-images-prune)
 * [`emb ps`](#emb-ps)
+* [`emb resources`](#emb-resources)
+* [`emb resources build [COMPONENT]`](#emb-resources-build-component)
 * [`emb tasks`](#emb-tasks)
 * [`emb tasks run TASK`](#emb-tasks-run-task)
 * [`emb up`](#emb-up)
@@ -112,32 +113,6 @@ DESCRIPTION
 
 EXAMPLES
   $ emb components
-```
-
-## `emb components build [COMPONENT]`
-
-Build the components of the monorepo
-
-```
-USAGE
-  $ emb components build [COMPONENT...] [--json] [--flavor <value>] [--dry-run] [-f]
-
-ARGUMENTS
-  COMPONENT...  List of components to build (defaults to all)
-
-FLAGS
-  -f, --force           Bypass the cache and force the build
-      --dry-run         Do not build the components but only produce build meta information
-      --flavor=<value>  Specify the flavor to use.
-
-GLOBAL FLAGS
-  --json  Format output as json.
-
-DESCRIPTION
-  Build the components of the monorepo
-
-EXAMPLES
-  $ emb components build build --flavor development
 ```
 
 ## `emb config print`
@@ -329,6 +304,53 @@ ALIASES
 
 EXAMPLES
   $ emb ps
+```
+
+## `emb resources`
+
+List resources.
+
+```
+USAGE
+  $ emb resources [--json] [--flavor <value>]
+
+FLAGS
+  --flavor=<value>  Specify the flavor to use.
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  List resources.
+
+EXAMPLES
+  $ emb resources
+```
+
+## `emb resources build [COMPONENT]`
+
+Build the resources of the monorepo
+
+```
+USAGE
+  $ emb resources build [COMPONENT...] [--json] [--flavor <value>] [--dry-run] [-f]
+
+ARGUMENTS
+  COMPONENT...  List of resources to build (defaults to all)
+
+FLAGS
+  -f, --force           Bypass the cache and force the build
+      --dry-run         Do not build the resources but only produce build meta information
+      --flavor=<value>  Specify the flavor to use.
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Build the resources of the monorepo
+
+EXAMPLES
+  $ emb resources build build --flavor development
 ```
 
 ## `emb tasks`
