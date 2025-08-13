@@ -1,6 +1,6 @@
 services:
-  autodiscover:
-    image: emb/autodiscover:${DOCKER_TAG}
+  autodocker:
+    image: emb/autodocker:${DOCKER_TAG}
 
   buildargs:
     image: emb/buildargs:${DOCKER_TAG}

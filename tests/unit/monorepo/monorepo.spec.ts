@@ -17,15 +17,18 @@ describe('Config - MonorepoConfig', () => {
 
   describe('.flavors', () => {
     test('expses the list of flavors available', () => {
-      expect(repo.flavors).to.deep.equal(['development', 'production']);
+      expect(Object.keys(repo.flavors)).to.deep.equal([
+        'development',
+        'production',
+      ]);
     });
   });
 
   describe('.components', () => {
     test('exposes the components', () => {
-      expect(repo.components).to.have.length(4);
+      expect(Object.entries(repo.components)).to.have.length(4);
 
-      repo.components.forEach((cmp) =>
+      Object.values(repo.components).forEach((cmp) =>
         expect(cmp).to.be.an.instanceof(Component),
       );
     });
@@ -72,16 +75,33 @@ describe('Config - MonorepoConfig', () => {
   });
 
   describe('#withFlavor(name)', () => {
-    test('complains about unknown flavor', async () => {
-      await expect(() => repo.withFlavor('unknown')).rejects.toThrowError(
-        /Unknown flavor: unknown/,
+    test('throws when flavour unknown', async () => {
+      await expect(() => repo.withFlavor('unknown')).rejects.toThrow(
+        /Unknown flavor/,
       );
     });
 
-    test('returns a new repo', async () => {
-      const flavoredRepo = await repo.withFlavor('production');
-      expect(flavoredRepo).to.not.equal(repo);
-      expect(flavoredRepo).to.be.an.instanceof(Monorepo);
+    test('returns a new monorepo', async () => {
+      const newRepo = await repo.withFlavor('production');
+      expect(newRepo).to.not.equal(repo);
+      expect(newRepo).to.be.an.instanceOf(Monorepo);
+    });
+
+    test('uses the flavour overrides accordingly', async () => {
+      const production = await repo.withFlavor('production');
+
+      // Untouched
+      expect(production.name).to.equal(CompleteExample.project.name);
+      expect(production.rootDir).to.equal(CompleteExample.project.rootDir);
+
+      // Override per component
+      const originalBuild = config.component('frontend').resources?.image
+        ?.params as { target: string };
+      expect(originalBuild.target).to.equal('development');
+
+      const newBuild = production.component('frontend').resources?.image
+        ?.params as { target: string };
+      expect(newBuild.target).to.equal('production');
     });
   });
 });

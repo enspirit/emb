@@ -79,7 +79,10 @@ export class ContainerExecOperation extends AbstractOperation<
       const onError = (err: unknown) => reject(err);
       const onEnd = async () => {
         exec.inspect((error, res) => {
-          if (error) return reject(error);
+          if (error) {
+            return reject(error);
+          }
+
           const code = res?.ExitCode ?? 0;
           if (code !== 0) {
             const msg = res?.ProcessConfig?.entrypoint

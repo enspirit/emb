@@ -37,4 +37,22 @@ describe('Utils / expandRecord', () => {
 
     expect(expander.expansionCount).to.equal(1);
   });
+
+  describe('when facing array properties (non-regression)', async () => {
+    test('does return arrays', async () => {
+      const toExpand = {
+        someHash: {
+          key: 'value',
+        },
+        array: ['one', 'two', 'three'],
+      };
+
+      expect(await expandRecordFn(toExpand, {})).to.deep.equal({
+        someHash: {
+          key: 'value',
+        },
+        array: ['one', 'two', 'three'],
+      });
+    });
+  });
 });

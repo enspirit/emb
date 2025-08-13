@@ -1,54 +1,18 @@
-import { EMBConfigSchema, Task } from './schema.js';
+import { EMBConfig, ResourceConfig } from './schema.js';
 
-export type UserConfig = EMBConfigSchema;
+export * from './schema.js';
 
-export type IProjectConfig = {
-  name: string;
-  rootDir: string;
+type RemoveIndexSignature<T> = {
+  [K in keyof T as K extends string ? (string extends K ? never : K) : K]: T[K];
 };
 
-export type ComponentConfig = {
-  name: string;
-  docker?: {
-    buildArgs?: Record<string, string>;
-    context?: string;
-    dependencies?: Array<string>;
-    dockerfile?: string;
-    labels?: Record<string, string>;
-    target?: string;
-  };
-  tasks?: Array<Task>;
+export type ProjectConfig = Required<EMBConfig['project']>;
+export type UserConfig = EMBConfig & {
+  project: ProjectConfig;
 };
+export type PluginConfig = Required<EMBConfig>['plugins'][number];
 
-export type DefaultSettings = {
-  docker?: {
-    buildArgs?: Record<string, string>;
-    labels?: Record<string, string>;
-    tag?: string;
-    target?: string;
-  };
-};
-
-export type FlavorConfig = {
-  components?: Array<ComponentConfig>;
-  defaults?: DefaultSettings;
-  env?: Record<string, string>;
-  name: string;
-};
-
-export type PluginConfig = {
-  config?: unknown;
-  name: string;
-};
-
-export type IMonorepoConfig = {
-  currentFlavor?: string;
-  components: Array<ComponentConfig>;
-  defaults?: DefaultSettings;
-  env?: Record<string, string>;
-  flavors?: Array<FlavorConfig>;
-  plugins?: Array<PluginConfig>;
-  project: IProjectConfig;
-  tasks?: Array<Task>;
-  vars?: Record<string, unknown>;
+export type IResourceConfig = RemoveIndexSignature<ResourceConfig>;
+export type QualifiedResourceConfig = IResourceConfig & {
+  id: string;
 };

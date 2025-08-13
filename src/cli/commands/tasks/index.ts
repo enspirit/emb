@@ -16,7 +16,7 @@ export default class TasksIndex extends BaseCommand {
       monorepo: { tasks },
     } = await getContext();
 
-    if (!flags.json)
+    if (!flags.json) {
       printTable({
         ...TABLE_DEFAULTS,
         columns: ['name', 'component', 'description', 'id'],
@@ -32,6 +32,7 @@ export default class TasksIndex extends BaseCommand {
           return 0;
         }),
       });
+    }
 
     return tasks;
   }

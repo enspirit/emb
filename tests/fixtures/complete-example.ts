@@ -1,43 +1,15 @@
-import { IMonorepoConfig } from '@/config';
+import { UserConfig } from '@/config/types.js';
 
-export const CompleteExample: IMonorepoConfig = {
-  components: [
-    // Simplest component
-    {
-      name: 'gateway',
-      docker: {
-        context: 'gateway',
-      },
-    },
-    // Build args
-    {
-      name: 'backend',
-      docker: {
-        buildArgs: {
-          API_KEY: 'secret',
-        },
-        context: 'backend',
-        dependencies: ['base'],
-      },
-    },
-    // Docker build targets
-    {
-      name: 'frontend',
-      docker: {
-        context: 'frontend',
-        dependencies: ['base'],
-        target: 'development',
-      },
-    },
-    // Base image for backend/frontend
-    {
-      name: 'base',
-      docker: {
-        context: 'base',
-        target: 'development',
-      },
-    },
-  ],
+export const CompleteExample: UserConfig = {
+  project: {
+    name: 'simple',
+    rootDir: '/tmp/simple',
+  },
+  plugins: [],
+  tasks: {},
+  vars: {
+    foo: 'bar',
+  },
   defaults: {
     docker: {
       // eslint-disable-next-line no-template-curly-in-string
@@ -48,50 +20,77 @@ export const CompleteExample: IMonorepoConfig = {
     // eslint-disable-next-line no-template-curly-in-string
     DOCKER_TAG: '${env:DOCKER_TAG:-latest}',
   },
-  flavors: [
-    {
-      components: [
-        {
-          name: 'frontend',
-          docker: {
-            context: 'frontend',
-            target: 'production',
+  components: {
+    // Simplest component
+    gateway: {
+      resources: {
+        image: {
+          type: 'docker/image',
+          params: {
+            context: 'gateway',
           },
         },
-      ],
-      defaults: {
-        docker: {
-          tag: 'production',
-        },
       },
-      name: 'development',
     },
-    {
-      components: [
-        {
-          name: 'frontend',
-          docker: {
-            context: 'frontend',
-            target: 'production',
+    // Build args
+    backend: {
+      resources: {
+        image: {
+          type: 'docker/image',
+          params: {
+            buildArgs: {
+              API_KEY: 'secret',
+            },
+            context: 'backend',
+            dependencies: ['base'],
           },
         },
-      ],
-      defaults: {
-        docker: {
-          tag: 'production',
+      },
+    },
+    // Docker build targets
+    frontend: {
+      resources: {
+        image: {
+          type: 'docker/iamge',
+          params: {
+            context: 'frontend',
+            dependencies: ['base'],
+            target: 'development',
+          },
         },
       },
-      env: {
-        DOCKER_TAG: 'production',
-      },
-      name: 'production',
     },
-  ],
-  project: {
-    name: 'simple',
-    rootDir: '/tmp/simple',
+    // Base image for backend/frontend
+    base: {
+      resources: {
+        image: {
+          type: 'docker/image',
+          params: {
+            context: 'base',
+            target: 'development',
+          },
+        },
+      },
+    },
   },
-  vars: {
-    foo: 'bar',
+  flavors: {
+    development: {
+      patches: [
+        {
+          op: 'replace',
+          path: '/components/frontend/resources/image/params/target',
+          value: 'development',
+        },
+      ],
+    },
+    production: {
+      patches: [
+        {
+          op: 'replace',
+          path: '/components/frontend/resources/image/params/target',
+          value: 'production',
+        },
+      ],
+    },
   },
 };

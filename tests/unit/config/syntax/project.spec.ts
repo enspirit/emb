@@ -10,37 +10,12 @@ describe('Config syntax - Project', () => {
     vConfig = vi.fn(validateUserConfig);
   });
 
-  test('allows for the simplest shortcut', async () => {
-    await vConfig({ project: 'test1' });
-
-    expect(vConfig).toHaveResolvedWith({
-      components: [],
-      defaults: {
-        docker: {
-          labels: {
-            'emb/project': 'test1',
-          },
-        },
-      },
-      project: {
-        name: 'test1',
-        rootDir: cwd(),
-      },
-    });
-  });
-
   test('allows for the object format', async () => {
     await vConfig({ project: { name: 'test2' } });
 
     expect(vConfig).toHaveResolvedWith({
-      components: [],
-      defaults: {
-        docker: {
-          labels: {
-            'emb/project': 'test2',
-          },
-        },
-      },
+      components: {},
+      flavors: {},
       project: {
         name: 'test2',
         rootDir: cwd(),
@@ -52,14 +27,8 @@ describe('Config syntax - Project', () => {
     await vConfig({ project: { name: 'test3', rootDir: 'examples' } });
 
     expect(vConfig).toHaveResolvedWith({
-      components: [],
-      defaults: {
-        docker: {
-          labels: {
-            'emb/project': 'test3',
-          },
-        },
-      },
+      components: {},
+      flavors: {},
       project: {
         name: 'test3',
         rootDir: 'examples',

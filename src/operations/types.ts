@@ -1,3 +1,3 @@
-export interface IOperation<I = unknown, O = unknown> {
+export interface IOperation<I, O> {
   run(input: I): Promise<O>;
 }

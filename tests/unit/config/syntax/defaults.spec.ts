@@ -17,16 +17,14 @@ describe('Config syntax - Defaults', () => {
           tag: 'staging',
         },
       },
-      project: 'test1',
+      project: { name: 'test1' },
     });
 
     expect(vConfig).toHaveResolvedWith({
-      components: [],
+      components: {},
+      flavors: {},
       defaults: {
         docker: {
-          labels: {
-            'emb/project': 'test1',
-          },
           tag: 'staging',
         },
       },

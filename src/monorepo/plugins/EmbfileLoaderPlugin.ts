@@ -1,5 +1,6 @@
+import deepmerge from '@fastify/deepmerge';
 import { glob } from 'glob';
-import { join } from 'node:path';
+import { basename, dirname, join } from 'node:path';
 
 import { validateEmbfile } from '@/config';
 import { Monorepo, MonorepoConfig } from '@/monorepo';
@@ -43,11 +44,18 @@ export class EmbfileLoaderPlugin extends AbstractPlugin<
     const newConfig = await files.reduce<Promise<MonorepoConfig>>(
       async (pConfig, path) => {
         const config = await pConfig;
+        const rootDir = dirname(path);
+        const name = basename(rootDir);
         const embfile = await join(config.project.rootDir, path);
         const component = await validateEmbfile(embfile);
+        const original = config.components[name];
+
+        const newComponent = deepmerge()(original || {}, component);
 
         return config.with({
-          components: [component],
+          components: {
+            [name]: newComponent,
+          },
         });
       },
       Promise.resolve(config),

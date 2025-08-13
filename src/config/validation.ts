@@ -2,57 +2,58 @@ import { Ajv } from 'ajv';
 import { readFile, stat } from 'node:fs/promises';
 import yaml from 'yaml';
 
-import { toProjectConfig } from './convert.js';
-import { Component } from './schema.js';
+import { toUserConfig } from './convert.js';
 import configSchema from './schema.json' with { type: 'json' };
-import { UserConfig } from './types.js';
+import { ComponentConfig, EMBConfig, UserConfig } from './types.js';
 
 const ajv = new Ajv();
 ajv.addSchema(configSchema);
 
-export const validateUserConfig = async (pathOrObject: string | unknown) => {
-  let userConfig: UserConfig;
+export const validateUserConfig = async (
+  pathOrObject: string | unknown,
+): Promise<UserConfig> => {
+  let embConfig: EMBConfig;
 
   if (typeof pathOrObject === 'string') {
     if (await stat(pathOrObject)) {
       const cfgYaml = (await readFile(pathOrObject)).toString();
-      userConfig = yaml.parse(cfgYaml.toString()) as UserConfig;
+      embConfig = yaml.parse(cfgYaml.toString()) as EMBConfig;
     } else {
       throw new Error(`Could not find file: ${pathOrObject}`);
     }
   } else {
-    userConfig = pathOrObject as UserConfig;
+    embConfig = pathOrObject as EMBConfig;
   }
 
-  if (!ajv.validate(configSchema, userConfig)) {
-    ajv.errors!.forEach((err) => console.error(err));
+  if (!ajv.validate(configSchema, embConfig)) {
+    ajv.errors?.forEach((err) => console.error(err));
     throw new Error(`Your .emb.yml is incorrect`);
   }
 
-  return toProjectConfig(userConfig);
+  return toUserConfig(embConfig);
 };
 
 export const validateEmbfile = async (pathOrObject: string | unknown) => {
-  let component: Component;
+  let component: ComponentConfig;
 
   if (typeof pathOrObject === 'string') {
     if (await stat(pathOrObject)) {
       const cfgYaml = (await readFile(pathOrObject)).toString();
-      component = yaml.parse(cfgYaml.toString()) as Component;
+      component = yaml.parse(cfgYaml.toString()) as ComponentConfig;
     } else {
       throw new Error(`Could not find file: ${pathOrObject}`);
     }
   } else {
-    component = pathOrObject as Component;
+    component = pathOrObject as ComponentConfig;
   }
 
-  const validate = ajv.getSchema('/schemas/config#/$defs/component');
+  const validate = ajv.getSchema('/schemas/config#/$defs/ComponentConfig');
   if (!validate) {
     throw new Error('Could not find the JSON schema validator for Embfile');
   }
 
   if (!validate(component)) {
-    ajv.errors!.forEach((err) => console.error(err));
+    ajv.errors?.forEach((err) => console.error(err));
     throw new Error(`Your .emb.yml is incorrect`);
   }
 

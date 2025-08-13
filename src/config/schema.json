@@ -1,34 +1,25 @@
 {
   "$id": "/schemas/config",
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "EMB Config Schema",
+  "title": "EMBConfig",
   "type": "object",
+  "additionalProperties": false,
   "properties": {
     "project": {
-      "oneOf": [
-        {
-          "type": "string",
-          "minLength": 3,
-          "description": "Shortcut for specifying the project name."
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/Identifier",
+          "description": "The name of the project."
         },
-        {
-          "type": "object",
-          "required": ["name"],
-          "properties": {
-            "name": {
-              "type": "string",
-              "minLength": 3,
-              "description": "The name of the project."
-            },
-            "rootDir": {
-              "type": "string",
-              "minLength": 1,
-              "description": "The root directory of the project."
-            }
-          },
-          "additionalProperties": false
+        "rootDir": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The root directory of the project."
         }
-      ]
+      },
+      "additionalProperties": false
     },
     "plugins": {
       "type": "array",
@@ -37,7 +28,7 @@
         "required": ["name"],
         "properties": {
           "name": {
-            "type": "string"
+            "$ref": "#/$defs/Identifier"
           },
           "config": {}
         },
@@ -57,32 +48,38 @@
       "additionalProperties": true
     },
     "defaults": {
-      "$ref": "#/$defs/defaults"
+      "$ref": "#/$defs/DefaultsConfig"
     },
     "components": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/component"
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/ComponentConfig"
       }
     },
     "flavors": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/flavor"
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/ProjectFlavorConfig"
       }
     },
     "tasks": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/task"
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/TaskConfig"
       }
     }
   },
   "required": ["project"],
-  "additionalProperties": false,
-
   "$defs": {
-    "defaults": {
+    "Identifier": {
+      "type": "string",
+      "pattern": "^[a-zA-Z]+[\\w._-]+$"
+    },
+    "QualifiedIdentifier": {
+      "type": "string",
+      "pattern": "^([a-zA-Z]+[\\w._-]+:)?[a-zA-Z]+[\\w._-]+$"
+    },
+    "DefaultsConfig": {
       "type": "object",
       "description": "Default settings for build aspects",
       "additionalProperties": false,
@@ -91,8 +88,12 @@
           "type": "object",
           "description": "Default docker build settings",
           "properties": {
-            "tag": { "type": "string" },
-            "target": { "type": "string" },
+            "tag": {
+              "type": "string"
+            },
+            "target": {
+              "$ref": "#/$defs/Identifier"
+            },
             "buildArgs": {
               "type": "object",
               "additionalProperties": {
@@ -109,17 +110,14 @@
         }
       }
     },
-    "task":{
+    "TaskConfig":{
       "type": "object",
-      "required": ["name"],
+      "required": [],
       "anyOf": [
         { "required": ["script"] },
         { "required": ["pre"] }
       ],
       "properties": {
-        "name": {
-          "type": "string"
-        },
         "description": {
           "type": "string"
         },
@@ -127,7 +125,7 @@
           "type": "string"
         },
         "executor": {
-          "type": "string"
+          "$ref": "#/$defs/Identifier"
         },
         "options": {
           "type": "object",
@@ -136,92 +134,184 @@
         "pre": {
           "type": "array",
           "items": {
-            "type": "string"
+            "$ref": "#/$defs/Identifier"
           }
         }
       },
       "additionalProperties": false
     },
-    "component": {
+    "ComponentConfig": {
       "type": "object",
-      "required": ["name"],
+      "required": [],
       "properties": {
-        "name": {
-          "type": "string",
-          "minLength": 3,
-          "description": "The name of the component."
-        },
-        "docker": {
-          "type": "object",
-          "properties": {
-            "context": {
-              "type": "string",
-              "minLength": 1,
-              "description": "The directory of the component."
-            },
-            "buildArgs": {
-              "type": "object",
-              "properties": {},
-              "additionalProperties": {
-                "type": "string"
-              }
-            },
-            "dependencies": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "target": {
-              "type": "string",
-              "description": "The stage to target for the build"
-            },
-            "dockerfile": {
-              "type": "string",
-              "description": "The Dockerfile to use"
-            }
-          },
-          "additionalProperties": false
-        },
         "description": {
           "type": "string",
           "minLength": 1,
           "description": "A description of the component."
         },
         "tasks": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/task"
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/TaskConfig"
+          }
+        },
+        "resources": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/ResourceConfig"
+          }
+        },
+        "flavors": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/ComponentFlavorConfig"
           }
         }
       },
       "additionalProperties": false
     },
-    "flavor": {
+    "DockerImageConfig": {
       "type": "object",
-      "required": ["name"],
       "properties": {
-        "name": {
-          "type": "string"
-        },
-        "env": {
+        "buildArgs": {
           "type": "object",
-          "description": "Variables to install on the environment",
+          "properties": {},
           "additionalProperties": {
             "type": "string"
           }
         },
-        "components": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/component"
-          }
+        "target": {
+          "type": "string",
+          "description": "The stage to target for the build"
         },
-        "defaults": {
-          "$ref": "#/$defs/defaults"
+        "dockerfile": {
+          "type": "string",
+          "description": "The Dockerfile to use"
         }
       },
       "additionalProperties": false
+    },
+    "ProjectFlavorConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {
+        "defaults": {
+          "$ref": "#/$defs/DefaultsConfig"
+        },
+        "patches": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/JsonPatchOperation"
+          }
+        }
+      }
+    },
+    "ResourceConfig": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string" },
+        "params": {},
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/QualifiedIdentifier"
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": { "type": { "const": "docker/DockerImageConfig" } },
+            "required": ["type"]
+          },
+          "then": {
+            "properties": { "params": { "$ref": "#/$defs/DockerImageConfig" } }
+          },
+          "else": {
+            "properties": { "params": { "type": "object" } }
+          }
+        }
+      ]
+    },
+    "ComponentFlavorConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {
+        "patches": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/JsonPatchOperation"
+          }
+        }
+      }
+    },
+    "JsonPatchAddOperation": {
+      "type": "object",
+      "properties": {
+        "op": { "const": "add" },
+        "path": { "type": "string", "minLength": 1 },
+        "value": {}
+      },
+      "required": ["op", "path", "value"],
+      "additionalProperties": false
+    },
+
+    "JsonPatchRemoveOperation": {
+      "type": "object",
+      "properties": {
+        "op": { "const": "remove" },
+        "path": { "type": "string", "minLength": 1 }
+      },
+      "required": ["op", "path"],
+      "additionalProperties": false
+    },
+
+    "JsonPatchReplaceOperation": {
+      "type": "object",
+      "properties": {
+        "op": { "const": "replace" },
+        "path": { "type": "string", "minLength": 1 },
+        "value": {}
+      },
+      "required": ["op", "path", "value"],
+      "additionalProperties": false
+    },
+
+    "JsonPatchMoveOperation": {
+      "type": "object",
+      "properties": {
+        "op": { "const": "move" },
+        "path": { "type": "string", "minLength": 1 },
+        "from": { "type": "string", "minLength": 1 }
+      },
+      "required": ["op", "path", "from"],
+      "additionalProperties": false
+    },
+
+    "JsonPatchCopyOperation": {
+      "type": "object",
+      "properties": {
+        "op": { "const": "copy" },
+        "path": { "type": "string", "minLength": 1 },
+        "from": { "type": "string", "minLength": 1 }
+      },
+      "required": ["op", "path", "from"],
+      "additionalProperties": false
+    },
+
+    "JsonPatchOperation": {
+      "oneOf": [
+        { "$ref": "#/$defs/JsonPatchAddOperation" },
+        { "$ref": "#/$defs/JsonPatchRemoveOperation" },
+        { "$ref": "#/$defs/JsonPatchReplaceOperation" },
+        { "$ref": "#/$defs/JsonPatchMoveOperation" },
+        { "$ref": "#/$defs/JsonPatchCopyOperation" }
+      ]
     }
   }
 }

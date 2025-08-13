@@ -1,4 +1,4 @@
-import { setContext } from '@';
+import { EmbContext, setContext } from '@';
 import { Command, Performance } from '@oclif/core';
 import Dockerode from 'dockerode';
 
@@ -20,6 +20,8 @@ const withMarker = async <T>(
 };
 
 export abstract class BaseCommand extends Command {
+  protected context!: EmbContext;
+
   public async init(): Promise<void> {
     await super.init();
 
@@ -30,7 +32,7 @@ export abstract class BaseCommand extends Command {
         return new Monorepo(config).init();
       });
 
-      setContext({
+      this.context = setContext({
         docker: new Dockerode(),
         monorepo,
       });

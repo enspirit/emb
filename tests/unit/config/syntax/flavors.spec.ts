@@ -12,41 +12,32 @@ describe('Config syntax - Flavors', () => {
 
   test('allows for flavors', async () => {
     await vConfig({
-      flavors: [
-        {
+      project: { name: 'test1' },
+      flavors: {
+        staging: {
           defaults: {
             docker: {
               tag: 'staging',
             },
-          },
-          name: 'staging',
-        },
-      ],
-      project: 'test1',
-    });
-
-    expect(vConfig).toHaveResolvedWith({
-      components: [],
-      defaults: {
-        docker: {
-          labels: {
-            'emb/project': 'test1',
           },
         },
       },
-      flavors: [
-        {
+    });
+
+    expect(vConfig).toHaveResolvedWith({
+      project: {
+        name: 'test1',
+        rootDir: cwd(),
+      },
+      components: {},
+      flavors: {
+        staging: {
           defaults: {
             docker: {
               tag: 'staging',
             },
           },
-          name: 'staging',
         },
-      ],
-      project: {
-        name: 'test1',
-        rootDir: cwd(),
       },
     });
   });

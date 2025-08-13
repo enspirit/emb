@@ -1,12 +1,12 @@
 import { AbstractPlugin } from './plugin.js';
 
-export * from './ComponentDiscoverPlugin.js';
+export * from './AutoDockerPlugin.js';
 export * from './DotEnvPlugin.js';
 export * from './EmbfileLoaderPlugin.js';
 
 import { Monorepo } from '@/monorepo';
 
-import { ComponentDiscoverPlugin } from './ComponentDiscoverPlugin.js';
+import { AutoDockerPlugin } from './AutoDockerPlugin.js';
 import { DotEnvPlugin } from './DotEnvPlugin.js';
 import { EmbfileLoaderPlugin } from './EmbfileLoaderPlugin.js';
 
@@ -34,6 +34,6 @@ export const getPlugin = (name: string) => {
 };
 
 /** Not sure why we need casting */
-registerPlugin(ComponentDiscoverPlugin as AbstractPluginConstructor);
+registerPlugin(AutoDockerPlugin as AbstractPluginConstructor);
 registerPlugin(DotEnvPlugin as AbstractPluginConstructor);
 registerPlugin(EmbfileLoaderPlugin as AbstractPluginConstructor);

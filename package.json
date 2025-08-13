@@ -13,6 +13,7 @@
     "build": "rimraf dist && npm run build:types && npm run build:ts && npm run copy:proto",
     "copy:proto": "cp -r src/docker/protobuf/*.proto dist/src/docker/protobuf/",
     "build:ts": "tsc -b && tsc-alias",
+    "build:ts:watch": "tsc --watch",
     "build:types": "json2ts src/config/schema.json > src/config/schema.ts",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
@@ -24,7 +25,9 @@
     "prepack": "oclif manifest && oclif readme",
     "test": "npm run build:types && npm run test:unit && npm run test:integration",
     "test:unit": "vitest run tests/unit",
+    "test:unit:watch": "vitest tests/unit",
     "test:integration": "vitest run tests/integration",
+    "test:integration:watch": "vitest tests/integration",
     "test:watch": "vitest",
     "version": "oclif readme && git add README.md"
   },
@@ -43,6 +46,7 @@
     "dockerode": "^4.0.7",
     "dotenv": "^17.2.1",
     "execa": "^9.6.0",
+    "fast-json-patch": "^3.1.1",
     "find-up": "^7.0.0",
     "glob": "^11.0.3",
     "graphlib": "^2.1.8",
@@ -111,6 +115,7 @@
     "topics": {
       "images": {"description": "List, delete, prune docker containers" },
       "containers": {"description": "List, delete, prune docker images" },
+      "resources": {"description": "List, clean, build resources" },
       "components": {"description": "List & build components resources" },
       "config": {"description": "It's all about config" },
       "tasks": {"description": "List and run tasks" }
