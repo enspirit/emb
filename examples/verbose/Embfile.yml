@@ -6,6 +6,7 @@ resources:
       - base:image
     params:
       buildArgs:
+        BASE_IMAGE: emb/base:${env:DOCKER_TAG}
         SOME_ARG: some-value
       target: "development"
 

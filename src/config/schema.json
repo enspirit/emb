@@ -200,9 +200,6 @@
       "additionalProperties": false,
       "required": [],
       "properties": {
-        "defaults": {
-          "$ref": "#/$defs/DefaultsConfig"
-        },
         "patches": {
           "type": "array",
           "items": {

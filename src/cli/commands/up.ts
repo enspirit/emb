@@ -25,6 +25,10 @@ export default class UpCommand extends FlavoredCommand<typeof UpCommand> {
       buildFlags.push('--force');
     }
 
+    if (flags.flavor) {
+      buildFlags.push('--flavor', flags.flavor);
+    }
+
     await this.config.runCommand('resources:build', buildFlags);
 
     await monorepo.run(new ComposeUpOperation(), {

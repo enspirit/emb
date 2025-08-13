@@ -2,7 +2,7 @@ import { getContext } from '@';
 import { Flags } from '@oclif/core';
 import { printTable } from '@oclif/table';
 
-import { BaseCommand, TABLE_DEFAULTS } from '@/cli';
+import { BaseCommand, FlavoredCommand, TABLE_DEFAULTS } from '@/cli';
 import { listImages, shortId } from '@/docker';
 import { timeAgo } from '@/utils';
 
@@ -14,7 +14,7 @@ export type ImageInfo = {
   tag: string;
 };
 
-export default class ImagesIndex extends BaseCommand {
+export default class ImagesIndex extends FlavoredCommand<typeof ImagesIndex> {
   static description = 'List docker images.';
   static enableJsonFlag = true;
   static examples = ['<%= config.bin %> <%= command.id %>'];

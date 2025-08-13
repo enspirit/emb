@@ -54,4 +54,11 @@ tasks:
       docker compose ps
 
 flavors:
-  production: {}
+  production:
+    patches:
+      - op: replace
+        path: /defaults/docker/tag
+        value: production
+      - op: replace
+        path: /env/DOCKER_TAG
+        value: production

@@ -30,13 +30,15 @@ const DockerImageOpFactory: ResourceOperationFactory<
 
   const plugin = new GitPrerequisitePlugin();
   const sources = await plugin.collect(context);
+  const imageName = [monorepo.name, fromConfig.tag || component.name].join('/');
+  const tagName = fromConfig.tag || monorepo.defaults.docker?.tag || 'latest';
 
   const buildParams: OpInput<BuildImageOperation> = {
     context,
     dockerfile: fromConfig.dockerfile || 'Dockerfile',
     src: sources.map((s) => s.path),
     buildArgs: fromConfig.buildArgs || {},
-    tag: [monorepo.name, fromConfig.tag || component.name].join('/'),
+    tag: `${imageName}:${tagName}`,
     labels: {
       ...fromConfig.labels,
       'emb/project': monorepo.name,
