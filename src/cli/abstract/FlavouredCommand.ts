@@ -1,5 +1,6 @@
 import { getContext, setContext } from '@';
 import { Command, Flags, Interfaces } from '@oclif/core';
+import { JsonPatchError } from 'fast-json-patch';
 
 import { BaseCommand } from './BaseCommand.js';
 
@@ -23,6 +24,21 @@ export abstract class FlavoredCommand<
   static enableJsonFlag = true;
   protected args!: Args<T>;
   protected flags!: Flags<T>;
+
+  protected async catch(err: Error & { exitCode?: number }): Promise<void> {
+    if (err instanceof JsonPatchError) {
+      this.log('INVALID', err.operation);
+      this.error('Invalid patch detected while applying flavor', {
+        code: err.name,
+        message: `Path \`${err.operation?.path}\``,
+      });
+      return;
+    }
+
+    // add any custom logic to handle errors from the command
+    // or simply return the parent class error handling
+    return super.catch(err);
+  }
 
   public async init(): Promise<void> {
     await super.init();

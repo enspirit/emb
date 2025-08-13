@@ -64,7 +64,7 @@ export class Component implements ComponentConfig {
     const errors = jsonpatch.validate(patches, original);
 
     if (errors) {
-      throw new Error('Invalid patch(es) detected');
+      throw errors;
     }
 
     const patched = patches.reduce((doc, patch, index) => {

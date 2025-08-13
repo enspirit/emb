@@ -245,7 +245,7 @@ export class Monorepo {
     const errors = jsonpatch.validate(patches || [], original);
 
     if (errors) {
-      throw new Error('Invalid patch(es) detected');
+      throw errors;
     }
 
     const withComponentPatches = this.components.reduce((config, cmp) => {
@@ -257,7 +257,7 @@ export class Monorepo {
       );
 
       if (errors) {
-        throw new Error('Invalid patch(es) detected');
+        throw errors;
       }
 
       config.components[cmp.name] = componentPatches.reduce(
