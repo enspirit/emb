@@ -1,7 +1,5 @@
 import { simpleGit } from 'simple-git';
 
-import { Component } from '@/monorepo';
-
 import {
   FilePrerequisite,
   PrerequisitePlugin,
@@ -11,10 +9,10 @@ import {
 export class GitPrerequisitePlugin
   implements PrerequisitePlugin<PrerequisiteType.file, FilePrerequisite>
 {
-  async collect(component: Component): Promise<Array<FilePrerequisite>> {
-    const repo = simpleGit(component.rootDir);
+  async collect(path: string): Promise<Array<FilePrerequisite>> {
+    const repo = simpleGit(path);
 
-    return (await repo.raw('ls-files', component.rootDir))
+    return (await repo.raw('ls-files', path))
       .split('\n')
       .map((s) => s.trim())
       .filter(Boolean)

@@ -1,4 +1,8 @@
-import { stat } from 'node:fs/promises';
+import type { Stats } from 'node:fs';
+
+import { stat, statfs } from 'node:fs/promises';
+import { join } from 'node:path';
+import pMap from 'p-map';
 
 import { OpInput, OpOutput } from '@/operations/index.js';
 import { FilePrerequisite, GitPrerequisitePlugin } from '@/prerequisites';
@@ -17,12 +21,17 @@ const DockerImageOpFactory: ResourceOperationFactory<
     OpInput<BuildImageOperation>
   >;
 
-  const plugin = new GitPrerequisitePlugin();
-  const sources = await plugin.collect(component);
-
   const context = fromConfig.context
-    ? component.join(fromConfig.context)
-    : component.rootDir;
+    ? fromConfig.context[0] === '/'
+      ? monorepo.join(fromConfig.context)
+      : component.join(fromConfig.context)
+    : monorepo.join(component.rootDir);
+
+  // Ensure the folder exists
+  await statfs(context);
+
+  const plugin = new GitPrerequisitePlugin();
+  const sources = await plugin.collect(context);
 
   const buildParams: OpInput<BuildImageOperation> = {
     context,
@@ -40,15 +49,17 @@ const DockerImageOpFactory: ResourceOperationFactory<
   };
 
   const lastUpdatedInfo = async (sources: Array<FilePrerequisite>) => {
-    const stats = await Promise.all(
-      sources.map(async (s) => {
-        const stats = await stat(component.join(s.path));
+    const stats = await pMap(
+      sources,
+      async (s) => {
+        const stats = await stat(join(context, s.path));
 
         return {
           time: stats.mtime,
           path: s.path,
         };
-      }),
+      },
+      { concurrency: 30 },
     );
 
     if (stats.length === 0) {

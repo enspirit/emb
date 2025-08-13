@@ -28,9 +28,9 @@ export interface PrerequisitePlugin<
   Changes = unknown,
 > {
   /**
-   * Collect/discover prerequisistes for a specific component
+   * Collect/discover prerequisistes for a path (relative to the monorepo root)
    */
-  collect?(component: Component): Promise<Array<P>>;
+  collect?(path: string): Promise<Array<P>>;
 
   /**
    * Returns the list of changes between the last collection and the new

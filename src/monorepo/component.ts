@@ -10,9 +10,9 @@ import {
   Tasks,
   toIdentifedHash,
 } from '@/monorepo';
-import { FilePrerequisite, GitPrerequisitePlugin } from '@/prerequisites';
 
 export class Component implements ComponentConfig {
+  public readonly rootDir: string;
   public readonly tasks: Tasks;
   public readonly resources: Resources;
   public readonly flavors: ComponentFlavors;
@@ -22,6 +22,7 @@ export class Component implements ComponentConfig {
     public readonly config: ComponentConfig,
     protected monorepo: Monorepo,
   ) {
+    this.rootDir = config.rootDir || name;
     this.tasks = toIdentifedHash(config.tasks || {}, this.name);
     this.resources = toIdentifedHash(
       // Due to the schema.json -> typescript conversion weirdness
@@ -29,10 +30,6 @@ export class Component implements ComponentConfig {
       this.name,
     );
     this.flavors = toIdentifedHash(config.flavors || {}, this.name);
-  }
-
-  get rootDir() {
-    return this.monorepo.join(this.name);
   }
 
   flavor(name: string, mustExist = true): ComponentFlavorConfig {
@@ -77,13 +74,7 @@ export class Component implements ComponentConfig {
     return new Component(this.name, patched, this.monorepo);
   }
 
-  async getPrerequisites(): Promise<Array<FilePrerequisite>> {
-    // TODO: move this to config with potential overridzs
-    const plugin = new GitPrerequisitePlugin();
-    return plugin.collect(this);
-  }
-
   join(path: string) {
-    return join(this.rootDir, path);
+    return this.monorepo.join(join(this.rootDir, path));
   }
 }

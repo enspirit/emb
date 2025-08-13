@@ -50,7 +50,10 @@ export class EmbfileLoaderPlugin extends AbstractPlugin<
         const component = await validateEmbfile(embfile);
         const original = config.components[name];
 
-        const newComponent = deepmerge()(original || {}, component);
+        const newComponent = deepmerge()(original || {}, {
+          ...component,
+          rootDir,
+        });
 
         return config.with({
           components: {
