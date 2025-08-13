@@ -37,14 +37,14 @@ const DockerImageOpFactory: ResourceOperationFactory<
     context,
     dockerfile: fromConfig.dockerfile || 'Dockerfile',
     src: sources.map((s) => s.path),
-    buildArgs: fromConfig.buildArgs || {},
-    tag: `${imageName}:${tagName}`,
-    labels: {
+    buildArgs: await monorepo.expand(fromConfig.buildArgs || {}),
+    tag: await monorepo.expand(`${imageName}:${tagName}`),
+    labels: await monorepo.expand({
       ...fromConfig.labels,
       'emb/project': monorepo.name,
       'emb/component': component.name,
       'emb/flavor': monorepo.currentFlavor,
-    },
+    }),
     target: fromConfig.target,
   };
 
@@ -82,7 +82,7 @@ const DockerImageOpFactory: ResourceOperationFactory<
         ? lastUpdated
         : undefined;
     },
-    input: await monorepo.expand(buildParams),
+    input: buildParams,
     operation: new BuildImageOperation(),
   };
 };
