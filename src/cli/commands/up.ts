@@ -20,7 +20,12 @@ export default class UpCommand extends FlavoredCommand<typeof UpCommand> {
     const { flags } = await this.parse(UpCommand);
     const { monorepo } = getContext();
 
-    await this.config.runCommand('resources:build');
+    const buildFlags = [];
+    if (flags.force) {
+      buildFlags.push('--force');
+    }
+
+    await this.config.runCommand('resources:build', buildFlags);
 
     await monorepo.run(new ComposeUpOperation(), {
       forceRecreate: flags.force,

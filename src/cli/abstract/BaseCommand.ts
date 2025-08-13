@@ -1,4 +1,4 @@
-import { EmbContext, setContext } from '@';
+import { EmbContext, getContext, setContext } from '@';
 import { Command, Performance } from '@oclif/core';
 import Dockerode from 'dockerode';
 
@@ -24,6 +24,10 @@ export abstract class BaseCommand extends Command {
 
   public async init(): Promise<void> {
     await super.init();
+
+    if (getContext()) {
+      return;
+    }
 
     try {
       const config = await withMarker('emb:config', 'load', () => loadConfig());

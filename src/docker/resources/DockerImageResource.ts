@@ -34,6 +34,7 @@ const DockerImageOpFactory: ResourceOperationFactory<
       ...fromConfig.labels,
       'emb/project': monorepo.name,
       'emb/component': component.name,
+      'emb/flavor': monorepo.currentFlavor,
     },
     target: fromConfig.target,
   };
