@@ -37,7 +37,10 @@ const DockerImageOpFactory: ResourceOperationFactory<
     context,
     dockerfile: fromConfig.dockerfile || 'Dockerfile',
     src: sources.map((s) => s.path),
-    buildArgs: await monorepo.expand(fromConfig.buildArgs || {}),
+    buildArgs: await monorepo.expand({
+      ...monorepo.defaults.docker?.buildArgs,
+      ...fromConfig.buildArgs,
+    }),
     tag: await monorepo.expand(`${imageName}:${tagName}`),
     labels: await monorepo.expand({
       ...fromConfig.labels,
