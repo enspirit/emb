@@ -15,11 +15,13 @@ describe('Config syntax - Flavors', () => {
       project: { name: 'test1' },
       flavors: {
         staging: {
-          defaults: {
-            docker: {
-              tag: 'staging',
+          patches: [
+            {
+              op: 'replace',
+              path: '/defaults/docker/tag',
+              value: 'staging',
             },
-          },
+          ],
         },
       },
     });
@@ -32,11 +34,13 @@ describe('Config syntax - Flavors', () => {
       components: {},
       flavors: {
         staging: {
-          defaults: {
-            docker: {
-              tag: 'staging',
+          patches: [
+            {
+              op: 'replace',
+              path: '/defaults/docker/tag',
+              value: 'staging',
             },
-          },
+          ],
         },
       },
     });

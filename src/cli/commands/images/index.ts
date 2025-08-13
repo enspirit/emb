@@ -2,7 +2,7 @@ import { getContext } from '@';
 import { Flags } from '@oclif/core';
 import { printTable } from '@oclif/table';
 
-import { BaseCommand, FlavoredCommand, TABLE_DEFAULTS } from '@/cli';
+import { FlavoredCommand, TABLE_DEFAULTS } from '@/cli';
 import { listImages, shortId } from '@/docker';
 import { timeAgo } from '@/utils';
 

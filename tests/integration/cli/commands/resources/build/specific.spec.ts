@@ -16,7 +16,7 @@ describe('CLI - emb resources build <resource>', () => {
     expect(frontend.dryRun).toEqual(true);
 
     expect(frontend.builder.input.dockerfile).toEqual('Dockerfile');
-    expect(frontend.builder.input.tag).toEqual('emb/frontend');
+    expect(frontend.builder.input.tag).toEqual('emb/frontend:latest');
     expect(frontend.builder.input.target).toEqual('development');
   });
 });
