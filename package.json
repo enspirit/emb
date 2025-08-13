@@ -1,7 +1,7 @@
 {
   "name": "@enspirit/emb",
   "type": "module",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "keywords": ["monorepo", "docker", "taskrunner", "ci", "docker compose", "sentinel", "makefile"],
   "author": "Louis Lambeau <louis.lambeau@enspirit.be>",
   "license": "ISC",

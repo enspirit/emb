@@ -14,7 +14,7 @@ $ npm install -g @enspirit/emb
 $ emb COMMAND
 running command...
 $ emb (--version)
-@enspirit/emb/0.1.1 darwin-x64 node-v22.12.0
+@enspirit/emb/0.1.2 darwin-x64 node-v22.12.0
 $ emb --help [COMMAND]
 USAGE
   $ emb COMMAND
@@ -225,10 +225,11 @@ List docker images.
 
 ```
 USAGE
-  $ emb images [--json] [-a]
+  $ emb images [--json] [--flavor <value>] [-a]
 
 FLAGS
-  -a, --all  Show all images. Only images from a final layer (no children) are shown by default.
+  -a, --all             Show all images. Only images from a final layer (no children) are shown by default.
+      --flavor=<value>  Specify the flavor to use.
 
 GLOBAL FLAGS
   --json  Format output as json.
