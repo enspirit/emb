@@ -52,6 +52,10 @@ export const validateEmbfile = async (pathOrObject: string | unknown) => {
     throw new Error('Could not find the JSON schema validator for Embfile');
   }
 
+  if (!component) {
+    return {};
+  }
+
   if (!validate(component)) {
     ajv.errors?.forEach((err) => console.error(err));
     throw new Error(`Your .emb.yml is incorrect`);
