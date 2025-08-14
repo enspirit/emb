@@ -41,7 +41,7 @@ export class AmbiguousReferenceError extends EMBError {
     public ref: string,
     public matches: string[],
   ) {
-    super('AMBIGUOUS_TASK', msg);
+    super('AMBIGUOUS_REF', msg);
   }
 }
 
@@ -69,5 +69,34 @@ export class CircularDependencyError extends EMBError {
     public readonly deps: Array<Array<string>>,
   ) {
     super('CIRCULAR_DEPS', msg);
+  }
+}
+
+export class ShellExitError extends EMBError {
+  constructor(
+    msg: string,
+    public component: string,
+    public exitCode: number,
+    public signal?: NodeJS.Signals | null,
+  ) {
+    super('SHELL_EXIT_ERR', msg);
+  }
+}
+
+export class NoContainerFoundError extends EMBError {
+  constructor(
+    msg: string,
+    public component: string,
+  ) {
+    super('CMP_NO_CONTAINER', msg);
+  }
+}
+
+export class MultipleContainersFoundError extends EMBError {
+  constructor(
+    msg: string,
+    public component: string,
+  ) {
+    super('CMP_NO_CONTAINER', msg);
   }
 }
