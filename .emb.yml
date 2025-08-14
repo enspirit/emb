@@ -61,4 +61,4 @@ flavors:
         value: production
       - op: replace
         path: /env/DOCKER_TAG
-        value: production
+        value: ${env:DOCKER_TAG}-production

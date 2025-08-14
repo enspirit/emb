@@ -1,9 +1,9 @@
 import jsonpatch from 'fast-json-patch';
 import { join } from 'node:path';
 
-import { EMBConfig } from '@/config/types.js';
+import { EMBConfig, JsonPatchOperation } from '@/config/types.js';
 import { IOperation } from '@/operations';
-import { TemplateExpander } from '@/utils';
+import { Expandable, TemplateExpander } from '@/utils';
 
 import { Component } from './component.js';
 import { MonorepoConfig } from './config.js';
@@ -154,12 +154,10 @@ export class Monorepo {
   }
 
   // Helper to expand a record of strings
-  async expand(str: string, expander?: TemplateExpander): Promise<string>;
-  async expand<R extends Record<string, unknown>>(
-    record: R,
-    expander?: TemplateExpander,
-  ): Promise<R>;
-  async expand(strOrRecord: unknown, expander = new TemplateExpander()) {
+  async expand<T extends Expandable>(
+    toExpand: T,
+    expander = new TemplateExpander(),
+  ) {
     const options = {
       default: 'vars',
       sources: {
@@ -168,14 +166,7 @@ export class Monorepo {
       },
     };
 
-    if (typeof strOrRecord === 'string') {
-      return expander.expand(strOrRecord as string, options);
-    }
-
-    return expander.expandRecord(
-      strOrRecord as Record<string, unknown>,
-      options,
-    );
+    return expander.expandRecord(toExpand, options);
   }
 
   private async installStore(store?: EMBStore) {
@@ -242,8 +233,27 @@ export class Monorepo {
     return operation.run(args);
   }
 
+  private async expandPatches(patches: Array<JsonPatchOperation>) {
+    const expanded = Promise.all(
+      patches.map(async (patch) => {
+        if (!('value' in patch)) {
+          return patch;
+        }
+
+        return {
+          ...patch,
+          value: await this.expand(patch.value as Expandable),
+        };
+      }),
+    );
+
+    return expanded;
+  }
+
   async withFlavor(flavorName: string): Promise<Monorepo> {
-    const patches = this._config.flavor(flavorName).patches || [];
+    const patches = await this.expandPatches(
+      this._config.flavor(flavorName).patches || [],
+    );
     const original = this._config.toJSON();
     const errors = jsonpatch.validate(patches || [], original);
 
@@ -251,27 +261,33 @@ export class Monorepo {
       throw errors;
     }
 
-    const withComponentPatches = this.components.reduce((config, cmp) => {
-      const componentPatches = cmp.flavor(flavorName, false)?.patches || [];
+    const withComponentPatches = await this.components.reduce(
+      async (pConfig, cmp) => {
+        const config = await pConfig;
+        const componentPatches = await this.expandPatches(
+          cmp.flavor(flavorName, false)?.patches || [],
+        );
 
-      const errors = jsonpatch.validate(
-        componentPatches || [],
-        config.components[cmp.name],
-      );
+        const errors = jsonpatch.validate(
+          componentPatches || [],
+          config.components[cmp.name],
+        );
 
-      if (errors) {
-        throw errors;
-      }
+        if (errors) {
+          throw errors;
+        }
 
-      config.components[cmp.name] = componentPatches.reduce(
-        (doc, patch, index) => {
-          return jsonpatch.applyReducer(doc, patch, index);
-        },
-        config.components[cmp.name],
-      );
+        config.components[cmp.name] = componentPatches.reduce(
+          (doc, patch, index) => {
+            return jsonpatch.applyReducer(doc, patch, index);
+          },
+          config.components[cmp.name],
+        );
 
-      return config;
-    }, original);
+        return config;
+      },
+      Promise.resolve(original),
+    );
 
     const withGlobalPatches = patches.reduce((doc, patch, index) => {
       return jsonpatch.applyReducer(doc, patch, index);
