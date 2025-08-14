@@ -1,5 +1,5 @@
 import { constants, createReadStream, createWriteStream } from 'node:fs';
-import { access, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { access, mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { dirname, join, normalize } from 'node:path';
 
 import { Monorepo } from '@/monorepo';
@@ -65,6 +65,18 @@ export class EMBStore {
     // Avoid getting out of the store by ensuring nothing goes past ../
     const normalized = normalize(join('/', path));
     await mkdir(this.join(normalized), { recursive: true });
+  }
+
+  async stat(path: string, mustExist = true) {
+    try {
+      return await stat(this.join(path));
+    } catch (error) {
+      if ((error as { code: string }).code === 'ENOENT' && !mustExist) {
+        return;
+      }
+
+      throw error;
+    }
   }
 
   async readFile(path: string, mustExist = true) {

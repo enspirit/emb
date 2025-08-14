@@ -27,6 +27,7 @@ export type BuildResourceMeta = {
   resource?: ResourceInfo;
   // input of the operation (for debugging purposes)
   builder?: ResourceBuilderInfo<unknown, unknown>;
+  builderInput?: unknown;
   // cache data to build into sentinel file
   sentinelData?: unknown;
   cacheHit?: boolean;
@@ -145,9 +146,9 @@ export class BuildResourcesOperation extends AbstractOperation<
         },
         // Actual build
         {
-          title: `Build ${resource.id}`,
+          title: `Checking cache for ${resource.id}`,
           /** Skip the build if the builder knows it can be skipped */
-          task: async (ctx, task) => {
+          task: async (ctx) => {
             if (ctx.builder?.mustBuild) {
               const previousSentinelData =
                 await this.readSentinelFile(resource);
@@ -156,29 +157,37 @@ export class BuildResourcesOperation extends AbstractOperation<
 
               ctx.cacheHit = !ctx.sentinelData;
             }
-
-            if (!ctx.force && (ctx.dryRun || ctx.cacheHit)) {
-              const prefix = ctx.dryRun ? '[dry run]' : '[cache hit]';
+          },
+        },
+        {
+          title: `Build image for ${resource.id}`,
+          async task(ctx, task) {
+            const skip = (prefix: string) => {
               parentTask.title = `${prefix} ${resource.id}`;
               task.skip();
               return parentTask.skip();
+            };
+
+            if (ctx.cacheHit && !ctx.force && !ctx.dryRun) {
+              return skip('[cache hit]');
             }
 
-            return ctx.builder!.operation.run(ctx.builder?.input);
+            const { input, operation } = await ctx.builder!.build();
+            ctx.builderInput = input;
+
+            if (ctx.dryRun) {
+              return skip('[dry run]');
+            }
+
+            return operation.run(ctx.builderInput!);
           },
         },
         {
           // Return build meta data and dump
           // cache data into sentinel file
           task: async (ctx) => {
-            // TODO: clean this
-            if (ctx.builder?.mustBuild) {
-              delete ctx.builder.mustBuild;
-            }
-
-            if (ctx.builder?.operation) {
-              // @ts-expect-error duynno
-              delete ctx.builder.operation;
+            if (ctx.builder) {
+              delete ctx.builder;
             }
 
             //
@@ -219,7 +228,15 @@ export class BuildResourcesOperation extends AbstractOperation<
     resource: ResourceInfo,
   ): Promise<SentinelData<unknown> | undefined> {
     const path = this.sentinelFilePath(resource);
+    const stats = await this.context.monorepo.store.stat(path, false);
+    if (!stats) {
+      return undefined;
+    }
+
     const data = await this.context.monorepo.store.readFile(path, false);
-    return data ? JSON.parse(data) : undefined;
+    return {
+      data,
+      mtime: stats.mtime.getTime(),
+    };
   }
 }

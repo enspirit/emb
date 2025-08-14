@@ -18,8 +18,10 @@ export type SentinelData<T = void> = {
 };
 
 export type ResourceBuilderInfo<I, O, D = unknown> = {
-  input: I;
-  operation: IOperation<I, O>;
+  build(): Promise<{
+    input: I;
+    operation: IOperation<I, O>;
+  }>;
   // The contract is simple
   // The builder has the opportunity to compare whatever it knows
   // with the mtime of the sentinel (= timestamp of last successful build)

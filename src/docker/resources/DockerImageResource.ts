@@ -6,55 +6,99 @@ import { OpInput, OpOutput } from '@/operations/index.js';
 import { FilePrerequisite, GitPrerequisitePlugin } from '@/prerequisites';
 
 import {
+  ResourceBuildContext,
+  ResourceBuilderInfo,
   ResourceFactory,
-  ResourceOperationFactory,
+  SentinelData,
 } from '../../monorepo/resources/ResourceFactory.js';
 import { BuildImageOperation } from '../operations/index.js';
 
-const DockerImageOpFactory: ResourceOperationFactory<
-  OpInput<BuildImageOperation>,
-  OpOutput<BuildImageOperation>
-> = async ({ config, component, monorepo }) => {
-  const fromConfig = (config.params || {}) as Partial<
-    OpInput<BuildImageOperation>
-  >;
+class DockerImageResourceBuilder
+  implements
+    ResourceBuilderInfo<
+      OpInput<BuildImageOperation>,
+      OpOutput<BuildImageOperation>
+    >
+{
+  protected context: string;
 
-  const context = fromConfig.context
-    ? fromConfig.context[0] === '/'
-      ? monorepo.join(fromConfig.context)
-      : component.join(fromConfig.context)
-    : monorepo.join(component.rootDir);
+  constructor(protected buildContext: ResourceBuildContext) {
+    this.context = this.config.context
+      ? this.config.context[0] === '/'
+        ? buildContext.monorepo.join(this.config.context)
+        : buildContext.component.join(this.config.context)
+      : buildContext.monorepo.join(buildContext.component.rootDir);
+  }
 
-  // Ensure the folder exists
-  await statfs(context);
+  get monorepo() {
+    return this.buildContext.monorepo;
+  }
 
-  const imageName = [monorepo.name, fromConfig.tag || component.name].join('/');
-  const tagName = fromConfig.tag || monorepo.defaults.docker?.tag || 'latest';
-  const sources = await readdir(context, { recursive: true });
+  get config() {
+    return (this.buildContext.config.params || {}) as Partial<
+      OpInput<BuildImageOperation>
+    >;
+  }
 
-  const buildParams: OpInput<BuildImageOperation> = {
-    context,
-    dockerfile: fromConfig.dockerfile || 'Dockerfile',
-    src: sources,
-    buildArgs: await monorepo.expand({
-      ...monorepo.defaults.docker?.buildArgs,
-      ...fromConfig.buildArgs,
-    }),
-    tag: await monorepo.expand(`${imageName}:${tagName}`),
-    labels: await monorepo.expand({
-      ...fromConfig.labels,
-      'emb/project': monorepo.name,
-      'emb/component': component.name,
-      'emb/flavor': monorepo.currentFlavor,
-    }),
-    target: fromConfig.target,
-  };
+  get component() {
+    return this.buildContext.component;
+  }
 
-  const lastUpdatedInfo = async (sources: Array<FilePrerequisite>) => {
+  async build() {
+    // Ensure the folder exists
+    await statfs(this.context);
+
+    const imageName = [
+      this.monorepo.name,
+      this.config.tag || this.component.name,
+    ].join('/');
+    const tagName =
+      this.config.tag || this.monorepo.defaults.docker?.tag || 'latest';
+    const sources = await readdir(this.context, { recursive: true });
+
+    const buildParams: OpInput<BuildImageOperation> = {
+      context: this.context,
+      dockerfile: this.config.dockerfile || 'Dockerfile',
+      src: sources,
+      buildArgs: await this.monorepo.expand({
+        ...this.monorepo.defaults.docker?.buildArgs,
+        ...this.config.buildArgs,
+      }),
+      tag: await this.monorepo.expand(`${imageName}:${tagName}`),
+      labels: await this.monorepo.expand({
+        ...this.config.labels,
+        'emb/project': this.monorepo.name,
+        'emb/component': this.component.name,
+        'emb/flavor': this.monorepo.currentFlavor,
+      }),
+      target: this.config.target,
+    };
+
+    return {
+      input: buildParams,
+      operation: new BuildImageOperation(),
+    };
+  }
+
+  async mustBuild(sentinel: SentinelData<undefined | unknown> | undefined) {
+    const plugin = new GitPrerequisitePlugin();
+    const sources = await plugin.collect(this.context);
+    const lastUpdated = await this.lastUpdatedInfo(sources);
+
+    if (!sentinel) {
+      return lastUpdated;
+    }
+
+    return lastUpdated && lastUpdated.time.getTime() > sentinel.mtime
+      ? lastUpdated
+      : undefined;
+  }
+
+  private async lastUpdatedInfo(sources: Array<FilePrerequisite>) {
     const stats = await pMap(
       sources,
       async (s) => {
-        const stats = await stat(join(context, s.path));
+        const stats = await stat(join(this.context, s.path));
 
         return {
           time: stats.mtime,
@@ -71,25 +115,11 @@ const DockerImageOpFactory: ResourceOperationFactory<
     return stats.reduce((last, entry) => {
       return last.time > entry.time ? last : entry;
     }, stats[0]);
-  };
-
-  return {
-    async mustBuild(sentinel) {
-      const plugin = new GitPrerequisitePlugin();
-      const sources = await plugin.collect(context);
-      const lastUpdated = await lastUpdatedInfo(sources);
-      if (!sentinel) {
-        return lastUpdated;
-      }
-
-      return lastUpdated && lastUpdated.time.getTime() > sentinel.mtime
-        ? lastUpdated
-        : undefined;
-    },
-    input: buildParams,
-    operation: new BuildImageOperation(),
-  };
-};
+  }
+}
 
 // Bring better abstraction and register as part of the plugin initialization
-ResourceFactory.register('docker/image', DockerImageOpFactory);
+ResourceFactory.register(
+  'docker/image',
+  async (context) => new DockerImageResourceBuilder(context),
+);
