@@ -75,7 +75,7 @@ export class CircularDependencyError extends EMBError {
 export class ShellExitError extends EMBError {
   constructor(
     msg: string,
-    public component: string,
+    public service: string,
     public exitCode: number,
     public signal?: NodeJS.Signals | null,
   ) {

@@ -1,59 +1,32 @@
-import {
-  getContext,
-  ListContainersOperation,
-  MultipleContainersFoundError,
-  NoContainerFoundError,
-  ShellExitError,
-} from '@';
 import { spawn } from 'node:child_process';
 import * as z from 'zod';
 
+import { ShellExitError } from '@/errors.js';
 import { AbstractOperation } from '@/operations';
 
 const schema = z.object({
   shell: z.string().default('bash').optional(),
-  component: z
+  service: z
     .string()
-    .describe('The name of the component on which to run a shell'),
+    .describe('The name of the compose service to exec a shell'),
 });
 
-export class ExecShellOperation extends AbstractOperation<typeof schema, void> {
+export class ComposeExecShellOperation extends AbstractOperation<
+  typeof schema,
+  void
+> {
   constructor() {
     super(schema);
   }
 
   protected async _run(input: z.input<typeof schema>): Promise<void> {
-    const { monorepo } = getContext();
-
-    const containers = await monorepo.run(new ListContainersOperation(), {
-      filters: {
-        label: [
-          `emb/project=${monorepo.name}`,
-          `emb/component=${input.component}`,
-          `emb/flavor=${monorepo.currentFlavor}`,
-        ],
-      },
-    });
-
-    if (containers.length === 0) {
-      throw new NoContainerFoundError(
-        `No container found for component \`${input.component}\``,
-        input.component,
-      );
-    }
-
-    if (containers.length > 1) {
-      throw new MultipleContainersFoundError(
-        `More than one container found for component \`${input.component}\``,
-        input.component,
-      );
-    }
-
+    const { monorepo } = this.context;
     const cmd = 'docker';
-    const args = ['exec', '-it', containers[0].Id, input?.shell || 'bash'];
+    const args = ['compose', 'exec', input.service, input.shell || 'bash'];
 
     const child = spawn(cmd, args, {
       stdio: 'inherit',
+      cwd: monorepo.rootDir,
       env: {
         ...process.env,
         DOCKER_CLI_HINTS: 'false',
@@ -86,7 +59,7 @@ export class ExecShellOperation extends AbstractOperation<typeof schema, void> {
           reject(
             new ShellExitError(
               `The shell exited unexpectedly. ${code}`,
-              input.component,
+              input.service,
               code,
               signal,
             ),

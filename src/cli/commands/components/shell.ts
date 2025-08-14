@@ -1,7 +1,7 @@
 import { Args, Flags } from '@oclif/core';
 
 import { FlavoredCommand, getContext } from '@/cli';
-import { ExecShellOperation } from '@/docker/index.js';
+import { ComposeExecShellOperation } from '@/docker/index.js';
 import { ShellExitError } from '@/errors.js';
 
 export default class ComponentsLogs extends FlavoredCommand<
@@ -32,8 +32,8 @@ export default class ComponentsLogs extends FlavoredCommand<
     const { monorepo } = await getContext();
 
     try {
-      await monorepo.run(new ExecShellOperation(), {
-        component: args.component,
+      await monorepo.run(new ComposeExecShellOperation(), {
+        service: args.component,
         shell: flags.shell,
       });
     } catch (error) {
