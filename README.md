@@ -14,7 +14,7 @@ $ npm install -g @enspirit/emb
 $ emb COMMAND
 running command...
 $ emb (--version)
-@enspirit/emb/0.1.2 darwin-x64 node-v22.12.0
+@enspirit/emb/0.1.3 darwin-x64 node-v22.12.0
 $ emb --help [COMMAND]
 USAGE
   $ emb COMMAND
@@ -26,6 +26,7 @@ USAGE
 * [`emb autocomplete [SHELL]`](#emb-autocomplete-shell)
 * [`emb clean`](#emb-clean)
 * [`emb components`](#emb-components)
+* [`emb components logs COMPONENT`](#emb-components-logs-component)
 * [`emb config print`](#emb-config-print)
 * [`emb containers`](#emb-containers)
 * [`emb containers prune`](#emb-containers-prune)
@@ -34,6 +35,7 @@ USAGE
 * [`emb images`](#emb-images)
 * [`emb images delete`](#emb-images-delete)
 * [`emb images prune`](#emb-images-prune)
+* [`emb logs COMPONENT`](#emb-logs-component)
 * [`emb ps`](#emb-ps)
 * [`emb resources`](#emb-resources)
 * [`emb resources build [COMPONENT]`](#emb-resources-build-component)
@@ -113,6 +115,31 @@ DESCRIPTION
 
 EXAMPLES
   $ emb components
+```
+
+## `emb components logs COMPONENT`
+
+Get components logs.
+
+```
+USAGE
+  $ emb components logs COMPONENT [--flavor <value>] [-f]
+
+ARGUMENTS
+  COMPONENT  The component you want to see the logs of
+
+FLAGS
+  -f, --follow          Follow log output
+      --flavor=<value>  Specify the flavor to use.
+
+DESCRIPTION
+  Get components logs.
+
+ALIASES
+  $ emb logs
+
+EXAMPLES
+  $ emb components logs
 ```
 
 ## `emb config print`
@@ -281,6 +308,31 @@ DESCRIPTION
 
 EXAMPLES
   $ emb images prune
+```
+
+## `emb logs COMPONENT`
+
+Get components logs.
+
+```
+USAGE
+  $ emb logs COMPONENT [--flavor <value>] [-f]
+
+ARGUMENTS
+  COMPONENT  The component you want to see the logs of
+
+FLAGS
+  -f, --follow          Follow log output
+      --flavor=<value>  Specify the flavor to use.
+
+DESCRIPTION
+  Get components logs.
+
+ALIASES
+  $ emb logs
+
+EXAMPLES
+  $ emb logs
 ```
 
 ## `emb ps`
