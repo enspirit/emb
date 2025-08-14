@@ -2,7 +2,15 @@
   "name": "@enspirit/emb",
   "type": "module",
   "version": "0.3.2",
-  "keywords": ["monorepo", "docker", "taskrunner", "ci", "docker compose", "sentinel", "makefile"],
+  "keywords": [
+    "monorepo",
+    "docker",
+    "taskrunner",
+    "ci",
+    "docker compose",
+    "sentinel",
+    "makefile"
+  ],
   "author": "Louis Lambeau <louis.lambeau@enspirit.be>",
   "license": "ISC",
   "description": "A replacement for our Makefile-for-monorepos",
@@ -114,12 +122,25 @@
     ],
     "topicSeparator": " ",
     "topics": {
-      "images": {"description": "List, delete, prune docker containers" },
-      "containers": {"description": "List, delete, prune docker images" },
-      "resources": {"description": "List, clean, build resources" },
-      "components": {"description": "List & build components resources" },
-      "config": {"description": "It's all about config" },
-      "tasks": {"description": "List and run tasks" }
+      "images": {
+        "description": "List, delete, prune docker containers"
+      },
+      "containers": {
+        "description": "List, delete, prune docker images"
+      },
+      "resources": {
+        "description": "List, clean, build resources"
+      },
+      "components": {
+        "description": "List & build components resources"
+      },
+      "config": {
+        "description": "It's all about config"
+      },
+      "tasks": {
+        "description": "List and run tasks"
+      }
     }
-  }
+  },
+  "packageManager": "pnpm@9.11.0+sha512.0a203ffaed5a3f63242cd064c8fb5892366c103e328079318f78062f24ea8c9d50bc6a47aa3567cabefd824d170e78fa2745ed1f16b132e16436146b7688f19b"
 }

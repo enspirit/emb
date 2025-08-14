@@ -34,8 +34,8 @@ export class ComposeUpOperation extends AbstractOperation<typeof schema, void> {
 
     manager.add([
       {
-        async task() {
-          return monorepo.run(new ExecuteLocalCommandOperation(), {
+        async task(ctx, task) {
+          return monorepo.run(new ExecuteLocalCommandOperation(task.stdout()), {
             script: command.join(' '),
             workingDir: monorepo.rootDir,
           });

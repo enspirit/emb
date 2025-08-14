@@ -1,6 +1,6 @@
 import { getContext } from '@';
 import { ListrTask } from 'listr2';
-import { Writable } from 'node:stream';
+import { PassThrough, Writable } from 'node:stream';
 
 import { ComposeExecOperation } from '@/docker';
 import {
@@ -65,16 +65,20 @@ export class RunTasksOperation
               );
             }
 
+            const tee = new PassThrough();
+            const logFile = await monorepo.store.createWriteStream(
+              `logs/tasks/${task.id}.logs`,
+            );
+            tee.pipe(listrTask.stdout());
+            tee.pipe(logFile);
+
             switch (executor) {
               case ExecutorType.container: {
-                return this.runDocker(
-                  task as TaskWithScript,
-                  listrTask.stdout(),
-                );
+                return this.runDocker(task as TaskWithScript, tee);
               }
 
               case ExecutorType.local: {
-                return this.runLocal(task as TaskWithScript);
+                return this.runLocal(task as TaskWithScript, tee);
               }
 
               default: {
@@ -103,14 +107,14 @@ export class RunTasksOperation
     });
   }
 
-  protected async runLocal(task: TaskWithScript) {
+  protected async runLocal(task: TaskWithScript, out: Writable) {
     const { monorepo } = getContext();
 
     const cwd = task.component
       ? monorepo.join(monorepo.component(task.component).rootDir)
       : monorepo.rootDir;
 
-    return monorepo.run(new ExecuteLocalCommandOperation(), {
+    return monorepo.run(new ExecuteLocalCommandOperation(out), {
       script: task.script,
       workingDir: cwd,
     });

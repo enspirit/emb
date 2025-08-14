@@ -1,5 +1,5 @@
 import { getContext } from '@';
-import { Readable } from 'node:stream';
+import { Readable, Writable } from 'node:stream';
 import * as z from 'zod';
 
 import { ExecuteLocalCommandOperation } from '@/monorepo';
@@ -14,7 +14,7 @@ export class ComposeDownOperation extends AbstractOperation<
   typeof schema,
   Readable
 > {
-  constructor() {
+  constructor(protected out: Writable) {
     super(schema);
   }
 
@@ -23,7 +23,7 @@ export class ComposeDownOperation extends AbstractOperation<
 
     const command = ['docker', 'compose', 'down'];
 
-    return monorepo.run(new ExecuteLocalCommandOperation(), {
+    return monorepo.run(new ExecuteLocalCommandOperation(this.out), {
       script: command.join(' '),
       workingDir: monorepo.rootDir,
     });

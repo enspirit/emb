@@ -1,5 +1,5 @@
 import { execa } from 'execa';
-import { Readable } from 'node:stream';
+import { Readable, Writable } from 'node:stream';
 import * as z from 'zod';
 
 import { AbstractOperation } from '@/operations';
@@ -25,7 +25,7 @@ export class ExecuteLocalCommandOperation extends AbstractOperation<
   typeof schema,
   Readable
 > {
-  constructor() {
+  constructor(protected out: Writable) {
     super(schema);
   }
 
@@ -35,6 +35,8 @@ export class ExecuteLocalCommandOperation extends AbstractOperation<
       cwd: input.workingDir,
       shell: true,
     });
+
+    process.all.pipe(this.out);
 
     return process.all;
   }

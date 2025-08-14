@@ -15,8 +15,8 @@ export default class DownCommand extends FlavoredCommand<typeof DownCommand> {
     const runner = new Listr([
       {
         rendererOptions: { persistentOutput: true },
-        async task() {
-          return monorepo.run(new ComposeDownOperation(), {});
+        async task(ctx, task) {
+          return monorepo.run(new ComposeDownOperation(task.stdout()), {});
         },
         title: 'Stopping project',
       },
