@@ -14,7 +14,7 @@ $ npm install -g @enspirit/emb
 $ emb COMMAND
 running command...
 $ emb (--version)
-@enspirit/emb/0.1.3 darwin-x64 node-v22.12.0
+@enspirit/emb/0.2.0 darwin-x64 node-v22.12.0
 $ emb --help [COMMAND]
 USAGE
   $ emb COMMAND
@@ -27,6 +27,7 @@ USAGE
 * [`emb clean`](#emb-clean)
 * [`emb components`](#emb-components)
 * [`emb components logs COMPONENT`](#emb-components-logs-component)
+* [`emb components shell COMPONENT`](#emb-components-shell-component)
 * [`emb config print`](#emb-config-print)
 * [`emb containers`](#emb-containers)
 * [`emb containers prune`](#emb-containers-prune)
@@ -39,6 +40,7 @@ USAGE
 * [`emb ps`](#emb-ps)
 * [`emb resources`](#emb-resources)
 * [`emb resources build [COMPONENT]`](#emb-resources-build-component)
+* [`emb shell COMPONENT`](#emb-shell-component)
 * [`emb tasks`](#emb-tasks)
 * [`emb tasks run TASK`](#emb-tasks-run-task)
 * [`emb up`](#emb-up)
@@ -140,6 +142,31 @@ ALIASES
 
 EXAMPLES
   $ emb components logs
+```
+
+## `emb components shell COMPONENT`
+
+Get a shell on a running component.
+
+```
+USAGE
+  $ emb components shell COMPONENT [--flavor <value>] [-s <value>]
+
+ARGUMENTS
+  COMPONENT  The component you want to get a shell on
+
+FLAGS
+  -s, --shell=<value>   [default: bash] The shell to run
+      --flavor=<value>  Specify the flavor to use.
+
+DESCRIPTION
+  Get a shell on a running component.
+
+ALIASES
+  $ emb shell
+
+EXAMPLES
+  $ emb components shell
 ```
 
 ## `emb config print`
@@ -404,6 +431,31 @@ DESCRIPTION
 
 EXAMPLES
   $ emb resources build build --flavor development
+```
+
+## `emb shell COMPONENT`
+
+Get a shell on a running component.
+
+```
+USAGE
+  $ emb shell COMPONENT [--flavor <value>] [-s <value>]
+
+ARGUMENTS
+  COMPONENT  The component you want to get a shell on
+
+FLAGS
+  -s, --shell=<value>   [default: bash] The shell to run
+      --flavor=<value>  Specify the flavor to use.
+
+DESCRIPTION
+  Get a shell on a running component.
+
+ALIASES
+  $ emb shell
+
+EXAMPLES
+  $ emb shell
 ```
 
 ## `emb tasks`
