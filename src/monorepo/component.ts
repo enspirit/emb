@@ -12,7 +12,7 @@ import {
 } from '@/monorepo';
 
 export class Component implements ComponentConfig {
-  public readonly rootDir: string;
+  public readonly _rootDir?: string;
   public readonly tasks: Tasks;
   public readonly resources: Resources;
   public readonly flavors: ComponentFlavors;
@@ -22,7 +22,7 @@ export class Component implements ComponentConfig {
     public readonly config: ComponentConfig,
     protected monorepo: Monorepo,
   ) {
-    this.rootDir = config.rootDir || name;
+    this._rootDir = config.rootDir;
     this.tasks = toIdentifedHash(config.tasks || {}, this.name);
     this.resources = toIdentifedHash(
       // Due to the schema.json -> typescript conversion weirdness
@@ -30,6 +30,10 @@ export class Component implements ComponentConfig {
       this.name,
     );
     this.flavors = toIdentifedHash(config.flavors || {}, this.name);
+  }
+
+  get rootDir() {
+    return this._rootDir || this.name;
   }
 
   flavor(name: string, mustExist = true): ComponentFlavorConfig {
