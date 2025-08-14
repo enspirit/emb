@@ -1,4 +1,4 @@
-import { stat, statfs } from 'node:fs/promises';
+import { readdir, stat, statfs } from 'node:fs/promises';
 import { join } from 'node:path';
 import pMap from 'p-map';
 
@@ -28,15 +28,14 @@ const DockerImageOpFactory: ResourceOperationFactory<
   // Ensure the folder exists
   await statfs(context);
 
-  const plugin = new GitPrerequisitePlugin();
-  const sources = await plugin.collect(context);
   const imageName = [monorepo.name, fromConfig.tag || component.name].join('/');
   const tagName = fromConfig.tag || monorepo.defaults.docker?.tag || 'latest';
+  const sources = await readdir(context, { recursive: true });
 
   const buildParams: OpInput<BuildImageOperation> = {
     context,
     dockerfile: fromConfig.dockerfile || 'Dockerfile',
-    src: sources.map((s) => s.path),
+    src: sources,
     buildArgs: await monorepo.expand({
       ...monorepo.defaults.docker?.buildArgs,
       ...fromConfig.buildArgs,
@@ -76,6 +75,8 @@ const DockerImageOpFactory: ResourceOperationFactory<
 
   return {
     async mustBuild(sentinel) {
+      const plugin = new GitPrerequisitePlugin();
+      const sources = await plugin.collect(context);
       const lastUpdated = await lastUpdatedInfo(sources);
       if (!sentinel) {
         return lastUpdated;
