@@ -16,21 +16,36 @@ export default class TasksIndex extends BaseCommand {
       monorepo: { tasks },
     } = await getContext();
 
+    const sortedTasks = tasks.toSorted((a, b) => {
+      const ac = a.component;
+      const bc = b.component;
+
+      // Put null/undefined first
+      if (!ac && bc) {
+        return -1;
+      }
+
+      if (Boolean(ac) && !bc) {
+        return 1;
+      }
+
+      // Compare components (if both not null)
+      if (Boolean(ac) && Boolean(bc)) {
+        const cmp = ac.localeCompare(bc);
+        if (cmp !== 0) {
+          return cmp;
+        }
+      }
+
+      // Compare names as fallback
+      return a.name.localeCompare(b.name);
+    });
+
     if (!flags.json) {
       printTable({
         ...TABLE_DEFAULTS,
         columns: ['name', 'component', 'description', 'id'],
-        data: tasks.toSorted((a, b) => {
-          if (a.component === b.component) {
-            return a.name < b.name ? -1 : 1;
-          }
-
-          if (!a.component && b.component) {
-            return -1;
-          }
-
-          return 0;
-        }),
+        data: sortedTasks,
       });
     }
 
