@@ -100,3 +100,13 @@ export class MultipleContainersFoundError extends EMBError {
     super('CMP_NO_CONTAINER', msg);
   }
 }
+
+export class ComposeExecError extends EMBError {
+  constructor(
+    msg: string,
+    public exitCode: number,
+    public signal?: NodeJS.Signals | null,
+  ) {
+    super('COMPOSE_EXEC_ERR', msg);
+  }
+}

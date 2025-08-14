@@ -2,7 +2,7 @@ import { getContext } from '@';
 import { ListrTask } from 'listr2';
 import { Writable } from 'node:stream';
 
-import { ContainerExecOperation } from '@/docker';
+import { ComposeExecOperation } from '@/docker';
 import {
   EMBCollection,
   findRunOrder,
@@ -11,10 +11,7 @@ import {
 } from '@/monorepo';
 import { IOperation } from '@/operations';
 
-import {
-  ExecuteLocalCommandOperation,
-  GetComponentContainerOperation,
-} from '../index.js';
+import { ExecuteLocalCommandOperation } from '../index.js';
 
 export enum ExecutorType {
   container = 'container',
@@ -98,16 +95,11 @@ export class RunTasksOperation
   protected async runDocker(task: TaskWithScript, out?: Writable) {
     const { monorepo } = getContext();
 
-    const containerInfo = await monorepo.run(
-      new GetComponentContainerOperation(),
-      task.component,
-    );
-
-    return monorepo.run(new ContainerExecOperation(out), {
+    return monorepo.run(new ComposeExecOperation(out), {
       attachStderr: true,
       attachStdout: true,
-      container: containerInfo.Id,
-      script: task.script,
+      service: task.component,
+      command: task.script,
     });
   }
 
@@ -115,7 +107,7 @@ export class RunTasksOperation
     const { monorepo } = getContext();
 
     const cwd = task.component
-      ? monorepo.component(task.component).rootDir
+      ? monorepo.join(monorepo.component(task.component).rootDir)
       : monorepo.rootDir;
 
     return monorepo.run(new ExecuteLocalCommandOperation(), {
