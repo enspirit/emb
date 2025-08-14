@@ -4,13 +4,13 @@ import deepMerge from '@fastify/deepmerge';
 import {
   ComponentConfig,
   DefaultsConfig,
+  EMBConfig,
   PluginConfig,
   ProjectConfig,
   ProjectFlavorConfig,
-  UserConfig,
 } from '@/config';
 
-export class MonorepoConfig implements UserConfig {
+export class MonorepoConfig implements EMBConfig {
   project: ProjectConfig;
   defaults: DefaultsConfig;
   env: Record<string, string>;
@@ -20,7 +20,7 @@ export class MonorepoConfig implements UserConfig {
   tasks: Tasks;
   components: Record<string, ComponentConfig>;
 
-  constructor(config: UserConfig) {
+  constructor(config: EMBConfig) {
     this.defaults = config.defaults || {};
     this.project = config.project;
     this.vars = config.vars || {};
@@ -51,7 +51,7 @@ export class MonorepoConfig implements UserConfig {
     return flavor;
   }
 
-  toJSON(): Required<UserConfig> {
+  toJSON(): Required<EMBConfig> {
     return structuredClone({
       components: this.components,
       defaults: this.defaults,
@@ -64,10 +64,10 @@ export class MonorepoConfig implements UserConfig {
     });
   }
 
-  with(overrides: Partial<UserConfig>): MonorepoConfig {
+  with(overrides: Partial<EMBConfig>): MonorepoConfig {
     const oldConfig = this.toJSON();
     const newConfig = deepMerge()(oldConfig, overrides);
 
-    return new MonorepoConfig(newConfig as UserConfig);
+    return new MonorepoConfig(newConfig as EMBConfig);
   }
 }

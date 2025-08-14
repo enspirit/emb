@@ -11,6 +11,6 @@ beforeEach(async () => {
 
   setContext({
     docker: vi.mockObject(new Dockerode()),
-    monorepo: new Monorepo(config),
+    monorepo: new Monorepo(config, '/tmp/monorepo'),
   });
 });

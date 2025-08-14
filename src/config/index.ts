@@ -1,35 +1,20 @@
 import { findUp } from 'find-up';
 import { dirname } from 'node:path';
 
-import { toUserConfig } from './convert.js';
-import { UserConfig } from './types.js';
 import { validateUserConfig } from './validation.js';
 
-export * from './convert.js';
 export * from './types.js';
 export * from './validation.js';
 
-let config: UserConfig;
-export const loadConfig = async (force = false) => {
-  if (config && !force) {
-    return config;
-  }
-
+export const loadConfig = async () => {
   const path = await findUp('.emb.yml');
 
   if (!path) {
     throw new Error('Could not find EMB config anywhere');
   }
 
-  config = toUserConfig(await validateUserConfig(path), dirname(path));
+  const rootDir = dirname(path);
+  const config = await validateUserConfig(path);
 
-  return config;
-};
-
-export const getConfig = () => {
-  if (!config) {
-    throw new Error(`Config not loaded, please use 'loadConfig' first`);
-  }
-
-  return config;
+  return { rootDir, config };
 };

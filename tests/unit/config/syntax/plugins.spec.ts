@@ -1,4 +1,3 @@
-import { cwd } from 'node:process';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { validateUserConfig } from '@/config';
@@ -24,10 +23,7 @@ describe('Config syntax - Plugins', () => {
     expect(vConfig).toHaveResolvedWith({
       project: {
         name: 'test1',
-        rootDir: cwd(),
       },
-      components: {},
-      flavors: {},
       plugins: [
         {
           config: ['.env', '.env.commons'],

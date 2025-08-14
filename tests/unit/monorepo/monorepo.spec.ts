@@ -10,7 +10,7 @@ describe('Config - MonorepoConfig', () => {
 
   beforeEach(async () => {
     config = new MonorepoConfig(CompleteExample);
-    repo = new Monorepo(config);
+    repo = new Monorepo(config, '/tmp');
 
     await repo.init();
   });
@@ -49,7 +49,7 @@ describe('Config - MonorepoConfig', () => {
   describe('process.env', () => {
     describe('after repo initialization', () => {
       test('exposes the expanded env vars', async () => {
-        const repo = new Monorepo(config);
+        const repo = new Monorepo(config, '/tmp/monorepo');
         await repo.init();
 
         // The original config has a template
@@ -70,7 +70,9 @@ describe('Config - MonorepoConfig', () => {
 
   describe('.rootDir', () => {
     test('exposes the proper value', () => {
-      expect(repo.rootDir).to.equal('/tmp/simple');
+      // See how the complete-example.ts config points to
+      // a subfolder relative to the config file
+      expect(repo.rootDir).to.equal('/tmp/subfolder');
     });
   });
 
@@ -92,7 +94,9 @@ describe('Config - MonorepoConfig', () => {
 
       // Untouched
       expect(production.name).to.equal(CompleteExample.project.name);
-      expect(production.rootDir).to.equal(CompleteExample.project.rootDir);
+      expect(production.rootDir).to.equal(
+        '/tmp/' + CompleteExample.project.rootDir,
+      );
 
       // Override per component
       const originalBuild = config.component('frontend').resources?.image

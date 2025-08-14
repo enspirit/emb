@@ -37,7 +37,7 @@ export class AutoDockerPlugin extends AbstractPlugin<AutoDockerPluginOptions> {
       this.config.glob || AutoDockerPluginDefaultOptions.glob,
       {
         ...this.config,
-        cwd: config.project.rootDir,
+        cwd: this.monorepo.rootDir,
       },
     );
 

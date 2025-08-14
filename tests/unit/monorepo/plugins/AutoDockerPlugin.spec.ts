@@ -33,19 +33,21 @@ const repoWithPlugin = async (
   rootDir: string,
   config: AutoDockerPluginOptions,
 ): Promise<Monorepo> => {
-  const repo = new Monorepo({
-    project: {
-      name: 'test',
-      rootDir,
-    },
-    plugins: [
-      {
-        name: AutoDockerPlugin.name,
-        config,
+  const repo = new Monorepo(
+    {
+      project: {
+        name: 'test',
       },
-    ],
-    components: {},
-  });
+      plugins: [
+        {
+          name: AutoDockerPlugin.name,
+          config,
+        },
+      ],
+      components: {},
+    },
+    rootDir,
+  );
 
   await repo.init();
 

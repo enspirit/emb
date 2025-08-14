@@ -1,7 +1,7 @@
 import jsonpatch from 'fast-json-patch';
 import { join } from 'node:path';
 
-import { UserConfig } from '@/config/types.js';
+import { EMBConfig } from '@/config/types.js';
 import { IOperation } from '@/operations';
 import { TemplateExpander } from '@/utils';
 
@@ -17,13 +17,14 @@ export class Monorepo {
   private initialized = false;
 
   constructor(
-    config: UserConfig,
+    config: EMBConfig,
+    private _rootDir: string,
     private defaultFlavor: string = 'default',
   ) {
     this._config = new MonorepoConfig(config);
   }
 
-  get config(): UserConfig {
+  get config(): EMBConfig {
     return this._config.toJSON();
   }
 
@@ -40,7 +41,9 @@ export class Monorepo {
   }
 
   get rootDir() {
-    return this._config.project.rootDir;
+    return this._config.project.rootDir
+      ? join(this._rootDir, this._config.project.rootDir)
+      : this._rootDir;
   }
 
   get currentFlavor() {
@@ -228,7 +231,7 @@ export class Monorepo {
 
   // Helper to build relative path to the root dir
   join(...paths: string[]) {
-    return join(this._config.project.rootDir, ...paths);
+    return join(this.rootDir, ...paths);
   }
 
   run<I, O>(operation: IOperation<I, O>, args: I): Promise<O>;
@@ -276,7 +279,7 @@ export class Monorepo {
 
     const newConfig = new MonorepoConfig(withGlobalPatches);
 
-    const repo = new Monorepo(newConfig, flavorName);
+    const repo = new Monorepo(newConfig, this._rootDir, flavorName);
     await repo.installStore();
     await repo.installEnv();
     return repo;

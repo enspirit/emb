@@ -30,10 +30,12 @@ export abstract class BaseCommand extends Command {
     }
 
     try {
-      const config = await withMarker('emb:config', 'load', () => loadConfig());
+      const { rootDir, config } = await withMarker('emb:config', 'load', () =>
+        loadConfig(),
+      );
 
       const monorepo = await withMarker('emb:monorepo', 'init', () => {
-        return new Monorepo(config).init();
+        return new Monorepo(config, rootDir).init();
       });
 
       this.context = setContext({

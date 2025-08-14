@@ -1,4 +1,3 @@
-import { cwd } from 'node:process';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { validateUserConfig } from '@/config';
@@ -29,9 +28,7 @@ describe('Config syntax - Flavors', () => {
     expect(vConfig).toHaveResolvedWith({
       project: {
         name: 'test1',
-        rootDir: cwd(),
       },
-      components: {},
       flavors: {
         staging: {
           patches: [

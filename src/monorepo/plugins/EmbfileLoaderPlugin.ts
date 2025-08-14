@@ -38,7 +38,7 @@ export class EmbfileLoaderPlugin extends AbstractPlugin<
   async extendConfig(config: MonorepoConfig): Promise<MonorepoConfig> {
     const files = await glob(this.config.glob, {
       ...this.config,
-      cwd: config.project.rootDir,
+      cwd: this.monorepo.rootDir,
     });
 
     const newConfig = await files.reduce<Promise<MonorepoConfig>>(
@@ -46,7 +46,7 @@ export class EmbfileLoaderPlugin extends AbstractPlugin<
         const config = await pConfig;
         const rootDir = dirname(path);
         const name = basename(rootDir);
-        const embfile = await join(config.project.rootDir, path);
+        const embfile = await join(this.monorepo.rootDir, path);
         const component = await validateEmbfile(embfile);
         const original = config.components[name];
 

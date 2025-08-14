@@ -2,16 +2,15 @@ import { Ajv } from 'ajv';
 import { readFile, stat } from 'node:fs/promises';
 import yaml from 'yaml';
 
-import { toUserConfig } from './convert.js';
 import configSchema from './schema.json' with { type: 'json' };
-import { ComponentConfig, EMBConfig, UserConfig } from './types.js';
+import { ComponentConfig, EMBConfig } from './types.js';
 
 const ajv = new Ajv();
 ajv.addSchema(configSchema);
 
 export const validateUserConfig = async (
   pathOrObject: string | unknown,
-): Promise<UserConfig> => {
+): Promise<EMBConfig> => {
   let embConfig: EMBConfig;
 
   if (typeof pathOrObject === 'string') {
@@ -30,7 +29,7 @@ export const validateUserConfig = async (
     throw new Error(`Your .emb.yml is incorrect`);
   }
 
-  return toUserConfig(embConfig);
+  return embConfig;
 };
 
 export const validateEmbfile = async (pathOrObject: string | unknown) => {

@@ -44,6 +44,6 @@ describe('CLI - emb config print', () => {
     // No raise
     await expect(() => validateUserConfig(json)).not.toThrow();
     const config = new MonorepoConfig(json);
-    await expect(() => new Monorepo(config)).not.toThrow();
+    await expect(() => new Monorepo(config, '/tmp/monorepo')).not.toThrow();
   });
 });

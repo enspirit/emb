@@ -1,9 +1,9 @@
-import { UserConfig } from '@/config/types.js';
+import { EMBConfig } from '@/config/types.js';
 
-export const CompleteExample: UserConfig = {
+export const CompleteExample: EMBConfig = {
   project: {
     name: 'simple',
-    rootDir: '/tmp/simple',
+    rootDir: 'subfolder',
   },
   plugins: [],
   tasks: {},

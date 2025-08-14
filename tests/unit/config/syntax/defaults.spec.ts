@@ -1,4 +1,3 @@
-import { cwd } from 'node:process';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { validateUserConfig } from '@/config';
@@ -21,8 +20,6 @@ describe('Config syntax - Defaults', () => {
     });
 
     expect(vConfig).toHaveResolvedWith({
-      components: {},
-      flavors: {},
       defaults: {
         docker: {
           tag: 'staging',
@@ -30,7 +27,6 @@ describe('Config syntax - Defaults', () => {
       },
       project: {
         name: 'test1',
-        rootDir: cwd(),
       },
     });
   });

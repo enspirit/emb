@@ -1,4 +1,3 @@
-import { cwd } from 'node:process';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { validateUserConfig } from '@/config';
@@ -18,10 +17,8 @@ describe('Config syntax - Components', () => {
 
     expect(vConfig).toHaveResolvedWith({
       components: { frontend: {} },
-      flavors: {},
       project: {
         name: 'test2',
-        rootDir: cwd(),
       },
     });
   });
@@ -67,7 +64,6 @@ describe('Config syntax - Components', () => {
           },
         },
       },
-      flavors: {},
       defaults: {
         docker: {
           labels: {
@@ -77,7 +73,6 @@ describe('Config syntax - Components', () => {
       },
       project: {
         name: 'test2',
-        rootDir: cwd(),
       },
     });
   });
