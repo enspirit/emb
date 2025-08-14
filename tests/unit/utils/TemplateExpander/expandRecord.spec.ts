@@ -39,19 +39,59 @@ describe('Utils / expandRecord', () => {
   });
 
   describe('when facing array properties (non-regression)', async () => {
-    test('does return arrays', async () => {
+    test('supports simple string arrays', async () => {
       const toExpand = {
         someHash: {
           key: 'value',
         },
-        array: ['one', 'two', 'three'],
+        // eslint-disable-next-line no-template-curly-in-string
+        array: ['one', 'two', '${env:DOCKER_TAG}'],
       };
 
-      expect(await expandRecordFn(toExpand, {})).to.deep.equal({
+      expect(
+        await expandRecordFn(toExpand, {
+          sources: {
+            env: {
+              DOCKER_TAG: 'production',
+            },
+          },
+        }),
+      ).to.deep.equal({
         someHash: {
           key: 'value',
         },
-        array: ['one', 'two', 'three'],
+        array: ['one', 'two', 'production'],
+      });
+    });
+
+    test('supports arrays of objects', async () => {
+      const toExpand = {
+        array: [
+          {
+            op: 'replace',
+            path: '/foo/bar/baz',
+            // eslint-disable-next-line no-template-curly-in-string
+            value: '${env:DOCKER_TAG}',
+          },
+        ],
+      };
+
+      expect(
+        await expandRecordFn(toExpand, {
+          sources: {
+            env: {
+              DOCKER_TAG: 'production',
+            },
+          },
+        }),
+      ).to.deep.equal({
+        array: [
+          {
+            op: 'replace',
+            path: '/foo/bar/baz',
+            value: 'production',
+          },
+        ],
       });
     });
   });

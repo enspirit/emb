@@ -11,85 +11,86 @@ export type ExpansionHistory = {
   variable: string;
 };
 
+export type Expandable =
+  | readonly Expandable[]
+  | string
+  | { readonly [k: string]: Expandable };
+
+type ExpandResult<T> = T extends string
+  ? string
+  : T extends readonly (infer U)[]
+    ? ReadonlyArray<ExpandResult<U>>
+    : T extends { readonly [K in keyof T]: Expandable }
+      ? { readonly [K in keyof T]: ExpandResult<T[K]> }
+      : T;
+
 export class TemplateExpander {
-  /**
-   * Keep track of the sources used for expansions
-   * (track source, name, final value)
-   */
-  private expansions: Array<ExpansionHistory> = [];
+  private expansions: ExpansionHistory[] = [];
 
   get expansionCount() {
     return this.expansions.length;
   }
 
-  async expand(str: string, options: ExpandOptions = {}) {
-    return (
-      (str || '')
-        .toString()
-        // Expand variables
-        .replaceAll(TPL_REGEX, (match, source, key, fallback) => {
-          const src = source || options.default;
-          const provider = options.sources?.[src];
+  async expand(str: string, options: ExpandOptions = {}): Promise<string> {
+    return (str || '')
+      .toString()
+      .replaceAll(TPL_REGEX, (match, source, key, fallback) => {
+        const src = source ?? options.default ?? '';
+        const provider = options.sources?.[src];
 
-          if (!provider) {
-            if (fallback !== undefined) {
-              return this.track(src, key, fallback);
-            }
-
-            throw new Error(`Invalid expand provider '${source}' ('${match}')`);
+        if (!provider) {
+          if (fallback !== undefined) {
+            return this.track(src, key, fallback);
           }
 
-          const val = provider[key as keyof typeof provider];
+          throw new Error(`Invalid expand provider '${source}' ('${match}')`);
+        }
 
-          // fallback is undefined when not even the :- is present
-          // we consider a variable like ${source:key:-} like the information
-          // that the variable can be an empty string if not present
-          if (!val && fallback === undefined) {
-            throw new Error(
-              `Could not expand '${match}' and no default value provided`,
-            );
-          }
+        const val = provider[key as keyof typeof provider];
 
-          if (val !== undefined && val !== null) {
-            return this.track(src, key, val);
-          }
+        if (!val && fallback === undefined) {
+          throw new Error(
+            `Could not expand '${match}' and no default value provided`,
+          );
+        }
 
-          return this.track(src, key, fallback || '');
-        })
-        // Unescape non-variables left
-        .replaceAll('\\${', '${')
-    );
+        if (val !== undefined && val !== null) {
+          return this.track(src, key, val);
+        }
+
+        return this.track(src, key, fallback ?? '');
+      })
+      .replaceAll('\\${', '${');
   }
 
-  expandRecord<R extends Record<string, unknown>>(
-    record: R,
+  async expandRecord<T extends Expandable>(
+    record: T,
     options: ExpandOptions,
-  ): Promise<R>;
-  expandRecord<R extends Array<unknown>>(
-    record: R,
-    options: ExpandOptions,
-  ): Promise<R>;
-  async expandRecord(record: unknown, options: ExpandOptions = {}) {
-    if (Array.isArray(record)) {
-      return Promise.all(record.map((v) => this.expand(v as string, options)));
+  ): Promise<ExpandResult<T>> {
+    if (typeof record === 'string') {
+      const out = await this.expand(record, options);
+      return out as ExpandResult<T>;
     }
 
-    return Object.entries(record as Record<string, unknown>).reduce(
-      async (vars, [name, str]) => {
-        const previous = await vars;
+    if (Array.isArray(record)) {
+      const out = await Promise.all(
+        record.map((v) => this.expandRecord(v, options)),
+      );
+      return out as unknown as ExpandResult<T>;
+    }
 
-        previous[name] = await (typeof str === 'object'
-          ? this.expandRecord(str as Record<string, unknown>, options)
-          : this.expand(str as string, options));
-
-        return previous;
-      },
-      Promise.resolve({}) as Promise<Record<string, unknown>>,
+    const entries = await Promise.all(
+      Object.entries(record).map(async ([k, v]) => {
+        const expandedValue = await this.expandRecord(v, options);
+        return [k, expandedValue] as const;
+      }),
     );
+
+    return Object.fromEntries(entries) as ExpandResult<T>;
   }
 
-  private track<T>(source: string, variable: string, value: T) {
+  private track<T>(source: string, variable: string, value: T): string {
     this.expansions.push({ source, value, variable });
-    return value;
+    return String(value);
   }
 }

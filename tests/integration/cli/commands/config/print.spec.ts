@@ -34,6 +34,9 @@ describe('CLI - emb config print', () => {
     // Frontend has overrides for that flavor
     const { frontend } = config.components;
     expect(frontend.resources.image.params.target).to.equal('production');
+
+    // Expect patches to be expanded
+    expect(config.env.DOCKER_TAG).to.equal('latest-production');
   });
 
   test.skip('dumps a valid config file that can be reused', async () => {
