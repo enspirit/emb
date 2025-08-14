@@ -1,5 +1,7 @@
-import { readdir, stat, statfs } from 'node:fs/promises';
+import { fdir as Fdir } from 'fdir';
+import { stat, statfs } from 'node:fs/promises';
 import { join } from 'node:path';
+import { Writable } from 'node:stream';
 import pMap from 'p-map';
 
 import { OpInput, OpOutput } from '@/operations/index.js';
@@ -44,7 +46,7 @@ class DockerImageResourceBuilder
     return this.buildContext.component;
   }
 
-  async build() {
+  async build(out: Writable) {
     // Ensure the folder exists
     await statfs(this.context);
 
@@ -54,7 +56,12 @@ class DockerImageResourceBuilder
     ].join('/');
     const tagName =
       this.config.tag || this.monorepo.defaults.docker?.tag || 'latest';
-    const sources = await readdir(this.context, { recursive: true });
+
+    const crawler = new Fdir();
+    const sources = await crawler
+      .withRelativePaths()
+      .crawl(this.context)
+      .withPromise();
 
     const buildParams: OpInput<BuildImageOperation> = {
       context: this.context,
@@ -76,7 +83,7 @@ class DockerImageResourceBuilder
 
     return {
       input: buildParams,
-      operation: new BuildImageOperation(),
+      operation: new BuildImageOperation(out),
     };
   }
 

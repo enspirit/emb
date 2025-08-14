@@ -1,4 +1,5 @@
 import { Component, Monorepo, ResourceInfo } from '@';
+import { Writable } from 'node:stream';
 
 import { IOperation } from '@/operations/types.js';
 
@@ -18,7 +19,15 @@ export type SentinelData<T = void> = {
 };
 
 export type ResourceBuilderInfo<I, O, D = unknown> = {
-  build(): Promise<{
+  /**
+   * Returns input and operation required to actually
+   * build the resources.
+   * This allows the dry-run mechanism to be implemented outside
+   * resource builder implementations
+   *
+   * @param out The Writable to use to write logs
+   */
+  build(out?: Writable): Promise<{
     input: I;
     operation: IOperation<I, O>;
   }>;

@@ -2,6 +2,7 @@ import {
   DefaultRenderer,
   ListrTask,
   ListrTaskWrapper,
+  PRESET_TIMER,
   SimpleRenderer,
 } from 'listr2';
 import * as z from 'zod';
@@ -109,6 +110,9 @@ export class BuildResourcesOperation extends AbstractOperation<
         rendererOptions: {
           collapseSkips: true,
           collapseSubtasks: true,
+          timer: {
+            ...PRESET_TIMER,
+          },
         },
         ctx: {} as Record<string, BuildResourceMeta>,
       },
@@ -172,7 +176,9 @@ export class BuildResourcesOperation extends AbstractOperation<
               return skip('[cache hit]');
             }
 
-            const { input, operation } = await ctx.builder!.build();
+            const { input, operation } = await ctx.builder!.build(
+              task.stdout(),
+            );
             ctx.builderInput = input;
 
             if (ctx.dryRun) {

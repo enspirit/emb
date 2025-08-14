@@ -1,3 +1,4 @@
+import { Writable } from 'node:stream';
 import * as z from 'zod';
 
 import { decodeBuildkitStatusResponse } from '@/docker';
@@ -38,7 +39,7 @@ export class BuildImageOperation extends AbstractOperation<
   typeof BuildImageOperationInputSchema,
   Array<unknown>
 > {
-  constructor(private observer?: (progress: string) => void) {
+  constructor(private out?: Writable) {
     super(BuildImageOperationInputSchema);
   }
 
@@ -48,6 +49,8 @@ export class BuildImageOperation extends AbstractOperation<
     const logStream = await this.context.monorepo.store.createWriteStream(
       `logs/docker/build/${input.tag}.log`,
     );
+
+    this.out?.write('Sending build context to Docker\n');
 
     const stream = await this.context.docker.buildImage(
       {
@@ -63,6 +66,8 @@ export class BuildImageOperation extends AbstractOperation<
         version: '2',
       },
     );
+
+    this.out?.write('Starting build\n');
 
     return new Promise((resolve, reject) => {
       this.context.docker.modem.followProgress(
@@ -83,7 +88,7 @@ export class BuildImageOperation extends AbstractOperation<
               );
               vertexes.forEach((v: { name: string }) => {
                 // logStream.write(JSON.stringify(v) + '\n');
-                this.observer?.(v.name);
+                this.out?.write(v.name + '\n');
               });
             } catch (error) {
               console.error(error);
