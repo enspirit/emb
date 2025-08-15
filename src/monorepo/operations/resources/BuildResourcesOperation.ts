@@ -56,6 +56,10 @@ export class BuildResourcesOperation extends AbstractOperation<
   typeof schema,
   Record<string, BuildResourceMeta>
 > {
+  // keep track of what has been built
+  // to ensure depedencies cannot ignore their turn
+  private built: Array<ResourceInfo> = [];
+
   constructor() {
     super(schema);
   }
@@ -149,17 +153,23 @@ export class BuildResourcesOperation extends AbstractOperation<
         {
           title: `Checking cache for ${resource.id}`,
           /** Skip the build if the builder knows it can be skipped */
-          async task(ctx) {
+          task: async (ctx) => {
             if (ctx.builder?.mustBuild) {
               ctx.sentinelData = await ctx.builder.mustBuild(ctx.resource!);
-
               ctx.cacheHit = !ctx.sentinelData;
+
+              // If one of our dependency was built, we force the re-build
+              // despite the cache-hit
+              const found = ctx.resource!.dependencies?.find((d) =>
+                Boolean(this.built.find((r) => r.id === d)),
+              );
+              ctx.force = Boolean(found);
             }
           },
         },
         {
           title: `Build ${resource.id}`,
-          async task(ctx, task) {
+          task: async (ctx, task) => {
             const skip = (prefix: string) => {
               parentTask.title = `${prefix} ${resource.id}`;
               task.skip();
@@ -176,12 +186,13 @@ export class BuildResourcesOperation extends AbstractOperation<
             );
             ctx.builderInput = input;
 
+            this.built.push(ctx.resource!);
+
             if (ctx.dryRun) {
               return skip('[dry run]');
             }
 
             const output = await operation.run(ctx.builderInput!);
-
             ctx.builder!.commit?.(ctx.resource!, output, ctx.sentinelData);
 
             return output;
