@@ -88,10 +88,32 @@ export class BuildImageOperation extends AbstractOperation<
     );
 
     return new Promise((resolve, reject) => {
-      stream.pipe(decodeBuildkit);
-
-      stream.on('close', () => resolve());
-      stream.on('error', (error) => reject(error));
+      this.context.docker.modem.followProgress(
+        stream,
+        (err, _traces) => {
+          return err ? reject(err) : resolve();
+        },
+        async (trace: { error?: string; aux?: string }) => {
+          if (trace.error) {
+            logFile.write(trace.error + '\n');
+            this.out?.write(trace.error + '\n');
+            reject(trace.error);
+          } else {
+            try {
+              const { vertexes } = await decodeBuildkitStatusResponse(
+                trace.aux as string,
+              );
+              vertexes.forEach((v: { name: string }) => {
+                // logStream.write(JSON.stringify(v) + '\n');
+                logFile.write(v.name + '\n');
+                this.out?.write(v.name + '\n');
+              });
+            } catch (error) {
+              console.error(error);
+            }
+          }
+        },
+      );
     });
   }
 }
