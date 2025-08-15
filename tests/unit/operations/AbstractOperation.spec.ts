@@ -29,8 +29,10 @@ describe('Operations / AbstractOperation', () => {
     });
 
     test('it rejects on invalid input', async () => {
+      // @ts-expect-error invalid input params (for test purposes)
       await expect(operation.run({})).rejects.toThrowError(z.ZodError);
 
+      // @ts-expect-error invalid input params (for test purposes)
       await expect(operation.run({})).rejects.toThrowError(/Invalid input/);
     });
 

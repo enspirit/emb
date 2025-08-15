@@ -225,12 +225,15 @@ export class Monorepo {
     return join(this.rootDir, ...paths);
   }
 
-  run<I, O>(operation: IOperation<I, O>, args: I): Promise<O>;
-  async run<I extends void, O extends void>(
-    operation: IOperation<I, O>,
-    args: I,
-  ) {
-    return operation.run(args);
+  run<I extends void, O>(operation: IOperation<I, O>): Promise<O>;
+  run<I extends void, O>(operation: IOperation<I, O>): Promise<O>;
+  run<I, O>(operation: IOperation<I, O>, input: I): Promise<O>;
+  run<I, O>(operation: IOperation<I, O>, input = undefined): Promise<O> {
+    if (input === undefined) {
+      return (operation as IOperation<void, O>).run();
+    }
+
+    return operation.run(input);
   }
 
   private async expandPatches(patches: Array<JsonPatchOperation>) {

@@ -9,12 +9,12 @@ export type OpInput<A extends AbstractOperation<z.Schema, unknown>> =
 export type OpOutput<A extends AbstractOperation<z.Schema, unknown>> =
   A extends AbstractOperation<z.Schema, infer O> ? O : never;
 
-export abstract class AbstractOperation<S extends z.Schema, O = unknown>
-  implements IOperation<z.infer<S>, O>
+export abstract class AbstractOperation<I extends z.Schema, O>
+  implements IOperation<z.infer<I>, O>
 {
   protected context: EmbContext;
 
-  constructor(protected inputSchema: S) {
+  constructor(protected inputSchema: I) {
     if (!inputSchema) {
       throw new Error(
         `${this.constructor.name} does not call super() with validation schema`,
@@ -24,9 +24,9 @@ export abstract class AbstractOperation<S extends z.Schema, O = unknown>
     this.context = getContext();
   }
 
-  protected abstract _run(input: z.infer<S>): Promise<O>;
+  protected abstract _run(input: z.infer<I>): Promise<O>;
 
-  async run(input: unknown | z.infer<S>): Promise<O> {
+  async run(input: z.infer<I>): Promise<O> {
     const dressed = this.inputSchema.parse(input);
 
     return this._run(dressed);

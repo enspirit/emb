@@ -100,8 +100,6 @@ export class RunTasksOperation
     const { monorepo } = getContext();
 
     return monorepo.run(new ComposeExecOperation(out), {
-      attachStderr: true,
-      attachStdout: true,
       service: task.component,
       command: task.script,
     });
