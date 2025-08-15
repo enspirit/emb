@@ -1,4 +1,4 @@
-import { PassThrough, Writable } from 'node:stream';
+import { Transform, Writable } from 'node:stream';
 import * as z from 'zod';
 
 import { decodeBuildkitStatusResponse } from '@/docker';
@@ -37,7 +37,7 @@ export const BuildImageOperationInputSchema = z.object({
 
 export class BuildImageOperation extends AbstractOperation<
   typeof BuildImageOperationInputSchema,
-  Array<unknown>
+  void
 > {
   constructor(private out?: Writable) {
     super(BuildImageOperationInputSchema);
@@ -45,17 +45,32 @@ export class BuildImageOperation extends AbstractOperation<
 
   protected async _run(
     input: z.input<typeof BuildImageOperationInputSchema>,
-  ): Promise<Array<unknown>> {
-    const tee = new PassThrough();
+  ): Promise<void> {
     const logFile = await this.context.monorepo.store.createWriteStream(
       `logs/docker/build/${input.tag}.log`,
     );
-    tee.pipe(logFile);
-    if (this.out) {
-      tee.pipe(this.out);
-    }
 
-    tee.write('Sending build context to Docker\n');
+    const decodeBuildkit = new Transform({
+      transform: async (chunk, encoding, callback) => {
+        try {
+          try {
+            const { aux } = JSON.parse(chunk);
+            const { vertexes } = await decodeBuildkitStatusResponse(aux);
+
+            vertexes.forEach((v: { name: string }) => {
+              logFile.write(`${JSON.stringify(v)}\n`);
+              this.out?.write(`${v.name}\n`);
+            });
+          } catch {
+            //
+          }
+
+          callback();
+        } catch (error) {
+          console.error('__OOPS', error);
+        }
+      },
+    });
 
     const stream = await this.context.docker.buildImage(
       {
@@ -72,34 +87,11 @@ export class BuildImageOperation extends AbstractOperation<
       },
     );
 
-    tee.write('Starting build\n');
-
     return new Promise((resolve, reject) => {
-      this.context.docker.modem.followProgress(
-        stream,
-        (err, traces) => {
-          // logFile.close();
+      stream.pipe(decodeBuildkit);
 
-          return err ? reject(err) : resolve(traces);
-        },
-        async (trace: { error?: string; aux?: string }) => {
-          if (trace.error) {
-            // logFile.close();
-            reject(new Error(trace.error));
-          } else {
-            try {
-              const { vertexes } = await decodeBuildkitStatusResponse(
-                trace.aux as string,
-              );
-              vertexes.forEach((v: { name: string }) => {
-                tee.write(v.name + '\n');
-              });
-            } catch (error) {
-              console.error(error);
-            }
-          }
-        },
-      );
+      stream.on('close', () => resolve());
+      stream.on('error', (error) => reject(error));
     });
   }
 }
