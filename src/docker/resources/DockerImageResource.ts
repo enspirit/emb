@@ -4,28 +4,29 @@ import { join } from 'node:path';
 import { Writable } from 'node:stream';
 import pMap from 'p-map';
 
+import { ResourceInfo, SentinelFileBasedBuilder } from '@/monorepo';
 import { OpInput, OpOutput } from '@/operations/index.js';
 import { FilePrerequisite, GitPrerequisitePlugin } from '@/prerequisites';
 
 import {
   ResourceBuildContext,
-  ResourceBuilderInfo,
   ResourceFactory,
-  SentinelData,
 } from '../../monorepo/resources/ResourceFactory.js';
 import { BuildImageOperation } from '../operations/index.js';
 
-class DockerImageResourceBuilder
-  implements
-    ResourceBuilderInfo<
-      OpInput<BuildImageOperation>,
-      OpOutput<BuildImageOperation>
-    >
-{
-  protected context: string;
+class DockerImageResourceBuilder extends SentinelFileBasedBuilder<
+  OpInput<BuildImageOperation>,
+  OpOutput<BuildImageOperation>,
+  { mtime: number }
+> {
+  protected dockerContext: string;
 
-  constructor(protected buildContext: ResourceBuildContext) {
-    this.context = this.config.context
+  constructor(
+    protected buildContext: ResourceBuildContext<OpInput<BuildImageOperation>>,
+  ) {
+    super(buildContext);
+
+    this.dockerContext = this.config?.context
       ? this.config.context[0] === '/'
         ? buildContext.monorepo.join(this.config.context)
         : buildContext.component.join(this.config.context)
@@ -37,48 +38,49 @@ class DockerImageResourceBuilder
   }
 
   get config() {
-    return (this.buildContext.config.params || {}) as Partial<
-      OpInput<BuildImageOperation>
-    >;
+    return this.buildContext.config.params;
   }
 
   get component() {
     return this.buildContext.component;
   }
 
-  async build(out: Writable) {
+  async _build(
+    _resource: ResourceInfo<OpInput<BuildImageOperation>>,
+    out: Writable,
+  ) {
     // Ensure the folder exists
-    await statfs(this.context);
+    await statfs(this.dockerContext);
 
     const imageName = [
       this.monorepo.name,
-      this.config.tag || this.component.name,
+      this.config?.tag || this.component.name,
     ].join('/');
     const tagName =
-      this.config.tag || this.monorepo.defaults.docker?.tag || 'latest';
+      this.config?.tag || this.monorepo.defaults.docker?.tag || 'latest';
 
     const crawler = new Fdir();
     const sources = await crawler
       .withRelativePaths()
-      .crawl(this.context)
+      .crawl(this.dockerContext)
       .withPromise();
 
     const buildParams: OpInput<BuildImageOperation> = {
-      context: this.context,
-      dockerfile: this.config.dockerfile || 'Dockerfile',
+      context: this.dockerContext,
+      dockerfile: this.config?.dockerfile || 'Dockerfile',
       src: sources,
       buildArgs: await this.monorepo.expand({
         ...this.monorepo.defaults.docker?.buildArgs,
-        ...this.config.buildArgs,
+        ...this.config?.buildArgs,
       }),
       tag: await this.monorepo.expand(`${imageName}:${tagName}`),
       labels: await this.monorepo.expand({
-        ...this.config.labels,
+        ...this.config?.labels,
         'emb/project': this.monorepo.name,
         'emb/component': this.component.name,
         'emb/flavor': this.monorepo.currentFlavor,
       }),
-      target: this.config.target,
+      target: this.config?.target,
     };
 
     return {
@@ -87,25 +89,23 @@ class DockerImageResourceBuilder
     };
   }
 
-  async mustBuild(sentinel: SentinelData<undefined | unknown> | undefined) {
+  async _mustBuild() {
     const plugin = new GitPrerequisitePlugin();
-    const sources = await plugin.collect(this.context);
+    const sources = await plugin.collect(this.dockerContext);
     const lastUpdated = await this.lastUpdatedInfo(sources);
 
-    if (!sentinel) {
-      return lastUpdated;
+    if (!lastUpdated) {
+      return;
     }
 
-    return lastUpdated && lastUpdated.time.getTime() > sentinel.mtime
-      ? lastUpdated
-      : undefined;
+    return { mtime: lastUpdated.time.getTime() };
   }
 
   private async lastUpdatedInfo(sources: Array<FilePrerequisite>) {
     const stats = await pMap(
       sources,
       async (s) => {
-        const stats = await stat(join(this.context, s.path));
+        const stats = await stat(join(this.dockerContext, s.path));
 
         return {
           time: stats.mtime,
@@ -116,7 +116,7 @@ class DockerImageResourceBuilder
     );
 
     if (stats.length === 0) {
-      return 0;
+      return;
     }
 
     return stats.reduce((last, entry) => {
@@ -125,8 +125,4 @@ class DockerImageResourceBuilder
   }
 }
 
-// Bring better abstraction and register as part of the plugin initialization
-ResourceFactory.register(
-  'docker/image',
-  async (context) => new DockerImageResourceBuilder(context),
-);
+ResourceFactory.register('docker/image', DockerImageResourceBuilder);

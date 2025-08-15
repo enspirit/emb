@@ -1,4 +1,5 @@
 import { open, statfs, utimes } from 'node:fs/promises';
+import { Writable } from 'node:stream';
 import * as z from 'zod';
 
 import { AbstractOperation } from '@/operations';
@@ -16,7 +17,7 @@ export class CreateFileOperation extends AbstractOperation<
   typeof schema,
   unknown
 > {
-  constructor() {
+  constructor(protected out?: Writable) {
     super(schema);
   }
 

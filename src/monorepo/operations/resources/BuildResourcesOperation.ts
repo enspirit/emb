@@ -10,14 +10,11 @@ import * as z from 'zod';
 import {
   EMBCollection,
   findRunOrder,
+  IResourceBuilder,
   ResourceInfo,
   taskManagerFactory,
 } from '@/monorepo';
-import {
-  ResourceBuilderInfo,
-  ResourceFactory,
-  SentinelData,
-} from '@/monorepo/resources/ResourceFactory.js';
+import { ResourceFactory } from '@/monorepo/resources/ResourceFactory.js';
 import { AbstractOperation } from '@/operations';
 
 export type BuildResourceMeta = {
@@ -27,7 +24,7 @@ export type BuildResourceMeta = {
   // the resource to build
   resource?: ResourceInfo;
   // input of the operation (for debugging purposes)
-  builder?: ResourceBuilderInfo<unknown, unknown>;
+  builder?: IResourceBuilder<unknown, unknown, unknown>;
   builderInput?: unknown;
   // cache data to build into sentinel file
   sentinelData?: unknown;
@@ -152,19 +149,16 @@ export class BuildResourcesOperation extends AbstractOperation<
         {
           title: `Checking cache for ${resource.id}`,
           /** Skip the build if the builder knows it can be skipped */
-          task: async (ctx) => {
+          async task(ctx) {
             if (ctx.builder?.mustBuild) {
-              const previousSentinelData =
-                await this.readSentinelFile(resource);
-              ctx.sentinelData =
-                await ctx.builder.mustBuild(previousSentinelData);
+              ctx.sentinelData = await ctx.builder.mustBuild(ctx.resource!);
 
               ctx.cacheHit = !ctx.sentinelData;
             }
           },
         },
         {
-          title: `Build image for ${resource.id}`,
+          title: `Build ${resource.id}`,
           async task(ctx, task) {
             const skip = (prefix: string) => {
               parentTask.title = `${prefix} ${resource.id}`;
@@ -177,6 +171,7 @@ export class BuildResourcesOperation extends AbstractOperation<
             }
 
             const { input, operation } = await ctx.builder!.build(
+              ctx.resource!,
               task.stdout(),
             );
             ctx.builderInput = input;
@@ -185,23 +180,23 @@ export class BuildResourcesOperation extends AbstractOperation<
               return skip('[dry run]');
             }
 
-            return operation.run(ctx.builderInput!);
+            const output = await operation.run(ctx.builderInput!);
+
+            ctx.builder!.commit?.(ctx.resource!, output, ctx.sentinelData);
+
+            return output;
           },
         },
         {
           // Return build meta data and dump
           // cache data into sentinel file
-          task: async (ctx) => {
+          async task(ctx) {
             if (ctx.builder) {
               delete ctx.builder;
             }
 
             //
             parentContext[resource.id] = ctx;
-
-            if (ctx.sentinelData && !ctx.dryRun) {
-              await this.storeSentinelData(resource, ctx.sentinelData);
-            }
           },
         },
       ],
@@ -216,33 +211,5 @@ export class BuildResourcesOperation extends AbstractOperation<
     );
 
     return list;
-  }
-
-  private sentinelFilePath(resource: ResourceInfo): string {
-    const { monorepo } = this.context;
-    return `sentinels/flavors/${monorepo.currentFlavor}/${resource.component}/${resource.name}.built`;
-  }
-
-  private async storeSentinelData(resource: ResourceInfo, data: unknown) {
-    await this.context.monorepo.store.writeFile(
-      this.sentinelFilePath(resource),
-      JSON.stringify(data),
-    );
-  }
-
-  private async readSentinelFile(
-    resource: ResourceInfo,
-  ): Promise<SentinelData<unknown> | undefined> {
-    const path = this.sentinelFilePath(resource);
-    const stats = await this.context.monorepo.store.stat(path, false);
-    if (!stats) {
-      return undefined;
-    }
-
-    const data = await this.context.monorepo.store.readFile(path, false);
-    return {
-      data,
-      mtime: stats.mtime.getTime(),
-    };
   }
 }

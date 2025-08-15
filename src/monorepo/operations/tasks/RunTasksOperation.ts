@@ -55,6 +55,7 @@ export class RunTasksOperation
               return;
             }
 
+            console.log('YES WE DO', task.component);
             const executor =
               params.executor ??
               (task.component ? ExecutorType.container : ExecutorType.local);

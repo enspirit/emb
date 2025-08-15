@@ -1,81 +1,45 @@
-import { Component, Monorepo, ResourceInfo } from '@';
-import { Writable } from 'node:stream';
+import { Component, IResourceBuilder, Monorepo, ResourceInfo } from '@';
 
-import { IOperation } from '@/operations/types.js';
-
-export type ResourceBuildContext = {
+export type ResourceBuildContext<I> = {
   // The full info of the resource, incuding their params
-  config: ResourceInfo;
+  config: ResourceInfo<I>;
   //
   component: Component;
   monorepo: Monorepo;
 };
 
-export type SentinelData<T = void> = {
-  // represents the timestamp of the last build
-  mtime: number;
-  // whatever the builder provided right before the previous successful build
-  data: T;
-};
-
-export type ResourceBuilderInfo<I, O, D = unknown> = {
-  /**
-   * Returns input and operation required to actually
-   * build the resources.
-   * This allows the dry-run mechanism to be implemented outside
-   * resource builder implementations
-   *
-   * @param out The Writable to use to write logs
-   */
-  build(out?: Writable): Promise<{
-    input: I;
-    operation: IOperation<I, O>;
-  }>;
-  // The contract is simple
-  // The builder has the opportunity to compare whatever it knows
-  // with the mtime of the sentinel (= timestamp of last successful build)
-  // or even its content (use it to store json for your own logic).
-  // and then return 'undefined' if the resource does not need rebuilding
-  // If you return anything else, we will run the operation and then
-  // write the data provided into the sentinel file (JSON.stringified)
-  mustBuild?: (
-    previousSentinelData: SentinelData<D> | undefined,
-  ) => Promise<undefined | unknown>;
-};
-
-export type ResourceFactoryOutput<I, O> = Promise<ResourceBuilderInfo<I, O>>;
-
-export type ResourceOperationFactory<I, O> = (
-  context: ResourceBuildContext,
-) => ResourceFactoryOutput<I, O>;
+export type ResourceBuilderConstructor<I, O, R> = new (
+  context: ResourceBuildContext<I>,
+) => IResourceBuilder<I, O, R>;
 
 export class ResourceFactory {
   protected static types: Record<
     string,
-    ResourceOperationFactory<unknown, unknown>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ResourceBuilderConstructor<any, any, any>
   > = {};
 
-  static register<I, O>(
+  static register<I, O, R>(
     type: string,
-    opFactory: ResourceOperationFactory<I, O>,
+    constructor: ResourceBuilderConstructor<I, O, R>,
   ) {
     if (this.types[type]) {
       throw new Error(`Resource type \`${type}\` already registered`);
     }
 
-    this.types[type] = opFactory;
+    this.types[type] = constructor;
   }
 
-  static factor<I, O>(
+  static factor<I, O, R>(
     type: string,
-    context: ResourceBuildContext,
-  ): ResourceFactoryOutput<I, O> {
-    const opFactory = this.types[type];
+    context: ResourceBuildContext<I>,
+  ): IResourceBuilder<I, O, R> {
+    const BuilderClass = this.types[type];
 
-    if (!opFactory) {
+    if (!BuilderClass) {
       throw new Error(`Unknown resource type \`${type}\``);
     }
 
-    return opFactory(context) as ResourceFactoryOutput<I, O>;
+    return new BuilderClass(context);
   }
 }

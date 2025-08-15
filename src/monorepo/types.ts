@@ -11,7 +11,10 @@ export type ComponentIdentifiable<T> = T & {
   component: string;
 };
 
-export type ResourceInfo = ComponentIdentifiable<IResourceConfig>;
+export type ResourceInfo<T = unknown> =
+  ComponentIdentifiable<IResourceConfig> & {
+    params?: T;
+  };
 
 export type Resources = {
   [k: string]: ResourceInfo;
