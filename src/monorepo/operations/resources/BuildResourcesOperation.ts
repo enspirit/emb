@@ -163,7 +163,7 @@ export class BuildResourcesOperation extends AbstractOperation<
               const found = ctx.resource!.dependencies?.find((d) =>
                 Boolean(this.built.find((r) => r.id === d)),
               );
-              ctx.force = Boolean(found);
+              ctx.force = ctx.force || Boolean(found);
             }
           },
         },
@@ -193,7 +193,10 @@ export class BuildResourcesOperation extends AbstractOperation<
             }
 
             const output = await operation.run(ctx.builderInput!);
-            ctx.builder!.commit?.(ctx.resource!, output, ctx.sentinelData);
+
+            if (ctx.sentinelData) {
+              ctx.builder!.commit?.(ctx.resource!, output, ctx.sentinelData);
+            }
 
             return output;
           },
