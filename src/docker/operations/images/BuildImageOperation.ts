@@ -55,20 +55,11 @@ export class BuildImageOperation extends AbstractOperation<
   protected async _buildWithDockerCLI(
     input: z.input<typeof BuildImageOperationInputSchema>,
   ): Promise<void> {
-    const labels = Object.entries(input.labels || {})
-      .reduce<Array<string>>((arr, [key, value]) => {
-        arr.push(`${key.trim()}=${value.trim()}`);
-        return arr;
-      }, [])
-      .join(',');
-
     const args = [
       'build',
       input.context,
       '-f',
       join(input.context, input.dockerfile || 'Dockerfile'),
-      '--label',
-      labels,
     ];
 
     if (input.tag) {
@@ -81,6 +72,10 @@ export class BuildImageOperation extends AbstractOperation<
 
     Object.entries(input.buildArgs || []).forEach(([key, value]) => {
       args.push('--build-arg', `${key.trim()}=${value.trim()}`);
+    });
+
+    Object.entries(input.labels || {}).forEach(([key, value]) => {
+      args.push('--label', `${key.trim()}=${value.trim()}`);
     });
 
     const logFile = await this.context.monorepo.store.createWriteStream(
