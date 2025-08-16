@@ -46,7 +46,9 @@ export const validateEmbfile = async (pathOrObject: string | unknown) => {
     component = pathOrObject as ComponentConfig;
   }
 
-  const validate = ajv.getSchema('/schemas/config#/$defs/ComponentConfig');
+  const validate = ajv.getSchema(
+    '/schemas/config#/definitions/ComponentConfig',
+  );
   if (!validate) {
     throw new Error('Could not find the JSON schema validator for Embfile');
   }

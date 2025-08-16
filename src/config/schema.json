@@ -10,7 +10,7 @@
       "required": ["name"],
       "properties": {
         "name": {
-          "$ref": "#/$defs/Identifier",
+          "$ref": "#/definitions/Identifier",
           "description": "The name of the project."
         },
         "rootDir": {
@@ -28,7 +28,7 @@
         "required": ["name"],
         "properties": {
           "name": {
-            "$ref": "#/$defs/Identifier"
+            "$ref": "#/definitions/Identifier"
           },
           "config": {}
         },
@@ -48,29 +48,29 @@
       "additionalProperties": true
     },
     "defaults": {
-      "$ref": "#/$defs/DefaultsConfig"
+      "$ref": "#/definitions/DefaultsConfig"
     },
     "components": {
       "type": "object",
       "additionalProperties": {
-        "$ref": "#/$defs/ComponentConfig"
+        "$ref": "#/definitions/ComponentConfig"
       }
     },
     "flavors": {
       "type": "object",
       "additionalProperties": {
-        "$ref": "#/$defs/ProjectFlavorConfig"
+        "$ref": "#/definitions/ProjectFlavorConfig"
       }
     },
     "tasks": {
       "type": "object",
       "additionalProperties": {
-        "$ref": "#/$defs/TaskConfig"
+        "$ref": "#/definitions/TaskConfig"
       }
     }
   },
   "required": ["project"],
-  "$defs": {
+  "definitions": {
     "Identifier": {
       "type": "string",
       "pattern": "^[a-zA-Z]+[\\w._-]+$"
@@ -92,7 +92,7 @@
               "type": "string"
             },
             "target": {
-              "$ref": "#/$defs/Identifier"
+              "$ref": "#/definitions/Identifier"
             },
             "buildArgs": {
               "type": "object",
@@ -125,7 +125,7 @@
           "type": "string"
         },
         "executor": {
-          "$ref": "#/$defs/Identifier"
+          "$ref": "#/definitions/Identifier"
         },
         "options": {
           "type": "object",
@@ -134,7 +134,7 @@
         "pre": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/Identifier"
+            "$ref": "#/definitions/Identifier"
           }
         }
       },
@@ -156,19 +156,19 @@
         "tasks": {
           "type": "object",
           "additionalProperties": {
-            "$ref": "#/$defs/TaskConfig"
+            "$ref": "#/definitions/TaskConfig"
           }
         },
         "resources": {
           "type": "object",
           "additionalProperties": {
-            "$ref": "#/$defs/ResourceConfig"
+            "$ref": "#/definitions/ResourceConfig"
           }
         },
         "flavors": {
           "type": "object",
           "additionalProperties": {
-            "$ref": "#/$defs/ComponentFlavorConfig"
+            "$ref": "#/definitions/ComponentFlavorConfig"
           }
         }
       },
@@ -203,7 +203,7 @@
         "patches": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/JsonPatchOperation"
+            "$ref": "#/definitions/JsonPatchOperation"
           }
         }
       }
@@ -216,9 +216,7 @@
         "params": {},
         "dependencies": {
           "type": "array",
-          "items": {
-            "$ref": "#/$defs/QualifiedIdentifier"
-          },
+          "items": { "$ref": "#/definitions/QualifiedIdentifier" },
           "uniqueItems": true
         }
       },
@@ -226,14 +224,37 @@
       "allOf": [
         {
           "if": {
-            "properties": { "type": { "const": "docker/DockerImageConfig" } },
+            "properties": {
+              "type": { "const": "docker/image" }
+            },
             "required": ["type"]
           },
           "then": {
-            "properties": { "params": { "$ref": "#/$defs/DockerImageConfig" } }
+            "properties": {
+              "params": { "$ref": "#/definitions/DockerImageConfig" }
+            },
+            "required": ["params"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": { "const": "file" }
+            },
+            "required": ["type"]
           },
-          "else": {
-            "properties": { "params": { "type": "object" } }
+          "then": {
+            "properties": {
+              "params": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
           }
         }
       ]
@@ -246,7 +267,7 @@
         "patches": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/JsonPatchOperation"
+            "$ref": "#/definitions/JsonPatchOperation"
           }
         }
       }
@@ -307,11 +328,11 @@
 
     "JsonPatchOperation": {
       "oneOf": [
-        { "$ref": "#/$defs/JsonPatchAddOperation" },
-        { "$ref": "#/$defs/JsonPatchRemoveOperation" },
-        { "$ref": "#/$defs/JsonPatchReplaceOperation" },
-        { "$ref": "#/$defs/JsonPatchMoveOperation" },
-        { "$ref": "#/$defs/JsonPatchCopyOperation" }
+        { "$ref": "#/definitions/JsonPatchAddOperation" },
+        { "$ref": "#/definitions/JsonPatchRemoveOperation" },
+        { "$ref": "#/definitions/JsonPatchReplaceOperation" },
+        { "$ref": "#/definitions/JsonPatchMoveOperation" },
+        { "$ref": "#/definitions/JsonPatchCopyOperation" }
       ]
     }
   }

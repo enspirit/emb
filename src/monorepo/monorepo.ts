@@ -65,15 +65,7 @@ export class Monorepo {
   }
 
   get tasks() {
-    const globalTasks = Object.entries(this._config.tasks || {}).map(
-      ([name, task]) => {
-        return {
-          ...task,
-          name,
-          id: `global:${name}`,
-        };
-      },
-    );
+    const globalTasks = Object.values(this._config.tasks);
 
     return this.components.reduce<Array<TaskInfo>>((tasks, cmp) => {
       const cmpTasks = Object.entries(cmp.tasks || {}).map(([name, task]) => {
