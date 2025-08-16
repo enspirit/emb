@@ -188,6 +188,17 @@
           "type": "string",
           "description": "The stage to target for the build"
         },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Labels to apply to the resulting image"
+        },
+        "context": {
+          "type": "string",
+          "description": "The context folder for the docker build"
+        },
         "dockerfile": {
           "type": "string",
           "description": "The Dockerfile to use"
