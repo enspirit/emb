@@ -9,6 +9,10 @@ import { AbstractOperation } from '@/operations';
  */
 const schema = z
   .object({
+    components: z
+      .array(z.string())
+      .optional()
+      .describe('The list of service to up'),
     forceRecreate: z
       .boolean()
       .optional()
@@ -28,6 +32,11 @@ export class ComposeUpOperation extends AbstractOperation<typeof schema, void> {
     const manager = taskManagerFactory();
 
     const command = ['docker', 'compose', 'up', '-d'];
+
+    if (input?.components) {
+      command.push(...input.components);
+    }
+
     if (input?.forceRecreate) {
       command.push('--force-recreate');
     }
