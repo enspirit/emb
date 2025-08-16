@@ -1,4 +1,7 @@
-import { Transform, Writable } from 'node:stream';
+import { CommandExecError } from '@';
+import { spawn } from 'node:child_process';
+import { join } from 'node:path';
+import { PassThrough, Writable } from 'node:stream';
 import * as z from 'zod';
 
 import { decodeBuildkitStatusResponse } from '@/docker';
@@ -46,31 +49,86 @@ export class BuildImageOperation extends AbstractOperation<
   protected async _run(
     input: z.input<typeof BuildImageOperationInputSchema>,
   ): Promise<void> {
+    return this._buildWithDockerCLI(input);
+  }
+
+  protected async _buildWithDockerCLI(
+    input: z.input<typeof BuildImageOperationInputSchema>,
+  ): Promise<void> {
+    const labels = Object.entries(input.labels || {})
+      .reduce<Array<string>>((arr, [key, value]) => {
+        arr.push(`${key.trim()}=${value.trim()}`);
+        return arr;
+      }, [])
+      .join(',');
+
+    const args = [
+      'build',
+      input.context,
+      '-f',
+      join(input.context, input.dockerfile || 'Dockerfile'),
+      '--label',
+      labels,
+    ];
+
+    if (input.tag) {
+      args.push('--tag', input.tag);
+    }
+
+    if (input.target) {
+      args.push('--target', input.target);
+    }
+
+    Object.entries(input.buildArgs || []).forEach(([key, value]) => {
+      args.push('--build-arg', `${key.trim()}=${value.trim()}`);
+    });
+
     const logFile = await this.context.monorepo.store.createWriteStream(
       `logs/docker/build/${input.tag}.log`,
     );
 
-    const decodeBuildkit = new Transform({
-      transform: async (chunk, encoding, callback) => {
-        try {
-          try {
-            const { aux } = JSON.parse(chunk);
-            const { vertexes } = await decodeBuildkitStatusResponse(aux);
+    const tee = new PassThrough();
+    tee.pipe(logFile);
 
-            vertexes.forEach((v: { name: string }) => {
-              logFile.write(`${JSON.stringify(v)}\n`);
-              this.out?.write(`${v.name}\n`);
-            });
-          } catch {
-            //
-          }
+    if (this.out) {
+      tee.pipe(this.out);
+    }
 
-          callback();
-        } catch (error) {
-          console.error('__OOPS', error);
+    tee.write('Building image with opts: ' + JSON.stringify(args));
+
+    const child = await spawn('docker', args);
+
+    child.stderr.pipe(tee);
+    child.stdout.pipe(tee);
+
+    return new Promise((resolve, reject) => {
+      child.on('close', () => {
+        resolve();
+      });
+
+      child.on('exit', (code, signal) => {
+        if (code !== 0) {
+          reject(
+            new CommandExecError('Docker build failed', code || -1, signal),
+          );
         }
-      },
+      });
+
+      child.on('error', (err) => {
+        reject(err);
+      });
     });
+  }
+
+  /**
+   * Experimental with dockerode and the docker API directly
+   */
+  protected async _buildWithDockerode(
+    input: z.input<typeof BuildImageOperationInputSchema>,
+  ): Promise<void> {
+    const logFile = await this.context.monorepo.store.createWriteStream(
+      `logs/docker/build/${input.tag}.log`,
+    );
 
     const stream = await this.context.docker.buildImage(
       {

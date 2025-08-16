@@ -25,7 +25,7 @@ export class ExecuteLocalCommandOperation extends AbstractOperation<
   typeof schema,
   Readable
 > {
-  constructor(protected out: Writable) {
+  constructor(protected out?: Writable) {
     super(schema);
   }
 
@@ -36,7 +36,9 @@ export class ExecuteLocalCommandOperation extends AbstractOperation<
       shell: true,
     });
 
-    process.all.pipe(this.out);
+    if (this.out) {
+      process.all.pipe(this.out);
+    }
 
     return process.all;
   }

@@ -168,6 +168,7 @@ export class BuildResourcesOperation extends AbstractOperation<
           },
         },
         {
+          rendererOptions: { persistentOutput: true },
           title: `Build ${resource.id}`,
           task: async (ctx, task) => {
             const skip = (prefix: string) => {
