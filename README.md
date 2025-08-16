@@ -14,7 +14,7 @@ $ npm install -g @enspirit/emb
 $ emb COMMAND
 running command...
 $ emb (--version)
-@enspirit/emb/0.4.2 darwin-x64 node-v22.18.0
+@enspirit/emb/0.5.0 darwin-x64 node-v22.18.0
 $ emb --help [COMMAND]
 USAGE
   $ emb COMMAND
@@ -43,7 +43,7 @@ USAGE
 * [`emb shell COMPONENT`](#emb-shell-component)
 * [`emb tasks`](#emb-tasks)
 * [`emb tasks run TASK`](#emb-tasks-run-task)
-* [`emb up`](#emb-up)
+* [`emb up [COMPONENT]`](#emb-up-component)
 * [`emb update [CHANNEL]`](#emb-update-channel)
 
 ## `emb autocomplete [SHELL]`
@@ -125,14 +125,13 @@ Get components logs.
 
 ```
 USAGE
-  $ emb components logs COMPONENT [--flavor <value>] [-f]
+  $ emb components logs COMPONENT [-f]
 
 ARGUMENTS
   COMPONENT  The component you want to see the logs of
 
 FLAGS
-  -f, --follow          Follow log output
-      --flavor=<value>  Specify the flavor to use.
+  -f, --follow  Follow log output
 
 DESCRIPTION
   Get components logs.
@@ -150,14 +149,13 @@ Get a shell on a running component.
 
 ```
 USAGE
-  $ emb components shell COMPONENT [--flavor <value>] [-s <value>]
+  $ emb components shell COMPONENT [-s <value>]
 
 ARGUMENTS
   COMPONENT  The component you want to get a shell on
 
 FLAGS
-  -s, --shell=<value>   [default: bash] The shell to run
-      --flavor=<value>  Specify the flavor to use.
+  -s, --shell=<value>  [default: bash] The shell to run
 
 DESCRIPTION
   Get a shell on a running component.
@@ -343,14 +341,13 @@ Get components logs.
 
 ```
 USAGE
-  $ emb logs COMPONENT [--flavor <value>] [-f]
+  $ emb logs COMPONENT [-f]
 
 ARGUMENTS
   COMPONENT  The component you want to see the logs of
 
 FLAGS
-  -f, --follow          Follow log output
-      --flavor=<value>  Specify the flavor to use.
+  -f, --follow  Follow log output
 
 DESCRIPTION
   Get components logs.
@@ -439,14 +436,13 @@ Get a shell on a running component.
 
 ```
 USAGE
-  $ emb shell COMPONENT [--flavor <value>] [-s <value>]
+  $ emb shell COMPONENT [-s <value>]
 
 ARGUMENTS
   COMPONENT  The component you want to get a shell on
 
 FLAGS
-  -s, --shell=<value>   [default: bash] The shell to run
-      --flavor=<value>  Specify the flavor to use.
+  -s, --shell=<value>  [default: bash] The shell to run
 
 DESCRIPTION
   Get a shell on a running component.
@@ -502,13 +498,16 @@ EXAMPLES
   $ emb tasks run
 ```
 
-## `emb up`
+## `emb up [COMPONENT]`
 
 Start the whole project.
 
 ```
 USAGE
-  $ emb up [--json] [--flavor <value>] [-f]
+  $ emb up [COMPONENT...] [--json] [--flavor <value>] [-f]
+
+ARGUMENTS
+  COMPONENT...  The component(s) to build and start
 
 FLAGS
   -f, --force           Bypass caches, force the recreation of containers, etc
