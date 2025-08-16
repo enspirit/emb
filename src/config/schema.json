@@ -232,8 +232,7 @@
           "then": {
             "properties": {
               "params": { "$ref": "#/definitions/DockerImageConfig" }
-            },
-            "required": ["params"]
+            }
           }
         },
         {
