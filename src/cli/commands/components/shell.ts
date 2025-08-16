@@ -1,12 +1,10 @@
 import { Args, Flags } from '@oclif/core';
 
-import { FlavoredCommand, getContext } from '@/cli';
+import { BaseCommand, getContext } from '@/cli';
 import { ComposeExecShellOperation } from '@/docker/index.js';
 import { ShellExitError } from '@/errors.js';
 
-export default class ComponentsLogs extends FlavoredCommand<
-  typeof ComponentsLogs
-> {
+export default class ComponentsLogs extends BaseCommand {
   static aliases: string[] = ['shell'];
   static description = 'Get a shell on a running component.';
   static enableJsonFlag = false;

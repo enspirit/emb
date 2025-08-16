@@ -1,11 +1,9 @@
 import { Args, Flags } from '@oclif/core';
 
-import { FlavoredCommand, getContext } from '@/cli';
+import { BaseCommand, getContext } from '@/cli';
 import { ListContainersOperation } from '@/docker/index.js';
 
-export default class ComponentsLogs extends FlavoredCommand<
-  typeof ComponentsLogs
-> {
+export default class ComponentsLogs extends BaseCommand {
   static aliases: string[] = ['logs'];
   static description = 'Get components logs.';
   static enableJsonFlag = false;
