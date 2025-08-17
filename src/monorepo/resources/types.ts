@@ -5,6 +5,13 @@ import { IOperation } from '@/operations/types.js';
 
 export type IResourceBuilder<Input, Output, Reason> = {
   /**
+   * Returns a string representing the resource to build
+   * Eg. the full name of a docker image (repo/imgname:tag)
+   * Eg. a file path
+   */
+  getReference(): Promise<string>;
+
+  /**
    * Returns input and operation required to actually
    * build the resources.
    * This allows the dry-run mechanism to be implemented outside

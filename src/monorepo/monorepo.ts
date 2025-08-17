@@ -105,17 +105,7 @@ export class Monorepo {
 
   get resources(): Array<ResourceInfo> {
     return this.components.reduce<Array<ResourceInfo>>((resources, cmp) => {
-      const cmpResources = Object.entries(cmp.resources || {}).map(
-        ([name, task]) => {
-          return {
-            ...task,
-            name,
-            id: `${cmp.name}:${name}`,
-          };
-        },
-      );
-
-      return [...resources, ...cmpResources];
+      return [...resources, ...Object.values(cmp.resources)];
     }, []);
   }
 

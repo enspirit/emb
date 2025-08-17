@@ -21,12 +21,20 @@ export class FileResourceBuilder
     protected context: ResourceBuildContext<OpInput<CreateFileOperation>>,
   ) {}
 
+  async getReference(): Promise<string> {
+    return this.context.component.relative(
+      this.context.config.params?.path || this.context.config.name,
+    );
+  }
+
   async build(
     resource: ResourceInfo<OpInput<CreateFileOperation>>,
     out?: Writable,
   ) {
     const input: OpInput<CreateFileOperation> = {
-      path: this.context.component.join(resource.params?.path || resource.name),
+      path: await this.context.component.join(
+        this.context.config.params?.path || this.context.config.name,
+      ),
     };
 
     return {

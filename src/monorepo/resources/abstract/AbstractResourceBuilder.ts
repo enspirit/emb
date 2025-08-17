@@ -46,4 +46,6 @@ export abstract class AbstractResourceBuilder<I, O, R>
   async commit(resource: ResourceInfo<I>, output: O, reason: R) {
     return this._commit?.(resource, output, reason);
   }
+
+  abstract getReference(): Promise<string>;
 }
