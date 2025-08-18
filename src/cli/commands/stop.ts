@@ -1,7 +1,7 @@
 import { Listr } from 'listr2';
 
 import { FlavoredCommand, getContext } from '@/cli';
-import { ComposeDownOperation } from '@/docker';
+import { ComposeStopOperation } from '@/docker';
 
 export default class StopCommand extends FlavoredCommand<typeof StopCommand> {
   static description = 'Stop the whole project.';
@@ -16,7 +16,7 @@ export default class StopCommand extends FlavoredCommand<typeof StopCommand> {
       {
         rendererOptions: { persistentOutput: true },
         async task(ctx, task) {
-          return monorepo.run(new ComposeDownOperation(task.stdout()), {});
+          return monorepo.run(new ComposeStopOperation(task.stdout()), {});
         },
         title: 'Stopping project',
       },
