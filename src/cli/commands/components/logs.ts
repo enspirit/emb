@@ -61,7 +61,7 @@ export default class ComponentsLogs extends BaseCommand {
         stdout: true,
       });
 
-      stream.pipe(process.stdout);
+      docker.modem.demuxStream(stream, process.stdout, process.stderr);
     } else {
       const res = await container.logs({
         stderr: true,
