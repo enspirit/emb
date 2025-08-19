@@ -30,7 +30,7 @@ export default class TasksIndex extends BaseCommand {
       }
 
       // Compare components (if both not null)
-      if (Boolean(ac) && Boolean(bc)) {
+      if (ac && bc && Boolean(ac) && Boolean(bc)) {
         const cmp = ac.localeCompare(bc);
         if (cmp !== 0) {
           return cmp;

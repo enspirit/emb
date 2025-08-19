@@ -27,7 +27,7 @@ export class MonorepoConfig implements EMBConfig {
     this.flavors = config.flavors || {};
     this.env = config.env || {};
     this.plugins = config.plugins || [];
-    this.tasks = toIdentifedHash(config.tasks || {}, 'global');
+    this.tasks = toIdentifedHash(config.tasks || {});
     this.components = config.components || {};
   }
 

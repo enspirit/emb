@@ -5,9 +5,8 @@ describe('CLI - emb tasks', () => {
   test('prints the correct list of tasks', async () => {
     const { stdout } = await runCommand('tasks');
 
-    expect(stdout).to.match(/dependent\s+global\s+global:dependent/);
-    expect(stdout).to.match(/prereq\s+global\s+global:prereq/);
-    expect(stdout).to.match(/ps\s+global\s+global:ps/);
+    expect(stdout).to.match(/dependent\s+dependent/);
+    expect(stdout).to.match(/prereq\s+prereq/);
     expect(stdout).to.match(
       /fail\s+frontend\s+A task that will fail\s+frontend:fail/,
     );

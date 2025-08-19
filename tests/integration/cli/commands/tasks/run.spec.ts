@@ -3,15 +3,15 @@ import { describe, expect, test } from 'vitest';
 
 describe('CLI - emb tasks run', () => {
   test('supports calling a single task (by id)', async () => {
-    const { stdout } = await runCommand('tasks run global:greet');
+    const { stdout } = await runCommand('tasks run greet');
 
-    expect(stdout).to.match(/Running global:greet/);
+    expect(stdout).to.match(/Running greet/);
   });
 
   test('supports calling a single task (by name)', async () => {
     const { stdout } = await runCommand('tasks run greet');
 
-    expect(stdout).to.match(/Running global:greet/);
+    expect(stdout).to.match(/Running greet/);
   });
 
   test('fails on unknown task (single)', async () => {
