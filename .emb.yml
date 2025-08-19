@@ -35,23 +35,17 @@ tasks:
   prereq:
     script: | # shell
       echo "I should run before task 'dependent'";
-      sleep 2
-      echo "cool?";
+      echo "'prereq' has run" > /tmp/tasks.txt
 
   dependent:
+    pre: ['prereq']
     script: | # shell
       echo I should run after task 'prereq'
-      echo "pas cool"
-      ls -la /
-    pre: ['prereq']
+      grep 'prereq' /tmp/tasks.txt || (echo "Prereq task has not run" && exit 1)
 
   greet:
     script: | # shell
       echo "Hello $USER!"
-
-  ps:
-    script: | # shell
-      docker compose ps
 
 flavors:
   production:

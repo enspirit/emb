@@ -7,7 +7,6 @@ describe('CLI - emb tasks', () => {
 
     expect(stdout).to.match(/dependent\s+dependent/);
     expect(stdout).to.match(/prereq\s+prereq/);
-    expect(stdout).to.match(/ps\s+ps/);
     expect(stdout).to.match(
       /fail\s+frontend\s+A task that will fail\s+frontend:fail/,
     );
