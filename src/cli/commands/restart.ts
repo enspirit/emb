@@ -1,12 +1,10 @@
 import { Args, Flags } from '@oclif/core';
 
-import { FlavoredCommand, getContext } from '@/cli';
+import { BaseCommand, getContext } from '@/cli';
 import { ComposeRestartOperation } from '@/docker/index.js';
 import { Component } from '@/monorepo/component.js';
 
-export default class RestartComand extends FlavoredCommand<
-  typeof RestartComand
-> {
+export default class RestartComand extends BaseCommand {
   static description = 'Restart the whole project.';
   static enableJsonFlag = true;
   static examples = ['<%= config.bin %> <%= command.id %>'];
