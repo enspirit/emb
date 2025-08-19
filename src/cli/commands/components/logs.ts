@@ -35,7 +35,6 @@ export default class ComponentsLogs extends BaseCommand {
         label: [
           `emb/project=${monorepo.name}`,
           `emb/component=${component.name}`,
-          `emb/flavor=${monorepo.currentFlavor}`,
         ],
       },
     });
