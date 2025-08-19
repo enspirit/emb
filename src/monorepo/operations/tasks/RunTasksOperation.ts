@@ -25,6 +25,10 @@ export type RunTasksOperationParams = {
 };
 
 export type TaskWithScript = TaskInfo & { script: string };
+export type TaskWithScriptAndComponent = TaskInfo & {
+  script: string;
+  component: string;
+};
 
 export class RunTasksOperation
   implements IOperation<RunTasksOperationParams, Array<TaskInfo>>
@@ -74,7 +78,7 @@ export class RunTasksOperation
 
             switch (executor) {
               case ExecutorType.container: {
-                return this.runDocker(task as TaskWithScript, tee);
+                return this.runDocker(task as TaskWithScriptAndComponent, tee);
               }
 
               case ExecutorType.local: {
@@ -96,12 +100,13 @@ export class RunTasksOperation
     return ordered;
   }
 
-  protected async runDocker(task: TaskWithScript, out?: Writable) {
+  protected async runDocker(task: TaskWithScriptAndComponent, out?: Writable) {
     const { monorepo } = getContext();
 
     return monorepo.run(new ComposeExecOperation(out), {
       service: task.component,
       command: task.script,
+      env: task.vars,
     });
   }
 

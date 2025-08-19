@@ -34,6 +34,7 @@ export class ExecuteLocalCommandOperation extends AbstractOperation<
       all: true,
       cwd: input.workingDir,
       shell: true,
+      env: input.env,
     });
 
     if (this.out) {

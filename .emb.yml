@@ -44,6 +44,8 @@ tasks:
       grep 'prereq' /tmp/tasks.txt || (echo "Prereq task has not run" && exit 1)
 
   greet:
+    vars:
+      USER: ${env:USER:-world}
     script: | # shell
       echo "Hello $USER!"
 

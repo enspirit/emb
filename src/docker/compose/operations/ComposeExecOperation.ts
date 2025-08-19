@@ -7,6 +7,11 @@ import { AbstractOperation } from '@/operations';
 
 const schema = z.object({
   command: z.string().describe('The command to execute on the service'),
+  env: z
+    .object()
+    .catchall(z.string())
+    .describe('Environment variables to pass to the execution')
+    .optional(),
   service: z
     .string()
     .describe('The name of the compose service to exec a shell'),
@@ -24,7 +29,15 @@ export class ComposeExecOperation extends AbstractOperation<
     const { monorepo } = this.context;
 
     const cmd = 'docker';
-    const args = ['compose', 'exec', input.service, input.command];
+    const args = ['compose', 'exec'];
+
+    // Add any env vars
+    Object.entries(input.env || {}).forEach(([key, value]) => {
+      args.push('-e', `${key.trim()}=${value.trim()}`);
+    });
+
+    // add component and script
+    args.push(input.service, input.command);
 
     const child = spawn(cmd, args, {
       stdio: 'pipe',

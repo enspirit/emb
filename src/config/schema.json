@@ -136,6 +136,13 @@
           "items": {
             "$ref": "#/definitions/Identifier"
           }
+        },
+        "vars": {
+          "type": "object",
+          "description": "Variables to pass onto the task",
+          "additionalProperties": {
+            "type": "string"
+          }
         }
       },
       "additionalProperties": false
