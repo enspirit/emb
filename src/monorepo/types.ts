@@ -5,6 +5,12 @@ import {
   TaskConfig,
 } from '@/config/types.js';
 
+export type MaybeComponentIdentifiable<T> = T & {
+  id: string;
+  name: string;
+  component?: string;
+};
+
 export type ComponentIdentifiable<T> = T & {
   id: string;
   name: string;
@@ -30,7 +36,7 @@ export type ComponentFlavors = {
   [k: string]: ComponentFlavorInfo;
 };
 
-export type TaskInfo = ComponentIdentifiable<TaskConfig>;
+export type TaskInfo = MaybeComponentIdentifiable<TaskConfig>;
 
 export type Tasks = {
   [k: string]: TaskInfo;

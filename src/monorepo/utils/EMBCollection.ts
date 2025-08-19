@@ -12,8 +12,6 @@ export type CollectionConfig<
 > = {
   idField: IDK;
   depField: DPK;
-  /** If true, throw when an item's id equals some other item's name (or vice versa). */
-  forbidIdNameCollision?: boolean;
 };
 
 export class EMBCollection<
@@ -25,7 +23,6 @@ export class EMBCollection<
   private items: T[];
   readonly idField: IDK;
   readonly depField: DPK;
-  readonly forbidIdNameCollision: boolean;
   //
   private byId: Map<string, T>;
   private byName: Map<string, T[]>;
@@ -34,7 +31,6 @@ export class EMBCollection<
     this.items = [];
     this.idField = cfg.idField;
     this.depField = cfg.depField;
-    this.forbidIdNameCollision = cfg.forbidIdNameCollision ?? true;
 
     this.byId = new Map<string, T>();
     this.byName = new Map<string, T[]>();
@@ -59,24 +55,6 @@ export class EMBCollection<
       } else {
         this.byId.set(id, t);
         seenIds.add(id);
-      }
-
-      // --- Optional validation: forbid id <-> name collisions ---
-      if (this.forbidIdNameCollision) {
-        if (seenNames.has(id)) {
-          const nameOwners = this.byName.get(id) ?? [];
-          const ownerIds = nameOwners.map((o) => o[this.idField]).join(', ');
-          collisions.push(
-            `value \`${id}\` is an id of \`${name}\` and also a name of item(s) with id(s): [${ownerIds}]`,
-          );
-        }
-
-        if (seenIds.has(name)) {
-          const idOwner = this.byId.get(name)!;
-          collisions.push(
-            `value \`${name}\` is a name of \`${t.name}\` and also an id of \`${idOwner.name}\``,
-          );
-        }
       }
 
       // byName index
@@ -110,6 +88,7 @@ export class EMBCollection<
         );
       }
 
+      console.error(parts);
       throw new ItemCollisionsError('Collision between items', parts);
     }
   }

@@ -73,7 +73,6 @@ export class BuildResourcesOperation extends AbstractOperation<
     const collection = new EMBCollection(monorepo.resources, {
       idField: 'id',
       depField: 'dependencies',
-      forbidIdNameCollision: true,
     });
 
     const ordered = findRunOrder(input.resources || [], collection);

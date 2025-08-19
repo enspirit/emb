@@ -47,7 +47,7 @@ tasks:
 
   greet:
     script: | # shell
-      echo "Hello world!"
+      echo "Hello $USER!"
 
   ps:
     script: | # shell

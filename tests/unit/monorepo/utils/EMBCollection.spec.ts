@@ -35,27 +35,6 @@ describe('Utils / EMBCollection', () => {
       );
     });
 
-    it('ensures there are no ID<>name conflicts in items', () => {
-      return simpleCollection(
-        [
-          { id: 'test', name: 'something' },
-          { id: 'frontend', name: 'test' },
-          { id: 'pre', name: 'fixtest' },
-        ],
-        (error) => {
-          expect(error).toBeInstanceOf(ItemCollisionsError);
-
-          const itemError = error as ItemCollisionsError;
-          expect(itemError.message).toMatch(/Collision between items/);
-          expect(itemError.collisions).toHaveLength(1);
-          const collision = itemError.collisions[0];
-          expect(collision).toMatch(
-            /value `test` is a name of `test` and also an id of `something`/,
-          );
-        },
-      );
-    });
-
     describe('#matches(ref)', () => {
       const items = [
         { id: 'global:ps', name: 'ps' },
