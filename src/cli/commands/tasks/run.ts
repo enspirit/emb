@@ -5,6 +5,7 @@ import { BaseCommand } from '@/cli/index.js';
 import { ExecutorType, RunTasksOperation } from '@/monorepo';
 
 export default class RunTask extends BaseCommand {
+  static aliases = ['run'];
   static args = {
     task: Args.string({
       description:
