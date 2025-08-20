@@ -2,7 +2,7 @@ import { getContext } from '@';
 import { ListrTask } from 'listr2';
 import { PassThrough, Writable } from 'node:stream';
 
-import { ComposeExecOperation } from '@/docker';
+import { ContainerExecOperation, ListContainersOperation } from '@/docker';
 import {
   EMBCollection,
   findRunOrder,
@@ -103,10 +103,29 @@ export class RunTasksOperation
   protected async runDocker(task: TaskWithScriptAndComponent, out?: Writable) {
     const { monorepo } = getContext();
 
-    return monorepo.run(new ComposeExecOperation(out), {
-      service: task.component,
-      command: task.script,
-      env: task.vars,
+    const containers = await monorepo.run(new ListContainersOperation(), {
+      filters: {
+        label: [
+          `emb/project=${monorepo.name}`,
+          `emb/component=${task.component}`,
+        ],
+      },
+    });
+
+    if (containers.length === 0) {
+      throw new Error(`No container found for component \`${task.component}\``);
+    }
+
+    if (containers.length > 1) {
+      throw new Error(
+        `More than one container found for component \`${task.component}\``,
+      );
+    }
+
+    return monorepo.run(new ContainerExecOperation(out), {
+      container: containers[0].Id,
+      script: task.script,
+      env: await monorepo.expand(task.vars || {}),
     });
   }
 
@@ -120,6 +139,7 @@ export class RunTasksOperation
     return monorepo.run(new ExecuteLocalCommandOperation(out), {
       script: task.script,
       workingDir: cwd,
+      env: await monorepo.expand(task.vars || {}),
     });
   }
 }

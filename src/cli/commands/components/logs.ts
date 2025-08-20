@@ -12,8 +12,9 @@ export default class ComponentsLogs extends BaseCommand {
     follow: Flags.boolean({
       name: 'follow',
       char: 'f',
+      allowNo: true,
       description: 'Follow log output',
-      default: false,
+      default: true,
     }),
   };
   static args = {
@@ -31,6 +32,7 @@ export default class ComponentsLogs extends BaseCommand {
     const component = monorepo.component(args.component);
 
     const containers = await monorepo.run(new ListContainersOperation(), {
+      all: true,
       filters: {
         label: [
           `emb/project=${monorepo.name}`,

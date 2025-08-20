@@ -8,21 +8,6 @@ import { AbstractOperation } from '@/operations';
  * https://docs.docker.com/reference/api/engine/version/v1.37/#tag/Exec/operation/ContainerExec
  */
 const schema = z.object({
-  attachStderr: z
-    .boolean()
-    .default(false)
-    .optional()
-    .describe('Attach to `stderr` of the exec command.'),
-  attachStdin: z
-    .boolean()
-    .default(false)
-    .optional()
-    .describe('Attach to `stdin` of the exec command.'),
-  attachStdout: z
-    .boolean()
-    .default(false)
-    .optional()
-    .describe('Attach to `stdout` of the exec command.'),
   container: z.string().describe('ID or name of the container'),
   env: z
     .record(z.string(), z.string())
@@ -57,9 +42,8 @@ export class ContainerExecOperation extends AbstractOperation<
     );
 
     const options: ExecCreateOptions = {
-      AttachStderr: input.attachStderr,
-      AttachStdin: input.attachStdin,
-      AttachStdout: input.attachStdout,
+      AttachStderr: true,
+      AttachStdout: true,
       Cmd: ['bash', '-eu', '-o', 'pipefail', '-c', input.script],
       Env: envVars,
       Tty: input.tty,
@@ -69,7 +53,7 @@ export class ContainerExecOperation extends AbstractOperation<
     const exec = await container.exec(options);
 
     const stream = await exec.start({});
-    container.modem.demuxStream(
+    exec.modem.demuxStream(
       stream,
       this.out || process.stdout,
       this.out || process.stderr,
