@@ -88,7 +88,6 @@ export class EMBCollection<
         );
       }
 
-      console.error(parts);
       throw new ItemCollisionsError('Collision between items', parts);
     }
   }
