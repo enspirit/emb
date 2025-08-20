@@ -31,6 +31,7 @@ export default class ComponentsLogs extends BaseCommand {
     const component = monorepo.component(args.component);
 
     const containers = await monorepo.run(new ListContainersOperation(), {
+      all: true,
       filters: {
         label: [
           `emb/project=${monorepo.name}`,
