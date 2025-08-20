@@ -12,8 +12,9 @@ export default class ComponentsLogs extends BaseCommand {
     follow: Flags.boolean({
       name: 'follow',
       char: 'f',
+      allowNo: true,
       description: 'Follow log output',
-      default: false,
+      default: true,
     }),
   };
   static args = {
