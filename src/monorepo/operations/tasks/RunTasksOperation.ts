@@ -125,7 +125,7 @@ export class RunTasksOperation
     return monorepo.run(new ContainerExecOperation(out), {
       container: containers[0].Id,
       script: task.script,
-      env: task.vars,
+      env: await monorepo.expand(task.vars || {}),
     });
   }
 
@@ -139,6 +139,7 @@ export class RunTasksOperation
     return monorepo.run(new ExecuteLocalCommandOperation(out), {
       script: task.script,
       workingDir: cwd,
+      env: await monorepo.expand(task.vars || {}),
     });
   }
 }
