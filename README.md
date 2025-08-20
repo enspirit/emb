@@ -14,7 +14,7 @@ $ npm install -g @enspirit/emb
 $ emb COMMAND
 running command...
 $ emb (--version)
-@enspirit/emb/0.5.2 darwin-x64 node-v22.18.0
+@enspirit/emb/0.5.3 darwin-x64 node-v22.18.0
 $ emb --help [COMMAND]
 USAGE
   $ emb COMMAND
@@ -40,6 +40,8 @@ USAGE
 * [`emb ps`](#emb-ps)
 * [`emb resources`](#emb-resources)
 * [`emb resources build [COMPONENT]`](#emb-resources-build-component)
+* [`emb restart [COMPONENT]`](#emb-restart-component)
+* [`emb run TASK`](#emb-run-task)
 * [`emb shell COMPONENT`](#emb-shell-component)
 * [`emb stop`](#emb-stop)
 * [`emb tasks`](#emb-tasks)
@@ -132,7 +134,7 @@ ARGUMENTS
   COMPONENT  The component you want to see the logs of
 
 FLAGS
-  -f, --follow  Follow log output
+  -f, --[no-]follow  Follow log output
 
 DESCRIPTION
   Get components logs.
@@ -348,7 +350,7 @@ ARGUMENTS
   COMPONENT  The component you want to see the logs of
 
 FLAGS
-  -f, --follow  Follow log output
+  -f, --[no-]follow  Follow log output
 
 DESCRIPTION
   Get components logs.
@@ -429,6 +431,59 @@ DESCRIPTION
 
 EXAMPLES
   $ emb resources build build --flavor development
+```
+
+## `emb restart [COMPONENT]`
+
+Restart the whole project.
+
+```
+USAGE
+  $ emb restart [COMPONENT...] [--json] [-f]
+
+ARGUMENTS
+  COMPONENT...  The component(s) to restart
+
+FLAGS
+  -f, --no-deps  Don't restart depdendent components
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Restart the whole project.
+
+EXAMPLES
+  $ emb restart
+```
+
+## `emb run TASK`
+
+Run tasks.
+
+```
+USAGE
+  $ emb run TASK... [--json] [-x container|local] [-a]
+
+ARGUMENTS
+  TASK...  List of tasks to run. You can provide either ids or names (eg: component:task or task)
+
+FLAGS
+  -a, --all-matching       Run all tasks matching (when multiple matches)
+  -x, --executor=<option>  Where to run the task. (experimental!)
+                           <options: container|local>
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Run tasks.
+
+ALIASES
+  $ emb run
+
+EXAMPLES
+  $ emb run
 ```
 
 ## `emb shell COMPONENT`
@@ -515,6 +570,9 @@ GLOBAL FLAGS
 
 DESCRIPTION
   Run tasks.
+
+ALIASES
+  $ emb run
 
 EXAMPLES
   $ emb tasks run
