@@ -14,7 +14,7 @@ $ npm install -g @enspirit/emb
 $ emb COMMAND
 running command...
 $ emb (--version)
-@enspirit/emb/0.5.3 darwin-x64 node-v22.18.0
+@enspirit/emb/0.6.0 darwin-x64 node-v22.18.0
 $ emb --help [COMMAND]
 USAGE
   $ emb COMMAND
@@ -36,6 +36,7 @@ USAGE
 * [`emb images`](#emb-images)
 * [`emb images delete`](#emb-images-delete)
 * [`emb images prune`](#emb-images-prune)
+* [`emb images push`](#emb-images-push)
 * [`emb logs COMPONENT`](#emb-logs-component)
 * [`emb ps`](#emb-ps)
 * [`emb resources`](#emb-resources)
@@ -336,6 +337,31 @@ DESCRIPTION
 
 EXAMPLES
   $ emb images prune
+```
+
+## `emb images push`
+
+Push docker images.
+
+```
+USAGE
+  $ emb images push [--json] [--flavor <value>] [--registry <value>] [--retag <value>]
+
+FLAGS
+  --flavor=<value>    Specify the flavor to use.
+  --registry=<value>  Override the registry to push to
+  --retag=<value>     Override the original tag to push to a new tag
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Push docker images.
+
+EXAMPLES
+  $ emb images push
+
+  $ emb images push --registry my.registry.io --retag newtag
 ```
 
 ## `emb logs COMPONENT`
