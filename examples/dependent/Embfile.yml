@@ -1,8 +1,9 @@
 # yaml-language-server: $schema=../../src/config/schema.json#/definitions/ComponentConfig
 #
-# Sometimes we have inter-components dependencies
+# Sometimes we have dependencies or event inter-components dependencies
 # (for instance when reusing images)
-# This ensures that 'base' is built before 'dependent'
+# This examples ensures that the 'base:image' is built before 'dependent'
+# and that the file test.html
 #
 # (FYI: EMB will check and fail if it detects circular dependencies)
 resources:
@@ -10,6 +11,20 @@ resources:
     type: docker/image
     dependencies:
       - base:image
+      - dependencies.txt
     params:
       buildArgs:
         BASE_IMAGE: emb/base:${env:DOCKER_TAG}
+
+  dependencies.txt:
+    type: file
+    params:
+      # The script used to generate the file
+      script: | # shell
+        echo "Something" > dependencies.txt
+
+tasks:
+  test:
+    script: | # shell
+      grep -i "something" dependencies.txt
+      grep -i "base:image" dependencies.txt
