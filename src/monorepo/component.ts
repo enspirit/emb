@@ -81,4 +81,8 @@ export class Component implements ComponentConfig {
   join(path: string) {
     return this.monorepo.join(join(this.rootDir, path));
   }
+
+  relative(path: string) {
+    return join(this.rootDir, path);
+  }
 }

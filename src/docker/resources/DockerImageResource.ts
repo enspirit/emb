@@ -33,6 +33,17 @@ class DockerImageResourceBuilder extends SentinelFileBasedBuilder<
       : buildContext.monorepo.join(buildContext.component.rootDir);
   }
 
+  async getReference(): Promise<string> {
+    const imageName = [
+      this.monorepo.name,
+      this.config?.tag || this.component.name,
+    ].join('/');
+    const tagName =
+      this.config?.tag || this.monorepo.defaults.docker?.tag || 'latest';
+
+    return this.monorepo.expand(`${imageName}:${tagName}`);
+  }
+
   get monorepo() {
     return this.buildContext.monorepo;
   }
@@ -52,13 +63,6 @@ class DockerImageResourceBuilder extends SentinelFileBasedBuilder<
     // Ensure the folder exists
     await statfs(this.dockerContext);
 
-    const imageName = [
-      this.monorepo.name,
-      this.config?.tag || this.component.name,
-    ].join('/');
-    const tagName =
-      this.config?.tag || this.monorepo.defaults.docker?.tag || 'latest';
-
     const crawler = new Fdir();
     const sources = await crawler
       .withRelativePaths()
@@ -73,7 +77,7 @@ class DockerImageResourceBuilder extends SentinelFileBasedBuilder<
         ...this.monorepo.defaults.docker?.buildArgs,
         ...this.config?.buildArgs,
       }),
-      tag: await this.monorepo.expand(`${imageName}:${tagName}`),
+      tag: await this.getReference(),
       labels: await this.monorepo.expand({
         ...this.config?.labels,
         'emb/project': this.monorepo.name,

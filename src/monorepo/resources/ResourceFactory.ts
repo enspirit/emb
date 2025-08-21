@@ -37,7 +37,9 @@ export class ResourceFactory {
     const BuilderClass = this.types[type];
 
     if (!BuilderClass) {
-      throw new Error(`Unknown resource type \`${type}\``);
+      throw new Error(
+        `Unknown resource type \`${type}\` (${context.config.id})`,
+      );
     }
 
     return new BuilderClass(context);
