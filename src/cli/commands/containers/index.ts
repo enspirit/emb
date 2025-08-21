@@ -44,7 +44,7 @@ export default class ContainersIndex extends BaseCommand {
           id: shortId(c.Id),
           image: c.Image,
           name: c.Names[0] || c.Id,
-          ports: c.Ports.map((p) => {
+          ports: c.Ports?.map((p) => {
             const parts = [];
 
             if (p.IP) {
