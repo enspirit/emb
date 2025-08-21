@@ -1,4 +1,4 @@
-import { EmbContext, getContext, setContext } from '@';
+import { DockerComposeClient, EmbContext, getContext, setContext } from '@';
 import { Command, Performance } from '@oclif/core';
 import Dockerode from 'dockerode';
 
@@ -38,9 +38,12 @@ export abstract class BaseCommand extends Command {
         return new Monorepo(config, rootDir).init();
       });
 
+      const compose = new DockerComposeClient(monorepo);
+
       this.context = setContext({
         docker: new Dockerode(),
         monorepo,
+        compose,
       });
     } catch (error) {
       this.error(error as Error);

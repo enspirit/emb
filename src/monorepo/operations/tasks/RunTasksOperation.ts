@@ -2,7 +2,7 @@ import { getContext } from '@';
 import { ListrTask } from 'listr2';
 import { PassThrough, Writable } from 'node:stream';
 
-import { ContainerExecOperation, ListContainersOperation } from '@/docker';
+import { ContainerExecOperation } from '@/docker';
 import {
   EMBCollection,
   findRunOrder,
@@ -101,29 +101,11 @@ export class RunTasksOperation
   }
 
   protected async runDocker(task: TaskWithScriptAndComponent, out?: Writable) {
-    const { monorepo } = getContext();
+    const { monorepo, compose } = getContext();
 
-    const containers = await monorepo.run(new ListContainersOperation(), {
-      filters: {
-        label: [
-          `emb/project=${monorepo.name}`,
-          `emb/component=${task.component}`,
-        ],
-      },
-    });
-
-    if (containers.length === 0) {
-      throw new Error(`No container found for component \`${task.component}\``);
-    }
-
-    if (containers.length > 1) {
-      throw new Error(
-        `More than one container found for component \`${task.component}\``,
-      );
-    }
-
+    const containerID = await compose.getContainer(task.component);
     return monorepo.run(new ContainerExecOperation(out), {
-      container: containers[0].Id,
+      container: containerID,
       script: task.script,
       env: await monorepo.expand(task.vars || {}),
     });

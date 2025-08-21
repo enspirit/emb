@@ -1,7 +1,6 @@
 import { Args, Flags } from '@oclif/core';
 
 import { BaseCommand, getContext } from '@/cli';
-import { ListContainersOperation } from '@/docker/index.js';
 
 export default class ComponentsLogs extends BaseCommand {
   static aliases: string[] = ['logs'];
@@ -27,33 +26,13 @@ export default class ComponentsLogs extends BaseCommand {
 
   public async run(): Promise<void> {
     const { flags, args } = await this.parse(ComponentsLogs);
-    const { monorepo, docker } = await getContext();
+    const { monorepo, docker, compose } = await getContext();
 
     const component = monorepo.component(args.component);
-
-    const containers = await monorepo.run(new ListContainersOperation(), {
-      all: true,
-      filters: {
-        label: [
-          `emb/project=${monorepo.name}`,
-          `emb/component=${component.name}`,
-        ],
-      },
+    const containerId = await compose.getContainer(component.name, {
+      mustBeRunning: false,
     });
-
-    if (containers.length === 0) {
-      return this.error(
-        `No container found for component \`${component.name}\``,
-      );
-    }
-
-    if (containers.length > 1) {
-      return this.error(
-        `More than one container found for component \`${component.name}\``,
-      );
-    }
-
-    const container = await docker.getContainer(containers[0].Id);
+    const container = await docker.getContainer(containerId);
 
     if (flags.follow) {
       const stream = await container.logs({
