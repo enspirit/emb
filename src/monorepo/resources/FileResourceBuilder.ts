@@ -35,6 +35,8 @@ export class FileResourceBuilder
       path: await this.context.component.join(
         this.context.config.params?.path || this.context.config.name,
       ),
+      script: resource.params?.script,
+      cwd: this.context.component.join('./'),
     };
 
     return {
