@@ -25,12 +25,16 @@ export const DefaultGetContainerOptions: GetContainerOptions = {
 };
 
 export class DockerComposeClient {
-  protected containers?: ComposeServices;
+  protected services?: ComposeServices;
 
   constructor(protected monorepo: Monorepo) {}
 
   async init() {
     await this.loadContainers();
+  }
+
+  isService(component: string) {
+    return this.services?.has(component);
   }
 
   async getContainer(
@@ -41,7 +45,7 @@ export class DockerComposeClient {
 
     await this.loadContainers();
 
-    const service = this.containers?.get(serviceName);
+    const service = this.services?.get(serviceName);
     if (!service) {
       throw new Error(`No compose service found with name ${serviceName}`);
     }
@@ -62,29 +66,34 @@ export class DockerComposeClient {
   }
 
   private async loadContainers(force = false) {
-    if (this.containers && !force) {
+    if (this.services && !force) {
       return;
     }
+
+    const { stdout: servicesOutput } = await execa({
+      cwd: this.monorepo.rootDir,
+    })`docker compose config --services`;
+
+    const services = servicesOutput
+      .split('\n')
+      .map((l) => l.trim())
+      .reduce<ComposeServices>((services, name) => {
+        services.set(name, { name, containers: [] });
+        return services;
+      }, new Map());
 
     const { stdout } = await execa({
       cwd: this.monorepo.rootDir,
     })`docker compose ps -a --format json`;
 
-    this.containers = stdout
+    this.services = stdout
       .split('\n')
       .map((l) => JSON.parse(l))
       .reduce<ComposeServices>((services, entry) => {
-        if (!services.has(entry.Service)) {
-          services.set(entry.Service, {
-            name: entry.Service,
-            containers: [],
-          });
-        }
-
         const svc = services.get(entry.Service);
         svc?.containers.push(entry);
 
         return services;
-      }, new Map());
+      }, services);
   }
 }

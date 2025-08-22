@@ -12,7 +12,7 @@ describe('CLI - emb config print', () => {
     const config = JSON.parse(stdout);
 
     expect(config.project.name).to.equal('emb');
-    expect(Object.keys(config.components).length).to.equal(7);
+    expect(Object.keys(config.components).length).to.equal(8);
   });
 
   test('works on yaml mode (default)', async () => {
@@ -21,7 +21,7 @@ describe('CLI - emb config print', () => {
     const config = YAML.parse(stdout);
 
     expect(config.project.name).to.equal('emb');
-    expect(Object.keys(config.components).length).to.equal(7);
+    expect(Object.keys(config.components).length).to.equal(8);
   });
 
   test('supports --flavor', async () => {
@@ -29,7 +29,7 @@ describe('CLI - emb config print', () => {
 
     const config = YAML.parse(stdout);
     expect(config.project.name).to.equal('emb');
-    expect(Object.keys(config.components).length).to.equal(7);
+    expect(Object.keys(config.components).length).to.equal(8);
 
     // Frontend has overrides for that flavor
     const { frontend } = config.components;

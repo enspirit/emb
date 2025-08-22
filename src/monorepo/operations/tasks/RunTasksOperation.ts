@@ -32,7 +32,7 @@ export class RunTasksOperation
   implements IOperation<RunTasksOperationParams, Array<TaskInfo>>
 {
   async run(params: RunTasksOperationParams): Promise<Array<TaskInfo>> {
-    const { monorepo } = getContext();
+    const { monorepo, compose } = getContext();
 
     // First ensure the selection is valid (user can use task IDs or names)
     const collection = new EMBCollection(monorepo.tasks, {
@@ -59,11 +59,18 @@ export class RunTasksOperation
 
             const executor =
               params.executor ??
-              (task.component ? ExecutorType.container : ExecutorType.local);
+              (task.component
+                ? compose.isService(task.component)
+                  ? ExecutorType.container
+                  : ExecutorType.local
+                : ExecutorType.local);
 
-            if (executor === ExecutorType.container && !task.component) {
+            if (
+              executor === ExecutorType.container &&
+              (!task.component || !compose.isService(task.component))
+            ) {
               throw new Error(
-                'Cannot use the container executor with global tasks',
+                'Cannot use the container executor with this task',
               );
             }
 
