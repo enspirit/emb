@@ -1,3 +1,7 @@
+## 0.8.2 - 2024-08-22
+
+* 'emb' defaults to 'emb tasks run' (eg. `emb test`)
+
 ## 0.8.1 - 2024-08-22
 
 * Tasks run on local executor by default if component is not backed by a running compose service
