@@ -1,3 +1,5 @@
+import { Performance } from '@oclif/core';
+
 const DATE_UNITS: Partial<Record<Intl.RelativeTimeFormatUnit, number>> = {
   day: 86_400,
   hour: 3600,
@@ -32,4 +34,18 @@ export const getTimeAgo = (timestamp?: number) => {
   const { value, unit } = getUnitAndValueDate(secondsElapsed);
 
   return rtf.format(value, unit);
+};
+
+export const withMarker = async <T>(
+  owner: string,
+  name: string,
+  cb: () => Promise<T>,
+): Promise<T> => {
+  const marker = Performance.mark(owner, name);
+
+  const res = await cb();
+
+  marker?.stop();
+
+  return res;
 };

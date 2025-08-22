@@ -1,23 +1,11 @@
 import { DockerComposeClient, EmbContext, getContext, setContext } from '@';
-import { Command, Performance } from '@oclif/core';
+import { Command } from '@oclif/core';
 import Dockerode from 'dockerode';
 
 import { loadConfig } from '@/config/index.js';
 import { Monorepo } from '@/monorepo/monorepo.js';
 
-const withMarker = async <T>(
-  owner: string,
-  name: string,
-  cb: () => Promise<T>,
-): Promise<T> => {
-  const marker = Performance.mark(owner, name);
-
-  const res = await cb();
-
-  marker?.stop();
-
-  return res;
-};
+import { withMarker } from '../utils.js';
 
 export abstract class BaseCommand extends Command {
   protected context!: EmbContext;
