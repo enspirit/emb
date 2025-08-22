@@ -13,11 +13,17 @@ const __dirname = dirname(__filename);
 
 function parseMeta(meta?: null | string | undefined) {
   const out: Record<string, string> = {};
-  if (!meta) return out;
+  if (!meta) {
+    return out;
+  }
+
   for (const m of meta.split(/\s+/)) {
     const [k, v] = m.split('=');
-    if (k && v) out[k] = v.replaceAll(/^"|"$/g, '');
-    else if (k && !v) out[k] = 'true';
+    if (k && v) {
+      out[k] = v.replaceAll(/^"|"$/g, '');
+    } else if (k && !v) {
+      out[k] = 'true';
+    }
   }
 
   return out;
