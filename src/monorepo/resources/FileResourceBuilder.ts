@@ -1,3 +1,4 @@
+import { statfs } from 'node:fs/promises';
 import { Writable } from 'node:stream';
 
 import {
@@ -14,7 +15,7 @@ export class FileResourceBuilder
     IResourceBuilder<
       OpInput<CreateFileOperation>,
       OpOutput<CreateFileOperation>,
-      void
+      boolean
     >
 {
   constructor(
@@ -27,14 +28,26 @@ export class FileResourceBuilder
     );
   }
 
+  async getPath() {
+    return this.context.component.join(
+      this.context.config.params?.path || this.context.config.name,
+    );
+  }
+
+  async mustBuild() {
+    try {
+      await statfs(await this.getPath());
+    } catch {
+      return true;
+    }
+  }
+
   async build(
     resource: ResourceInfo<OpInput<CreateFileOperation>>,
     out?: Writable,
   ) {
     const input: OpInput<CreateFileOperation> = {
-      path: await this.context.component.join(
-        this.context.config.params?.path || this.context.config.name,
-      ),
+      path: await this.getPath(),
       script: resource.params?.script,
       cwd: this.context.component.join('./'),
     };
