@@ -14,6 +14,7 @@ export default class ImagesPush extends FlavoredCommand<typeof ImagesPush> {
     registry: Flags.string({
       name: 'registry',
       description: 'Override the registry to push to',
+      default: process.env.DOCKER_REGISTRY,
     }),
     retag: Flags.string({
       name: 'retag',
