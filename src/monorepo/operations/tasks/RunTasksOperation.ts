@@ -1,14 +1,11 @@
 import { getContext } from '@';
-import { ListrTask } from 'listr2';
+import { input } from '@inquirer/prompts';
+import { ListrInquirerPromptAdapter } from '@listr2/prompt-adapter-inquirer';
+import { Listr, ListrTask } from 'listr2';
 import { PassThrough, Writable } from 'node:stream';
 
 import { ContainerExecOperation } from '@/docker';
-import {
-  EMBCollection,
-  findRunOrder,
-  TaskInfo,
-  taskManagerFactory,
-} from '@/monorepo';
+import { EMBCollection, findRunOrder, TaskInfo } from '@/monorepo';
 import { IOperation } from '@/operations';
 
 import { ExecuteLocalCommandOperation } from '../index.js';
@@ -22,6 +19,7 @@ export type RunTasksOperationParams = {
   tasks: Array<string>;
   executor?: ExecutorType | undefined;
   allMatching?: boolean;
+  verbose?: boolean;
 };
 
 export type TaskWithScript = TaskInfo & { script: string };
@@ -46,9 +44,7 @@ export class RunTasksOperation
       onAmbiguous: params.allMatching ? 'runAll' : 'error',
     });
 
-    const manager = taskManagerFactory();
-
-    manager.add(
+    const tasks = new Listr(
       ordered.map((task) => {
         return {
           rendererOptions: {
@@ -59,6 +55,8 @@ export class RunTasksOperation
               return;
             }
 
+            const vars = await monorepo.expand(task.vars || {});
+
             const executor =
               params.executor ??
               (task.component ? ExecutorType.container : ExecutorType.local);
@@ -67,6 +65,26 @@ export class RunTasksOperation
               throw new Error(
                 'Cannot use the container executor with global tasks',
               );
+            }
+
+            // Handle tasks that require confirmation
+            if (task.confirm) {
+              const expected = await monorepo.expand(
+                task.confirm.expect || 'yes',
+                vars,
+              );
+
+              const message = await monorepo.expand(task.confirm.message, vars);
+
+              const res = await listrTask
+                .prompt(ListrInquirerPromptAdapter)
+                .run(input, {
+                  message: `${message} (type '${expected}' to continue)`,
+                });
+
+              if (res !== expected) {
+                throw new Error('Task canceled');
+              }
             }
 
             const tee = new PassThrough();
@@ -95,7 +113,7 @@ export class RunTasksOperation
       }) as Array<ListrTask>,
     );
 
-    await manager.runAll();
+    await tasks.run();
 
     return ordered;
   }

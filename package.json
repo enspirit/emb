@@ -59,6 +59,8 @@
     "find-up": "^7.0.0",
     "glob": "^11.0.3",
     "graphlib": "^2.1.8",
+    "@inquirer/prompts": "^7.8.3",
+    "@listr2/prompt-adapter-inquirer": "^3.0.2",
     "listr2": "^9.0.1",
     "luxon": "^3.7.1",
     "protobufjs": "^7.5.3",

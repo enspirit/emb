@@ -143,6 +143,19 @@
           "additionalProperties": {
             "type": "string"
           }
+        },
+        "confirm": {
+          "type": "object",
+          "description": "Ask for user confirmation before running task",
+          "required": ["message"],
+          "properties": {
+            "message": {
+              "type": "string"
+            },
+            "expect": {
+              "type": "string"
+            }
+          }
         }
       },
       "additionalProperties": false

@@ -138,13 +138,14 @@ export class Monorepo {
   // Helper to expand a record of strings
   async expand<T extends Expandable>(
     toExpand: T,
+    vars?: Record<string, unknown>,
     expander = new TemplateExpander(),
   ) {
     const options = {
       default: 'vars',
       sources: {
         env: process.env,
-        vars: this.vars,
+        vars: vars || this.vars,
       },
     };
 
