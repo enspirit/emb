@@ -14,7 +14,7 @@ $ npm install -g @enspirit/emb
 $ emb COMMAND
 running command...
 $ emb (--version)
-@enspirit/emb/0.8.4 darwin-x64 node-v22.18.0
+@enspirit/emb/0.9.0 darwin-x64 node-v22.18.0
 $ emb --help [COMMAND]
 USAGE
   $ emb COMMAND
@@ -44,6 +44,7 @@ USAGE
 * [`emb restart [COMPONENT]`](#emb-restart-component)
 * [`emb run TASK`](#emb-run-task)
 * [`emb shell COMPONENT`](#emb-shell-component)
+* [`emb start [COMPONENT]`](#emb-start-component)
 * [`emb stop`](#emb-stop)
 * [`emb tasks`](#emb-tasks)
 * [`emb tasks run TASK`](#emb-tasks-run-task)
@@ -534,6 +535,27 @@ ALIASES
 
 EXAMPLES
   $ emb shell
+```
+
+## `emb start [COMPONENT]`
+
+Starts the whole project.
+
+```
+USAGE
+  $ emb start [COMPONENT...] [--json]
+
+ARGUMENTS
+  COMPONENT...  The component(s) to start
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Starts the whole project.
+
+EXAMPLES
+  $ emb start
 ```
 
 ## `emb stop`
