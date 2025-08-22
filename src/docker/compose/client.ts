@@ -33,7 +33,8 @@ export class DockerComposeClient {
     await this.loadContainers();
   }
 
-  isService(component: string) {
+  async isService(component: string) {
+    await this.init();
     return this.services?.has(component);
   }
 

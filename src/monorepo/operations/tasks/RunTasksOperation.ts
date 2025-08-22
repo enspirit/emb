@@ -60,11 +60,12 @@ export class RunTasksOperation
             const executor =
               params.executor ??
               (task.component
-                ? compose.isService(task.component)
+                ? (await compose.isService(task.component))
                   ? ExecutorType.container
                   : ExecutorType.local
                 : ExecutorType.local);
 
+            console.log(compose.isService(task.component!), task.component);
             if (
               executor === ExecutorType.container &&
               (!task.component || !compose.isService(task.component))
