@@ -14,6 +14,7 @@ export abstract class FlavoredCommand<
 > extends BaseCommand {
   // define flags that can be inherited by any command that extends FlavoredCommand
   static baseFlags = {
+    ...super.baseFlags,
     flavor: Flags.string({
       description: 'Specify the flavor to use.',
       name: 'flavor',

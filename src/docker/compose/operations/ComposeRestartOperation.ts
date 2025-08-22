@@ -1,7 +1,7 @@
 import { getContext } from '@';
 import * as z from 'zod';
 
-import { ExecuteLocalCommandOperation, taskManagerFactory } from '@/monorepo';
+import { ExecuteLocalCommandOperation } from '@/monorepo';
 import { AbstractOperation } from '@/operations';
 
 /**
@@ -27,7 +27,7 @@ export class ComposeRestartOperation extends AbstractOperation<
 
   protected async _run(input: z.input<typeof schema>): Promise<void> {
     const { monorepo } = getContext();
-    const manager = taskManagerFactory();
+    const manager = monorepo.taskManager();
 
     const command = ['docker', 'compose', 'restart'];
 

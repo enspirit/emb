@@ -7,24 +7,38 @@ import {
   PRESET_TIMER,
 } from 'listr2';
 
-export function taskManagerFactory<
+export class TaskManagerFactory<
   Ctx = ListrContext,
   FallbackRenderer extends ListrRendererValue = ListrSecondaryRendererValue,
->(): Manager<Ctx, ListrRendererValue, FallbackRenderer> {
-  return new Manager({
-    collectErrors: 'minimal',
-    concurrent: false,
-    exitOnError: true,
-    rendererOptions: {
-      collapseErrors: false,
-      collapseSubtasks: false,
-      collapseSkips: false,
-      icon: {
-        [ListrDefaultRendererLogLevels.SKIPPED_WITH_COLLAPSE]: '♺',
+> {
+  constructor(private renderer: ListrRendererValue = 'default') {}
+
+  setRenderer(renderer: ListrRendererValue) {
+    this.renderer = renderer;
+  }
+
+  factor(): Manager<Ctx, ListrRendererValue, FallbackRenderer> {
+    if (this.renderer === 'verbose') {
+      return new Manager({
+        renderer: 'verbose',
+      });
+    }
+
+    return new Manager({
+      collectErrors: 'minimal',
+      concurrent: false,
+      exitOnError: true,
+      rendererOptions: {
+        collapseErrors: false,
+        collapseSubtasks: false,
+        collapseSkips: false,
+        icon: {
+          [ListrDefaultRendererLogLevels.SKIPPED_WITH_COLLAPSE]: '♺',
+        },
+        timer: {
+          ...PRESET_TIMER,
+        },
       },
-      timer: {
-        ...PRESET_TIMER,
-      },
-    },
-  });
+    });
+  }
 }

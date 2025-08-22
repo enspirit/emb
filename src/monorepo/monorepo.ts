@@ -1,4 +1,6 @@
+import { TaskManagerFactory } from '@';
 import jsonpatch from 'fast-json-patch';
+import { ListrRendererValue } from 'listr2';
 import { join } from 'node:path';
 
 import { EMBConfig, JsonPatchOperation } from '@/config/types.js';
@@ -14,6 +16,7 @@ import { ResourceInfo, TaskInfo } from './types.js';
 export class Monorepo {
   private _config: MonorepoConfig;
   private _store!: EMBStore;
+  private _managerFactory = new TaskManagerFactory();
   private initialized = false;
 
   constructor(
@@ -133,6 +136,15 @@ export class Monorepo {
 
   get vars(): Record<string, unknown> {
     return this._config.vars;
+  }
+
+  // Helper to get a listr2 task manager
+  taskManager() {
+    return this._managerFactory.factor();
+  }
+
+  setTaskRenderer(renderer: ListrRendererValue) {
+    this._managerFactory.setRenderer(renderer);
   }
 
   // Helper to expand a record of strings

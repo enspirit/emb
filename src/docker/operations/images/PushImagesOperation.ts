@@ -1,4 +1,3 @@
-import { taskManagerFactory } from '@';
 import { ListrTask } from 'listr2';
 import { join } from 'node:path/posix';
 import { Transform, Writable } from 'node:stream';
@@ -50,7 +49,7 @@ export class PushImagesOperation extends AbstractOperation<
         }),
     );
 
-    const manager = taskManagerFactory();
+    const manager = monorepo.taskManager();
     const tasks: Array<ListrTask> = references.map((fullName) => {
       return {
         title: `Push ${fullName}`,

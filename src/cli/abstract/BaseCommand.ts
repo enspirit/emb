@@ -1,5 +1,5 @@
 import { DockerComposeClient, EmbContext, getContext, setContext } from '@';
-import { Command } from '@oclif/core';
+import { Command, Flags } from '@oclif/core';
 import Dockerode from 'dockerode';
 
 import { loadConfig } from '@/config/index.js';
@@ -9,8 +9,16 @@ import { withMarker } from '../utils.js';
 
 export abstract class BaseCommand extends Command {
   protected context!: EmbContext;
+  static baseFlags = {
+    verbose: Flags.boolean({
+      name: 'verbose',
+      allowNo: true,
+    }),
+  };
 
   public async init(): Promise<void> {
+    const { flags } = await this.parse();
+
     await super.init();
 
     if (getContext()) {
@@ -25,6 +33,10 @@ export abstract class BaseCommand extends Command {
       const monorepo = await withMarker('emb:monorepo', 'init', () => {
         return new Monorepo(config, rootDir).init();
       });
+
+      if (flags.verbose) {
+        monorepo.setTaskRenderer('verbose');
+      }
 
       const compose = new DockerComposeClient(monorepo);
 

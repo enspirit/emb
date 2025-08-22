@@ -12,7 +12,6 @@ import {
   findRunOrder,
   IResourceBuilder,
   ResourceInfo,
-  taskManagerFactory,
 } from '@/monorepo';
 import { ResourceFactory } from '@/monorepo/resources/ResourceFactory.js';
 import { AbstractOperation } from '@/operations';
@@ -68,7 +67,7 @@ export class BuildResourcesOperation extends AbstractOperation<
     input: z.input<typeof schema>,
   ): Promise<Record<string, BuildResourceMeta>> {
     const { monorepo } = this.context;
-    const manager = taskManagerFactory<Record<string, BuildResourceMeta>>();
+    const manager = monorepo.taskManager();
 
     const collection = new EMBCollection(monorepo.resources, {
       idField: 'id',

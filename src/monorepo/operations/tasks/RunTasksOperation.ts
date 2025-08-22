@@ -1,7 +1,7 @@
 import { getContext } from '@';
 import { input } from '@inquirer/prompts';
 import { ListrInquirerPromptAdapter } from '@listr2/prompt-adapter-inquirer';
-import { Listr, ListrTask } from 'listr2';
+import { ListrTask } from 'listr2';
 import { PassThrough, Writable } from 'node:stream';
 
 import { ContainerExecOperation } from '@/docker';
@@ -33,6 +33,7 @@ export class RunTasksOperation
 {
   async run(params: RunTasksOperationParams): Promise<Array<TaskInfo>> {
     const { monorepo, compose } = getContext();
+    const manager = monorepo.taskManager();
 
     // First ensure the selection is valid (user can use task IDs or names)
     const collection = new EMBCollection(monorepo.tasks, {
@@ -44,7 +45,7 @@ export class RunTasksOperation
       onAmbiguous: params.allMatching ? 'runAll' : 'error',
     });
 
-    const tasks = new Listr(
+    await manager.run(
       ordered.map((task) => {
         return {
           rendererOptions: {
@@ -119,8 +120,6 @@ export class RunTasksOperation
         };
       }) as Array<ListrTask>,
     );
-
-    await tasks.run();
 
     return ordered;
   }
