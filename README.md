@@ -14,7 +14,7 @@ $ npm install -g @enspirit/emb
 $ emb COMMAND
 running command...
 $ emb (--version)
-@enspirit/emb/0.9.0 darwin-x64 node-v22.18.0
+@enspirit/emb/0.10.0 darwin-arm64 node-v22.14.0
 $ emb --help [COMMAND]
 USAGE
   $ emb COMMAND
@@ -88,10 +88,11 @@ Clean the project.
 
 ```
 USAGE
-  $ emb clean [--json] [-f]
+  $ emb clean [--json] [--verbose] [-f]
 
 FLAGS
-  -f, --force  Force the deletion of containers & images
+  -f, --force         Force the deletion of containers & images
+  --[no-]verbose
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -109,10 +110,11 @@ List components.
 
 ```
 USAGE
-  $ emb components [--json] [--flavor <value>]
+  $ emb components [--json] [--verbose] [--flavor <value>]
 
 FLAGS
   --flavor=<value>  Specify the flavor to use.
+  --[no-]verbose
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -130,13 +132,14 @@ Get components logs.
 
 ```
 USAGE
-  $ emb components logs COMPONENT [-f]
+  $ emb components logs COMPONENT [--verbose] [-f]
 
 ARGUMENTS
   COMPONENT  The component you want to see the logs of
 
 FLAGS
-  -f, --[no-]follow  Follow log output
+  -f, --[no-]follow   Follow log output
+  --[no-]verbose
 
 DESCRIPTION
   Get components logs.
@@ -154,13 +157,14 @@ Get a shell on a running component.
 
 ```
 USAGE
-  $ emb components shell COMPONENT [-s <value>]
+  $ emb components shell COMPONENT [--verbose] [-s <value>]
 
 ARGUMENTS
   COMPONENT  The component you want to get a shell on
 
 FLAGS
   -s, --shell=<value>  [default: bash] The shell to run
+  --[no-]verbose
 
 DESCRIPTION
   Get a shell on a running component.
@@ -178,10 +182,11 @@ Print the current config.
 
 ```
 USAGE
-  $ emb config print [--json] [--flavor <value>]
+  $ emb config print [--json] [--verbose] [--flavor <value>]
 
 FLAGS
   --flavor=<value>  Specify the flavor to use.
+  --[no-]verbose
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -199,10 +204,11 @@ List docker containers.
 
 ```
 USAGE
-  $ emb containers [--json] [-a]
+  $ emb containers [--json] [--verbose] [-a]
 
 FLAGS
-  -a, --all  Retun all containers. By default, only running containers are shown
+  -a, --all           Retun all containers. By default, only running containers are shown
+  --[no-]verbose
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -223,7 +229,10 @@ Prune containers.
 
 ```
 USAGE
-  $ emb containers prune [--json]
+  $ emb containers prune [--json] [--verbose]
+
+FLAGS
+  --[no-]verbose
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -241,10 +250,11 @@ Stop the whole project.
 
 ```
 USAGE
-  $ emb down [--json] [--flavor <value>]
+  $ emb down [--json] [--verbose] [--flavor <value>]
 
 FLAGS
   --flavor=<value>  Specify the flavor to use.
+  --[no-]verbose
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -282,11 +292,12 @@ List docker images.
 
 ```
 USAGE
-  $ emb images [--json] [--flavor <value>] [-a]
+  $ emb images [--json] [--verbose] [--flavor <value>] [-a]
 
 FLAGS
   -a, --all             Show all images. Only images from a final layer (no children) are shown by default.
       --flavor=<value>  Specify the flavor to use.
+  --[no-]verbose
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -304,10 +315,11 @@ Delete project images.
 
 ```
 USAGE
-  $ emb images delete [--json] [-f]
+  $ emb images delete [--json] [--verbose] [-f]
 
 FLAGS
-  -f, --force  Remove the image even if it is being used by stopped containers or has other tags
+  -f, --force         Remove the image even if it is being used by stopped containers or has other tags
+  --[no-]verbose
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -325,10 +337,11 @@ Prune project images.
 
 ```
 USAGE
-  $ emb images prune [--json] [-a]
+  $ emb images prune [--json] [--verbose] [-a]
 
 FLAGS
-  -a, --all  Prune all images. When set to true all images will be pruned, not only dangling ones
+  -a, --all           Prune all images. When set to true all images will be pruned, not only dangling ones
+  --[no-]verbose
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -346,12 +359,13 @@ Push docker images.
 
 ```
 USAGE
-  $ emb images push [--json] [--flavor <value>] [--registry <value>] [--retag <value>]
+  $ emb images push [--json] [--verbose] [--flavor <value>] [--registry <value>] [--retag <value>]
 
 FLAGS
   --flavor=<value>    Specify the flavor to use.
   --registry=<value>  Override the registry to push to
   --retag=<value>     Override the original tag to push to a new tag
+  --[no-]verbose
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -371,13 +385,14 @@ Get components logs.
 
 ```
 USAGE
-  $ emb logs COMPONENT [-f]
+  $ emb logs COMPONENT [--verbose] [-f]
 
 ARGUMENTS
   COMPONENT  The component you want to see the logs of
 
 FLAGS
-  -f, --[no-]follow  Follow log output
+  -f, --[no-]follow   Follow log output
+  --[no-]verbose
 
 DESCRIPTION
   Get components logs.
@@ -395,10 +410,11 @@ List docker containers.
 
 ```
 USAGE
-  $ emb ps [--json] [-a]
+  $ emb ps [--json] [--verbose] [-a]
 
 FLAGS
-  -a, --all  Retun all containers. By default, only running containers are shown
+  -a, --all           Retun all containers. By default, only running containers are shown
+  --[no-]verbose
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -419,10 +435,11 @@ List resources.
 
 ```
 USAGE
-  $ emb resources [--json] [--flavor <value>]
+  $ emb resources [--json] [--verbose] [--flavor <value>]
 
 FLAGS
   --flavor=<value>  Specify the flavor to use.
+  --[no-]verbose
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -440,7 +457,7 @@ Build the resources of the monorepo
 
 ```
 USAGE
-  $ emb resources build [COMPONENT...] [--json] [--flavor <value>] [--dry-run] [-f]
+  $ emb resources build [COMPONENT...] [--json] [--verbose] [--flavor <value>] [--dry-run] [-f]
 
 ARGUMENTS
   COMPONENT...  List of resources to build (defaults to all)
@@ -449,6 +466,7 @@ FLAGS
   -f, --force           Bypass the cache and force the build
       --dry-run         Do not build the resources but only produce build meta information
       --flavor=<value>  Specify the flavor to use.
+  --[no-]verbose
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -466,13 +484,14 @@ Restart the whole project.
 
 ```
 USAGE
-  $ emb restart [COMPONENT...] [--json] [-f]
+  $ emb restart [COMPONENT...] [--json] [--verbose] [-f]
 
 ARGUMENTS
   COMPONENT...  The component(s) to restart
 
 FLAGS
-  -f, --no-deps  Don't restart depdendent components
+  -f, --no-deps       Don't restart depdendent components
+  --[no-]verbose
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -490,7 +509,7 @@ Run tasks.
 
 ```
 USAGE
-  $ emb run TASK... [--json] [-x container|local] [-a]
+  $ emb run TASK... [--json] [--verbose] [-x container|local] [-a]
 
 ARGUMENTS
   TASK...  List of tasks to run. You can provide either ids or names (eg: component:task or task)
@@ -499,6 +518,7 @@ FLAGS
   -a, --all-matching       Run all tasks matching (when multiple matches)
   -x, --executor=<option>  Where to run the task. (experimental!)
                            <options: container|local>
+  --[no-]verbose
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -519,13 +539,14 @@ Get a shell on a running component.
 
 ```
 USAGE
-  $ emb shell COMPONENT [-s <value>]
+  $ emb shell COMPONENT [--verbose] [-s <value>]
 
 ARGUMENTS
   COMPONENT  The component you want to get a shell on
 
 FLAGS
   -s, --shell=<value>  [default: bash] The shell to run
+  --[no-]verbose
 
 DESCRIPTION
   Get a shell on a running component.
@@ -543,10 +564,13 @@ Starts the whole project.
 
 ```
 USAGE
-  $ emb start [COMPONENT...] [--json]
+  $ emb start [COMPONENT...] [--json] [--verbose]
 
 ARGUMENTS
   COMPONENT...  The component(s) to start
+
+FLAGS
+  --[no-]verbose
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -564,10 +588,11 @@ Stop the whole project.
 
 ```
 USAGE
-  $ emb stop [--json] [--flavor <value>]
+  $ emb stop [--json] [--verbose] [--flavor <value>]
 
 FLAGS
   --flavor=<value>  Specify the flavor to use.
+  --[no-]verbose
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -585,7 +610,10 @@ List tasks.
 
 ```
 USAGE
-  $ emb tasks [--json]
+  $ emb tasks [--json] [--verbose]
+
+FLAGS
+  --[no-]verbose
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -603,7 +631,7 @@ Run tasks.
 
 ```
 USAGE
-  $ emb tasks run TASK... [--json] [-x container|local] [-a]
+  $ emb tasks run TASK... [--json] [--verbose] [-x container|local] [-a]
 
 ARGUMENTS
   TASK...  List of tasks to run. You can provide either ids or names (eg: component:task or task)
@@ -612,6 +640,7 @@ FLAGS
   -a, --all-matching       Run all tasks matching (when multiple matches)
   -x, --executor=<option>  Where to run the task. (experimental!)
                            <options: container|local>
+  --[no-]verbose
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -632,7 +661,7 @@ Start the whole project.
 
 ```
 USAGE
-  $ emb up [COMPONENT...] [--json] [--flavor <value>] [-f]
+  $ emb up [COMPONENT...] [--json] [--verbose] [--flavor <value>] [-f]
 
 ARGUMENTS
   COMPONENT...  The component(s) to build and start
@@ -640,6 +669,7 @@ ARGUMENTS
 FLAGS
   -f, --force           Bypass caches, force the recreation of containers, etc
       --flavor=<value>  Specify the flavor to use.
+  --[no-]verbose
 
 GLOBAL FLAGS
   --json  Format output as json.
