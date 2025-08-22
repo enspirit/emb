@@ -87,6 +87,11 @@ export class DockerComposeClient {
       cwd: this.monorepo.rootDir,
     })`docker compose ps -a --format json`;
 
+    if (!stdout.trim()) {
+      this.services = services;
+      return;
+    }
+
     this.services = stdout
       .split('\n')
       .map((l) => JSON.parse(l))
