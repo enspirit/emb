@@ -45,7 +45,7 @@ describe('CLI - emb tasks run', () => {
       'Specify just one. Eg: `emb tasks run frontend:test`',
     );
     expect(error?.suggestions).to.include(
-      'Run the same command with --all-matches / -a',
+      'Run the same command with --all-matching / -a',
     );
     expect(error?.suggestions).to.include(
       'Review the list of tasks by running `emb tasks`',
@@ -60,7 +60,7 @@ describe('CLI - emb tasks run', () => {
     );
     expect(error?.code).to.equal('AMBIGUOUS_REF');
     expect(error?.suggestions).to.include(
-      'Run the same command with --all-matches / -a',
+      'Run the same command with --all-matching / -a',
     );
     expect(error?.suggestions).to.include(
       'Review the list of tasks by running `emb tasks`',

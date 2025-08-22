@@ -46,7 +46,7 @@ export default class RunTask extends BaseCommand {
       if (error instanceof AmbiguousReferenceError) {
         throw error.toCliError([
           `Specify just one. Eg: \`emb tasks run ${error.matches[0]}\``,
-          'Run the same command with --all-matches / -a',
+          'Run the same command with --all-matching / -a',
           'Review the list of tasks by running `emb tasks`',
         ]);
       }
