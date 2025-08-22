@@ -65,7 +65,6 @@ export class RunTasksOperation
                   : ExecutorType.local
                 : ExecutorType.local);
 
-            console.log(compose.isService(task.component!), task.component);
             if (
               executor === ExecutorType.container &&
               (!task.component || !compose.isService(task.component))
