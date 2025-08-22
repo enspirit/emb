@@ -14,7 +14,7 @@ $ npm install -g @enspirit/emb
 $ emb COMMAND
 running command...
 $ emb (--version)
-@enspirit/emb/0.10.0 darwin-arm64 node-v22.14.0
+@enspirit/emb/0.10.1 darwin-arm64 node-v22.14.0
 $ emb --help [COMMAND]
 USAGE
   $ emb COMMAND
