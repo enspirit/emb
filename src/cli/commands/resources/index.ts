@@ -34,10 +34,10 @@ export default class ResourcesIndex extends FlavoredCommand<
     if (!flags.json) {
       printTable<ResourceConfig>({
         ...TABLE_DEFAULTS,
-        columns: ['name', 'type', 'reference', 'id'],
+        columns: ['id', 'name', 'type', 'reference'],
         data: resources,
         sort: {
-          name: 'asc',
+          id: 'asc',
         },
       });
     }
