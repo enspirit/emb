@@ -1,6 +1,6 @@
 import deepmerge from '@fastify/deepmerge';
 import { glob } from 'glob';
-import { dirname } from 'node:path';
+import { basename, dirname } from 'node:path';
 
 import { ComponentConfig } from '@/config';
 import { Monorepo, MonorepoConfig } from '@/monorepo';
@@ -43,10 +43,12 @@ export class AutoDockerPlugin extends AbstractPlugin<AutoDockerPluginOptions> {
 
     const overrides = files.reduce(
       (cmps, path) => {
-        const name = dirname(path);
+        const rootDir = dirname(path);
+        const name = basename(rootDir);
         const component = config.components[name];
 
         const cfg: ComponentConfig = {
+          rootDir,
           resources: {
             image: {
               type: 'docker/image',
