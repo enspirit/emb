@@ -1,5 +1,7 @@
 import type Docker from 'dockerode';
 
+import { AppsV1Api, CoreV1Api, KubeConfig } from '@kubernetes/client-node';
+
 import { Monorepo } from '@/monorepo';
 
 import { DockerComposeClient } from './docker/index.js';
@@ -14,5 +16,10 @@ import { DockerComposeClient } from './docker/index.js';
 export interface EmbContext {
   compose: DockerComposeClient;
   docker: Docker;
+  kubernetes: {
+    config: KubeConfig;
+    apps: AppsV1Api;
+    core: CoreV1Api;
+  };
   monorepo: Monorepo;
 }

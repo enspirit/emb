@@ -41,6 +41,7 @@
   },
   "dependencies": {
     "@fastify/deepmerge": "^3.1.0",
+    "@kubernetes/client-node": "1.3.0",
     "@listr2/manager": "^3.0.1",
     "@oclif/core": "^4.5.2",
     "@oclif/plugin-autocomplete": "^3.2.34",
@@ -48,6 +49,7 @@
     "@oclif/plugin-update": "^4.7.3",
     "@oclif/table": "^0.4.12",
     "ajv": "^8.17.1",
+    "ansi-escapes": "^7.0.0",
     "colorette": "^2.0.20",
     "docker-compose": "^1.2.0",
     "dockerode": "^4.0.7",
@@ -140,6 +142,9 @@
       },
       "tasks": {
         "description": "List and run tasks"
+      },
+      "kubernetes": {
+        "description": "Manage project instances on kubernetes"
       }
     }
   },

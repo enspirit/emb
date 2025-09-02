@@ -2,7 +2,6 @@ import { Args, Flags } from '@oclif/core';
 
 import { BaseCommand, getContext } from '@/cli';
 import { ComposeRestartOperation } from '@/docker/index.js';
-import { Component } from '@/monorepo/component.js';
 
 export default class RestartComand extends BaseCommand {
   static description = 'Restart the whole project.';
@@ -28,14 +27,10 @@ export default class RestartComand extends BaseCommand {
     const { flags, argv } = await this.parse(RestartComand);
     const { monorepo } = getContext();
 
-    let components: Array<Component> | undefined;
-
-    if (argv.length > 0) {
-      components =
-        argv.length > 0
-          ? (argv as string[]).map((name) => monorepo.component(name))
-          : monorepo.components;
-    }
+    const components =
+      argv.length > 0
+        ? (argv as string[]).map((name) => monorepo.component(name))
+        : monorepo.components;
 
     await monorepo.run(new ComposeRestartOperation(), {
       noDeps: flags['no-deps'],

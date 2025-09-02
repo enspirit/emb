@@ -3,6 +3,7 @@ import { Command, Flags } from '@oclif/core';
 import Dockerode from 'dockerode';
 
 import { loadConfig } from '@/config/index.js';
+import { createKubernetesClient } from '@/kubernetes/client.js';
 import { Monorepo } from '@/monorepo/monorepo.js';
 
 import { withMarker } from '../utils.js';
@@ -44,6 +45,7 @@ export abstract class BaseCommand extends Command {
         docker: new Dockerode(),
         monorepo,
         compose,
+        kubernetes: createKubernetesClient(),
       });
     } catch (error) {
       this.error(error as Error);
