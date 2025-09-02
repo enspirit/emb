@@ -14,7 +14,7 @@ $ npm install -g @enspirit/emb
 $ emb COMMAND
 running command...
 $ emb (--version)
-@enspirit/emb/0.11.0 darwin-x64 node-v22.18.0
+@enspirit/emb/0.12.0 darwin-x64 node-v22.18.0
 $ emb --help [COMMAND]
 USAGE
   $ emb COMMAND
@@ -37,6 +37,9 @@ USAGE
 * [`emb images delete`](#emb-images-delete)
 * [`emb images prune`](#emb-images-prune)
 * [`emb images push`](#emb-images-push)
+* [`emb kubernetes logs COMPONENT`](#emb-kubernetes-logs-component)
+* [`emb kubernetes ps`](#emb-kubernetes-ps)
+* [`emb kubernetes restart [DEPLOYMENT]`](#emb-kubernetes-restart-deployment)
 * [`emb logs COMPONENT`](#emb-logs-component)
 * [`emb ps`](#emb-ps)
 * [`emb resources`](#emb-resources)
@@ -377,6 +380,74 @@ EXAMPLES
   $ emb images push
 
   $ emb images push --registry my.registry.io --retag newtag
+```
+
+## `emb kubernetes logs COMPONENT`
+
+Follow kubernetes logs.
+
+```
+USAGE
+  $ emb kubernetes logs COMPONENT -n <value> [--verbose] [-f]
+
+ARGUMENTS
+  COMPONENT  The component you want to see the logs of
+
+FLAGS
+  -f, --[no-]follow        Follow log output
+  -n, --namespace=<value>  (required) The Kubernetes namespace to target
+  --[no-]verbose
+
+DESCRIPTION
+  Follow kubernetes logs.
+
+ALIASES
+  $ emb logs
+
+EXAMPLES
+  $ emb kubernetes logs
+```
+
+## `emb kubernetes ps`
+
+Show running pods.
+
+```
+USAGE
+  $ emb kubernetes ps -n <value> [--verbose] [--watch]
+
+FLAGS
+  -n, --namespace=<value>  (required) The Kubernetes namespace to target
+  --[no-]verbose
+  --[no-]watch
+
+DESCRIPTION
+  Show running pods.
+
+EXAMPLES
+  $ emb kubernetes ps
+```
+
+## `emb kubernetes restart [DEPLOYMENT]`
+
+Restart pods of an instance.
+
+```
+USAGE
+  $ emb kubernetes restart [DEPLOYMENT...] -n <value> [--verbose]
+
+ARGUMENTS
+  DEPLOYMENT...  The deployment(s) to restart
+
+FLAGS
+  -n, --namespace=<value>  (required) The Kubernetes namespace to target
+  --[no-]verbose
+
+DESCRIPTION
+  Restart pods of an instance.
+
+EXAMPLES
+  $ emb kubernetes restart
 ```
 
 ## `emb logs COMPONENT`
