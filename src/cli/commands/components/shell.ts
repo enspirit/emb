@@ -4,7 +4,7 @@ import { BaseCommand, getContext } from '@/cli';
 import { ComposeExecShellOperation } from '@/docker/index.js';
 import { ShellExitError } from '@/errors.js';
 
-export default class ComponentsLogs extends BaseCommand {
+export default class ComponentShellCommand extends BaseCommand {
   static aliases: string[] = ['shell'];
   static description = 'Get a shell on a running component.';
   static enableJsonFlag = false;
@@ -26,7 +26,7 @@ export default class ComponentsLogs extends BaseCommand {
   };
 
   public async run(): Promise<void> {
-    const { flags, args } = await this.parse(ComponentsLogs);
+    const { flags, args } = await this.parse(ComponentShellCommand);
     const { monorepo } = await getContext();
 
     try {
