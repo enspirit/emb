@@ -14,7 +14,7 @@ $ npm install -g @enspirit/emb
 $ emb COMMAND
 running command...
 $ emb (--version)
-@enspirit/emb/0.12.0 darwin-x64 node-v22.18.0
+@enspirit/emb/0.13.0 darwin-x64 node-v22.18.0
 $ emb --help [COMMAND]
 USAGE
   $ emb COMMAND
@@ -40,6 +40,7 @@ USAGE
 * [`emb kubernetes logs COMPONENT`](#emb-kubernetes-logs-component)
 * [`emb kubernetes ps`](#emb-kubernetes-ps)
 * [`emb kubernetes restart [DEPLOYMENT]`](#emb-kubernetes-restart-deployment)
+* [`emb kubernetes shell COMPONENT`](#emb-kubernetes-shell-component)
 * [`emb logs COMPONENT`](#emb-logs-component)
 * [`emb ps`](#emb-ps)
 * [`emb resources`](#emb-resources)
@@ -450,6 +451,32 @@ EXAMPLES
   $ emb kubernetes restart
 ```
 
+## `emb kubernetes shell COMPONENT`
+
+Get a shell on a deployed component.
+
+```
+USAGE
+  $ emb kubernetes shell COMPONENT -n <value> [--verbose] [-s <value>]
+
+ARGUMENTS
+  COMPONENT  The component you want to get a shell on
+
+FLAGS
+  -n, --namespace=<value>  (required) The Kubernetes namespace to target
+  -s, --shell=<value>      [default: bash] The shell to run
+  --[no-]verbose
+
+DESCRIPTION
+  Get a shell on a deployed component.
+
+ALIASES
+  $ emb shell
+
+EXAMPLES
+  $ emb kubernetes shell
+```
+
 ## `emb logs COMPONENT`
 
 Get components logs.
@@ -788,5 +815,5 @@ EXAMPLES
     $ emb update --available
 ```
 
-_See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v4.7.3/src/commands/update.ts)_
+_See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v4.7.4/src/commands/update.ts)_
 <!-- commandsstop -->
