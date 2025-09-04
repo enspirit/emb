@@ -32,7 +32,7 @@ export class RunTasksOperation
   implements IOperation<RunTasksOperationParams, Array<TaskInfo>>
 {
   async run(params: RunTasksOperationParams): Promise<Array<TaskInfo>> {
-    const { monorepo, compose } = getContext();
+    const { monorepo } = getContext();
     const manager = monorepo.taskManager();
 
     // First ensure the selection is valid (user can use task IDs or names)
@@ -59,21 +59,9 @@ export class RunTasksOperation
             const vars = await monorepo.expand(task.vars || {});
 
             const executor =
-              params.executor ??
-              (task.component
-                ? (await compose.isService(task.component))
-                  ? ExecutorType.container
-                  : ExecutorType.local
-                : ExecutorType.local);
+              params.executor ?? (await this.defaultExecutorFor(task));
 
-            if (
-              executor === ExecutorType.container &&
-              (!task.component || !compose.isService(task.component))
-            ) {
-              throw new Error(
-                'Cannot use the container executor with this task',
-              );
-            }
+            await this.ensureExecutorValid(executor, task);
 
             // Handle tasks that require confirmation
             if (task.confirm) {
@@ -112,7 +100,7 @@ export class RunTasksOperation
               }
 
               default: {
-                throw new Error(`Unssuported executor type: ${executor}`);
+                throw new Error(`Unsuported executor type: ${executor}`);
               }
             }
           },
@@ -147,5 +135,36 @@ export class RunTasksOperation
       workingDir: cwd,
       env: await monorepo.expand(task.vars || {}),
     });
+  }
+
+  private async defaultExecutorFor(task: TaskInfo): Promise<ExecutorType> {
+    const available = await this.availableExecutorsFor(task);
+
+    if (available.length === 0) {
+      throw new Error('No available executor found for task');
+    }
+
+    return available[0];
+  }
+
+  private async ensureExecutorValid(executor: ExecutorType, task: TaskInfo) {
+    const available = await this.availableExecutorsFor(task);
+    if (!available.includes(executor)) {
+      throw new Error(`Unsuported executor type: ${executor}`);
+    }
+  }
+
+  private async availableExecutorsFor(
+    task: TaskInfo,
+  ): Promise<Array<ExecutorType>> {
+    const { compose } = getContext();
+
+    if (task.executors) {
+      return task.executors as Array<ExecutorType>;
+    }
+
+    return task.component && (await compose.isService(task.component))
+      ? [ExecutorType.container, ExecutorType.local]
+      : [ExecutorType.local];
   }
 }

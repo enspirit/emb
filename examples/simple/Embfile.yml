@@ -9,3 +9,10 @@ tasks:
       expect: "${NAME}"
     script: | # shell
       echo "Running task after confirmation! Hello ${NAME}"
+
+  # Tasks can list which executors they support:
+  inspect:
+    executors:
+      - local
+    script: | # shell
+      echo This runs locally and not inside the container for "simple"

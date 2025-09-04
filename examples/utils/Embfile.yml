@@ -1,3 +1,5 @@
+# yaml-language-server: $schema=../../src/config/schema.json#/definitions/ComponentConfig
+
 # Not all folders are running components (docker services)
 # You can also have Embfile with tasks that are always executed locally
 tasks:

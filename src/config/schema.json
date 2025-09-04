@@ -137,6 +137,15 @@
             "$ref": "#/definitions/QualifiedIdentifier"
           }
         },
+        "executors": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {"const": "local"},
+              {"const": "container"}
+            ]
+          }
+        },
         "vars": {
           "type": "object",
           "description": "Variables to pass onto the task",
