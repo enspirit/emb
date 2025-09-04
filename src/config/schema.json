@@ -134,7 +134,7 @@
         "pre": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/Identifier"
+            "$ref": "#/definitions/QualifiedIdentifier"
           }
         },
         "vars": {
