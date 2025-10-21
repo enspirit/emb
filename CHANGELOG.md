@@ -1,3 +1,7 @@
+## 0.13.2 - 2025-10-21
+
+* Fix `emb start` and `emb restart` when not provided with specific component list
+
 ## 0.13.1 - 2025-09-04
 
 * Fix inter-tasks prereq. references.
