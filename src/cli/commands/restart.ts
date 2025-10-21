@@ -30,7 +30,7 @@ export default class RestartComand extends BaseCommand {
     const components =
       argv.length > 0
         ? (argv as string[]).map((name) => monorepo.component(name))
-        : monorepo.components;
+        : undefined;
 
     await monorepo.run(new ComposeRestartOperation(), {
       noDeps: flags['no-deps'],

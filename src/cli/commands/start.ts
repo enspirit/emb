@@ -27,7 +27,7 @@ export default class StartCommand extends BaseCommand {
       components =
         argv.length > 0
           ? (argv as string[]).map((name) => monorepo.component(name))
-          : monorepo.components;
+          : undefined;
     }
 
     await monorepo.run(new ComposeStartOperation(), {
