@@ -40,7 +40,7 @@ export class ExecuteLocalCommandOperation extends AbstractOperation<
           cwd: input.workingDir,
           shell: true,
           env: input.env,
-          stdio: 'inherit',
+          stdin: 'inherit',
         })
       : execa(input.script, {
           all: true,
@@ -49,8 +49,8 @@ export class ExecuteLocalCommandOperation extends AbstractOperation<
           env: input.env,
         });
 
-    // @ts-expect-error only incorrect when running interactive commands
-    // who do not return any readable. FIXME
-    return proc.all;
+    proc.all?.pipe(this.out || process.stdout);
+
+    return proc.all || proc.stdout;
   }
 }

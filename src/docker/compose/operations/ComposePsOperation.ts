@@ -27,9 +27,21 @@ export class ComposePsOperation extends AbstractOperation<typeof schema, void> {
       command.push('--all');
     }
 
-    await monorepo.run(new ExecuteLocalCommandOperation(process.stdout), {
-      script: command.join(' '),
-      workingDir: monorepo.rootDir,
-    });
+    monorepo.setTaskRenderer('silent');
+
+    const manager = monorepo.taskManager();
+    manager.add([
+      {
+        async task() {
+          return monorepo.run(new ExecuteLocalCommandOperation(), {
+            script: command.join(' '),
+            workingDir: monorepo.rootDir,
+          });
+        },
+        title: 'Listing running containers',
+      },
+    ]);
+
+    await manager.runAll();
   }
 }
