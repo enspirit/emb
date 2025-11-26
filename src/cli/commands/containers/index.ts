@@ -8,7 +8,6 @@ import { ListContainersOperation, shortId } from '@/docker';
 import { timeAgo } from '@/utils';
 
 export default class ContainersIndex extends BaseCommand {
-  static aliases = ['ps'];
   static description = 'List docker containers.';
   static enableJsonFlag = true;
   static examples = ['<%= config.bin %> <%= command.id %>'];
