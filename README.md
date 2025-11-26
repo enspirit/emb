@@ -14,7 +14,7 @@ $ npm install -g @enspirit/emb
 $ emb COMMAND
 running command...
 $ emb (--version)
-@enspirit/emb/0.13.2 darwin-x64 node-v22.18.0
+@enspirit/emb/0.14.0 darwin-x64 node-v22.18.0
 $ emb --help [COMMAND]
 USAGE
   $ emb COMMAND
@@ -64,7 +64,7 @@ USAGE
   $ emb autocomplete [SHELL] [-r]
 
 ARGUMENTS
-  SHELL  (zsh|bash|powershell) Shell type
+  [SHELL]  (zsh|bash|powershell) Shell type
 
 FLAGS
   -r, --refresh-cache  Refresh cache (ignores displaying instructions)
@@ -84,7 +84,7 @@ EXAMPLES
   $ emb autocomplete --refresh-cache
 ```
 
-_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v3.2.34/src/commands/autocomplete/index.ts)_
+_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v3.2.39/src/commands/autocomplete/index.ts)_
 
 ## `emb clean`
 
@@ -220,9 +220,6 @@ GLOBAL FLAGS
 DESCRIPTION
   List docker containers.
 
-ALIASES
-  $ emb ps
-
 EXAMPLES
   $ emb containers
 ```
@@ -279,7 +276,7 @@ USAGE
   $ emb help [COMMAND...] [-n]
 
 ARGUMENTS
-  COMMAND...  Command to show help for.
+  [COMMAND...]  Command to show help for.
 
 FLAGS
   -n, --nested-commands  Include all nested commands in the output.
@@ -288,7 +285,7 @@ DESCRIPTION
   Display help for emb.
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.2.32/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.2.36/src/commands/help.ts)_
 
 ## `emb images`
 
@@ -396,7 +393,7 @@ ARGUMENTS
 
 FLAGS
   -f, --[no-]follow        Follow log output
-  -n, --namespace=<value>  (required) The Kubernetes namespace to target
+  -n, --namespace=<value>  (required) [env: K8S_NAMESPACE] The Kubernetes namespace to target
   --[no-]verbose
 
 DESCRIPTION
@@ -418,7 +415,7 @@ USAGE
   $ emb kubernetes ps -n <value> [--verbose] [--watch]
 
 FLAGS
-  -n, --namespace=<value>  (required) The Kubernetes namespace to target
+  -n, --namespace=<value>  (required) [env: K8S_NAMESPACE] The Kubernetes namespace to target
   --[no-]verbose
   --[no-]watch
 
@@ -438,10 +435,10 @@ USAGE
   $ emb kubernetes restart [DEPLOYMENT...] -n <value> [--verbose]
 
 ARGUMENTS
-  DEPLOYMENT...  The deployment(s) to restart
+  [DEPLOYMENT...]  The deployment(s) to restart
 
 FLAGS
-  -n, --namespace=<value>  (required) The Kubernetes namespace to target
+  -n, --namespace=<value>  (required) [env: K8S_NAMESPACE] The Kubernetes namespace to target
   --[no-]verbose
 
 DESCRIPTION
@@ -463,7 +460,7 @@ ARGUMENTS
   COMPONENT  The component you want to get a shell on
 
 FLAGS
-  -n, --namespace=<value>  (required) The Kubernetes namespace to target
+  -n, --namespace=<value>  (required) [env: K8S_NAMESPACE] The Kubernetes namespace to target
   -s, --shell=<value>      [default: bash] The shell to run
   --[no-]verbose
 
@@ -504,24 +501,19 @@ EXAMPLES
 
 ## `emb ps`
 
-List docker containers.
+Lists the containers running in the project.
 
 ```
 USAGE
-  $ emb ps [--json] [--verbose] [-a]
+  $ emb ps [--verbose] [--flavor <value>] [-a]
 
 FLAGS
-  -a, --all           Retun all containers. By default, only running containers are shown
+  -a, --all             Show all stopped containers
+      --flavor=<value>  Specify the flavor to use.
   --[no-]verbose
 
-GLOBAL FLAGS
-  --json  Format output as json.
-
 DESCRIPTION
-  List docker containers.
-
-ALIASES
-  $ emb ps
+  Lists the containers running in the project.
 
 EXAMPLES
   $ emb ps
@@ -558,7 +550,7 @@ USAGE
   $ emb resources build [COMPONENT...] [--json] [--verbose] [--flavor <value>] [--dry-run] [-f]
 
 ARGUMENTS
-  COMPONENT...  List of resources to build (defaults to all)
+  [COMPONENT...]  List of resources to build (defaults to all)
 
 FLAGS
   -f, --force           Bypass the cache and force the build
@@ -585,7 +577,7 @@ USAGE
   $ emb restart [COMPONENT...] [--json] [--verbose] [-f]
 
 ARGUMENTS
-  COMPONENT...  The component(s) to restart
+  [COMPONENT...]  The component(s) to restart
 
 FLAGS
   -f, --no-deps       Don't restart depdendent components
@@ -665,7 +657,7 @@ USAGE
   $ emb start [COMPONENT...] [--json] [--verbose]
 
 ARGUMENTS
-  COMPONENT...  The component(s) to start
+  [COMPONENT...]  The component(s) to start
 
 FLAGS
   --[no-]verbose
@@ -762,7 +754,7 @@ USAGE
   $ emb up [COMPONENT...] [--json] [--verbose] [--flavor <value>] [-f]
 
 ARGUMENTS
-  COMPONENT...  The component(s) to build and start
+  [COMPONENT...]  The component(s) to build and start
 
 FLAGS
   -f, --force           Bypass caches, force the recreation of containers, etc
@@ -815,5 +807,5 @@ EXAMPLES
     $ emb update --available
 ```
 
-_See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v4.7.4/src/commands/update.ts)_
+_See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v4.7.16/src/commands/update.ts)_
 <!-- commandsstop -->

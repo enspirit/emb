@@ -1,3 +1,8 @@
+## 0.14.0 - 2025-11-26
+
+* Add support for interactive commands
+* `emb ps` is an alias of `docker compose ps`
+
 ## 0.13.2 - 2025-10-21
 
 * Fix `emb start` and `emb restart` when not provided with specific component list
