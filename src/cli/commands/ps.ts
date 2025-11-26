@@ -1,9 +1,7 @@
-import { Args, Flags } from '@oclif/core';
+import { Flags } from '@oclif/core';
 
 import { FlavoredCommand, getContext } from '@/cli';
-import { ComposePsOperation, ComposeUpOperation } from '@/docker/index.js';
-import { Component } from '@/monorepo/component.js';
-import { BuildResourcesOperation } from '@/monorepo/operations/resources/BuildResourcesOperation.js';
+import { ComposePsOperation } from '@/docker/index.js';
 
 export default class PsCommand extends FlavoredCommand<typeof PsCommand> {
   static description = 'Lists the containers running in the project.';
