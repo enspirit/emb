@@ -146,6 +146,11 @@
             ]
           }
         },
+        "interactive": {
+          "type": "boolean",
+          "description": "Whether the task is interactive (requires TTY)",
+          "default": false
+        },
         "vars": {
           "type": "object",
           "description": "Variables to pass onto the task",

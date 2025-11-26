@@ -16,3 +16,11 @@ tasks:
       - local
     script: | # shell
       echo This runs locally and not inside the container for "simple"
+
+  # Tasks can be interactive (get assigned a tty)
+  sudo:
+    interactive: true
+    executors:
+      - local
+    script: | # shell
+      sudo ls -la

@@ -13,6 +13,11 @@ const schema = z.object({
     .optional()
     .describe('A list of environment variables in the form'),
   script: z.string().describe('Command to run, as a string'),
+  interactive: z
+    .boolean()
+    .describe('Interactive command')
+    .default(false)
+    .optional(),
   workingDir: z
     .string()
     .optional()
@@ -30,17 +35,22 @@ export class ExecuteLocalCommandOperation extends AbstractOperation<
   }
 
   protected async _run(input: z.input<typeof schema>): Promise<Readable> {
-    const process = execa(input.script, {
-      all: true,
-      cwd: input.workingDir,
-      shell: true,
-      env: input.env,
-    });
+    const proc = input.interactive
+      ? execa(input.script, {
+          cwd: input.workingDir,
+          shell: true,
+          env: input.env,
+          stdio: 'inherit',
+        })
+      : execa(input.script, {
+          all: true,
+          cwd: input.workingDir,
+          shell: true,
+          env: input.env,
+        });
 
-    if (this.out) {
-      process.all.pipe(this.out);
-    }
-
-    return process.all;
+    // @ts-expect-error only incorrect when running interactive commands
+    // who do not return any readable. FIXME
+    return proc.all;
   }
 }
