@@ -18,9 +18,9 @@ export class TaskManagerFactory<
   }
 
   factor(): Manager<Ctx, ListrRendererValue, FallbackRenderer> {
-    if (this.renderer === 'verbose') {
+    if (this.renderer !== 'default') {
       return new Manager({
-        renderer: 'verbose',
+        renderer: this.renderer,
       });
     }
 

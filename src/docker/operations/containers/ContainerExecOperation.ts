@@ -14,6 +14,11 @@ const schema = z.object({
     .optional()
     .describe('A list of environment variables in the form'),
   script: z.string().describe('Command to run, as a string'),
+  interactive: z
+    .boolean()
+    .default(false)
+    .optional()
+    .describe('Whether the command is interactive'),
   tty: z.boolean().default(false).optional().describe('Allocate a pseudo-TTY'),
   workingDir: z
     .string()
@@ -41,27 +46,39 @@ export class ContainerExecOperation extends AbstractOperation<
       [],
     );
 
+    const isInteractive = input.interactive || input.tty;
+
     const options: ExecCreateOptions = {
       AttachStderr: true,
       AttachStdout: true,
+      AttachStdin: true,
       Cmd: ['bash', '-eu', '-o', 'pipefail', '-c', input.script],
       Env: envVars,
-      Tty: input.tty,
+      Tty: isInteractive,
       WorkingDir: input.workingDir,
     };
 
     const exec = await container.exec(options);
 
-    const stream = await exec.start({});
-    exec.modem.demuxStream(
-      stream,
-      this.out || process.stdout,
-      this.out || process.stderr,
-    );
+    const stream = await exec.start({ hijack: true, stdin: true });
+
+    // Handle stdin for interactive commands
+    if (isInteractive && !this.out && process.stdin.isTTY) {
+      process.stdin.setRawMode?.(true);
+      process.stdin.pipe(stream);
+    }
+
+    const out = input.interactive ? process.stdout : this.out;
+    exec.modem.demuxStream(stream, out, out);
 
     await new Promise<void>((resolve, reject) => {
       const onError = (err: unknown) => reject(err);
       const onEnd = async () => {
+        // Restore stdin raw mode if it was set
+        if (isInteractive && !this.out && process.stdin.isTTY) {
+          process.stdin.setRawMode?.(false);
+        }
+
         exec.inspect((error, res) => {
           if (error) {
             return reject(error);

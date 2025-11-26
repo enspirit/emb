@@ -33,7 +33,6 @@ export class RunTasksOperation
 {
   async run(params: RunTasksOperationParams): Promise<Array<TaskInfo>> {
     const { monorepo } = getContext();
-    const manager = monorepo.taskManager();
 
     // First ensure the selection is valid (user can use task IDs or names)
     const collection = new EMBCollection(monorepo.tasks, {
@@ -45,6 +44,12 @@ export class RunTasksOperation
       onAmbiguous: params.allMatching ? 'runAll' : 'error',
     });
 
+    const hasInteractiveTasks = ordered.find((t) => t.interactive === true);
+    if (hasInteractiveTasks) {
+      monorepo.setTaskRenderer('silent');
+    }
+
+    const manager = monorepo.taskManager();
     await manager.run(
       ordered.map((task) => {
         return {
@@ -116,11 +121,15 @@ export class RunTasksOperation
     const { monorepo, compose } = getContext();
 
     const containerID = await compose.getContainer(task.component);
-    return monorepo.run(new ContainerExecOperation(out), {
-      container: containerID,
-      script: task.script,
-      env: await monorepo.expand(task.vars || {}),
-    });
+    return monorepo.run(
+      new ContainerExecOperation(task.interactive ? undefined : out),
+      {
+        container: containerID,
+        script: task.script,
+        interactive: task.interactive || false,
+        env: await monorepo.expand(task.vars || {}),
+      },
+    );
   }
 
   protected async runLocal(task: TaskWithScript, out: Writable) {
@@ -133,6 +142,7 @@ export class RunTasksOperation
     return monorepo.run(new ExecuteLocalCommandOperation(out), {
       script: task.script,
       workingDir: cwd,
+      interactive: task.interactive,
       env: await monorepo.expand(task.vars || {}),
     });
   }
