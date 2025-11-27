@@ -121,12 +121,15 @@ export class RunTasksOperation
     const { monorepo, compose } = getContext();
 
     const containerID = await compose.getContainer(task.component);
-    return monorepo.run(new ContainerExecOperation(), {
-      container: containerID,
-      script: task.script,
-      interactive: task.interactive || false,
-      env: await monorepo.expand(task.vars || {}),
-    });
+    return monorepo.run(
+      new ContainerExecOperation(task.interactive ? undefined : out),
+      {
+        container: containerID,
+        script: task.script,
+        interactive: task.interactive || false,
+        env: await monorepo.expand(task.vars || {}),
+      },
+    );
   }
 
   protected async runLocal(task: TaskWithScript, out: Writable) {

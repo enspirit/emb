@@ -69,7 +69,9 @@ export class ContainerExecOperation extends AbstractOperation<
     }
 
     const out = input.interactive ? process.stdout : this.out;
-    exec.modem.demuxStream(stream, out, out);
+    if (out) {
+      exec.modem.demuxStream(stream, out, out);
+    }
 
     await new Promise<void>((resolve, reject) => {
       const onError = (err: unknown) => reject(err);
