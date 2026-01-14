@@ -100,6 +100,9 @@ jobs:
       - name: Build EMB
         run: npm run build
 
+      - name: Link EMB globally
+        run: npm link  # Makes 'emb' command available from this repo
+
       - name: Install website deps
         working-directory: website
         run: npm ci
