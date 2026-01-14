@@ -11,9 +11,9 @@ import {
   EMBCollection,
   findRunOrder,
   IResourceBuilder,
+  ResourceFactory,
   ResourceInfo,
 } from '@/monorepo';
-import { ResourceFactory } from '@/monorepo/resources/ResourceFactory.js';
 import { AbstractOperation } from '@/operations';
 
 export type BuildResourceMeta = {
