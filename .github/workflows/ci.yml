@@ -91,6 +91,13 @@ jobs:
     name: Website
     runs-on: ubuntu-latest
     needs: build  # website docs reference emb commands
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     services:
       docker:
         image: docker:dind
@@ -133,3 +140,18 @@ jobs:
       - name: Build website
         working-directory: website
         run: npm run build
+
+      - name: Setup Pages
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: website/dist
+
+      - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+        id: deployment
+        uses: actions/deploy-pages@v4
