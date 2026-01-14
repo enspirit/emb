@@ -1,0 +1,46 @@
+---
+title: EMB - Enspirit's Monorepo Builder
+description: A CLI tool for managing Docker-based monorepos
+template: splash
+hero:
+  tagline: Build, run, and manage your Docker monorepo with ease
+  actions:
+    - text: Get Started
+      link: /getting-started/introduction/
+      icon: right-arrow
+    - text: View on GitHub
+      link: https://github.com/enspirit/emb
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## Why EMB?
+
+<CardGrid stagger>
+	<Card title="Auto-Discovery" icon="magnifier">
+		EMB automatically discovers components in your monorepo. Any folder with a Dockerfile becomes a buildable component.
+	</Card>
+	<Card title="Smart Dependencies" icon="random">
+		Define dependencies between images and EMB builds them in the right order.
+	</Card>
+	<Card title="Consistent Workflow" icon="rocket">
+		Use the same commands across all projects: `emb build`, `emb up`, `emb logs`.
+	</Card>
+	<Card title="Flavors" icon="setting">
+		Define different configurations for development, staging, and production using JSON Patch.
+	</Card>
+</CardGrid>
+
+## Quick Start
+
+```bash
+# Install EMB
+npm install -g @enspirit/emb
+
+# In your monorepo
+emb components    # See discovered components
+emb build         # Build all images
+emb up            # Start services
+```

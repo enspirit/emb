@@ -73,5 +73,102 @@ jobs:
       - name: Install deps
         run: npm ci
 
-      - name: Run tests
-        run: npm run test
+      - name: Build
+        run: npm run build
+
+      - name: Run unit tests
+        run: npm run test:unit
+
+      - name: Run mocked integration tests
+        run: npm run test:integration:mocked
+
+      - name: Run Docker integration tests
+        run: npm run test:integration:docker
+        env:
+          DOCKER_TAG: test
+
+  website:
+    name: Website
+    runs-on: ubuntu-latest
+    needs: build  # website docs reference emb commands
+    services:
+      docker:
+        image: docker:dind
+        options: --privileged --shm-size=2g
+        volumes:
+          - /var/run/docker.sock:/var/run/docker.sock:ro
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            website/package-lock.json
+
+      - name: Install EMB deps
+        run: npm ci
+
+      - name: Build EMB
+        run: npm run build
+
+      - name: Link EMB globally
+        run: npm link  # Makes 'emb' command available from this repo
+
+      - name: Install website deps
+        working-directory: website
+        run: npm ci
+
+      # - name: Validate documentation
+      #   working-directory: website
+      #   run: npm test
+      #   env:
+      #     DEBUG_VALIDATE: '1'
+
+      - name: Build website
+        working-directory: website
+        run: npm run build
+
+      - name: Upload website artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: website-dist
+          path: website/dist
+          retention-days: 1
+
+  deploy-website:
+    name: Deploy Website
+    runs-on: ubuntu-latest
+    needs: website
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Download website artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: website-dist
+          path: website-dist
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: website-dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

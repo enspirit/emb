@@ -1,0 +1,11 @@
+# yaml-language-server: $schema=../../../src/config/schema.json#/definitions/ComponentConfig
+#
+# Web Component Configuration
+#
+description: Web frontend for the tutorial
+
+resources:
+  image:
+    type: docker/image
+    dependencies:
+      - api:image  # Build API first since we proxy to it

@@ -1,0 +1,10 @@
+{
+  "name": "tutorial-api",
+  "version": "1.0.0",
+  "description": "Tutorial API service",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo 'API tests passed!'"
+  }
+}
