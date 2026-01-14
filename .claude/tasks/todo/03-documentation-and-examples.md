@@ -88,13 +88,22 @@ From `website/`:
 
 ---
 
+### Phase 3: Example Monorepo Enhancement (Done)
+
+- [x] Created self-contained tutorial monorepo in `website/tutorial/`
+- [x] Added 6-step progressive tutorial documentation:
+  - `tutorial/index.md` - Overview
+  - `tutorial/01-project-setup.md` - Configuration basics
+  - `tutorial/02-components.md` - Component discovery
+  - `tutorial/03-tasks.md` - Task definition and execution
+  - `tutorial/04-building.md` - Docker image builds
+  - `tutorial/05-running.md` - Service orchestration
+  - `tutorial/06-flavors.md` - Environment configurations
+- [x] Tutorial includes executable examples validated by CI
+
+---
+
 ## Remaining Work
-
-### Phase 3: Example Monorepo Enhancement
-
-- [ ] Consider creating a simpler "tutorial" example separate from the existing `examples/`
-- [ ] Add progressive complexity examples (simple → intermediate → advanced)
-- [ ] Document each example component's purpose
 
 ### Phase 4: Deployment & CI
 

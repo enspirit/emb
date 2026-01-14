@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EMB Tutorial</title>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+        h1 { color: #333; }
+        .status { padding: 10px; background: #e8f5e9; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>EMB Tutorial</h1>
+    <p>Welcome to the EMB tutorial project!</p>
+    <div class="status" id="status">Loading...</div>
+    <script>
+        fetch('/api/')
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('status').textContent =
+                    `API says: ${data.message} (${data.env})`;
+            })
+            .catch(() => {
+                document.getElementById('status').textContent = 'API not available';
+            });
+    </script>
+</body>
+</html>

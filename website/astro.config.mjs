@@ -19,6 +19,18 @@ export default defineConfig({
 					],
 				},
 				{
+					label: 'Tutorial',
+					items: [
+						{ label: 'Overview', slug: 'tutorial' },
+						{ label: '1. Project Setup', slug: 'tutorial/01-project-setup' },
+						{ label: '2. Components', slug: 'tutorial/02-components' },
+						{ label: '3. Tasks', slug: 'tutorial/03-tasks' },
+						{ label: '4. Building', slug: 'tutorial/04-building' },
+						{ label: '5. Running', slug: 'tutorial/05-running' },
+						{ label: '6. Flavors', slug: 'tutorial/06-flavors' },
+					],
+				},
+				{
 					label: 'Day to Day',
 					items: [
 						{ label: 'Building Images', slug: 'day-to-day/building-images' },

@@ -1,0 +1,14 @@
+services:
+  api:
+    image: tutorial/api:${DOCKER_TAG:-latest}
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+
+  web:
+    image: tutorial/web:${DOCKER_TAG:-latest}
+    ports:
+      - "8080:80"
+    depends_on:
+      - api

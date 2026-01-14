@@ -1,0 +1,45 @@
+# yaml-language-server: $schema=../../src/config/schema.json
+#
+# EMB Tutorial Project
+# A minimal monorepo demonstrating EMB features progressively.
+#
+project:
+  name: tutorial
+
+plugins:
+  # Auto-discover components (folders with Dockerfiles)
+  - name: autodocker
+
+  # Load .env files
+  - name: dotenv
+    config:
+      - .env
+
+  # Load component Embfiles
+  - name: embfiles
+
+# Environment variables available to all components
+env:
+  DOCKER_TAG: ${env:DOCKER_TAG:-latest}
+  NODE_ENV: ${env:NODE_ENV:-development}
+
+# Default Docker build settings
+defaults:
+  docker:
+    tag: ${env:DOCKER_TAG}
+
+# Project-level tasks
+tasks:
+  hello:
+    description: Say hello from the tutorial
+    script: |
+      echo "Hello from the EMB tutorial!"
+      echo "Components: api, web"
+
+# Flavors for different environments
+flavors:
+  production:
+    patches:
+      - op: replace
+        path: /env/NODE_ENV
+        value: production
