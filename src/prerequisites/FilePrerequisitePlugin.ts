@@ -10,9 +10,11 @@ import {
   PrerequisiteType,
 } from './types.js';
 
-export class FilePrerequisitePlugin
-  implements PrerequisitePlugin<PrerequisiteType.file, FilePrerequisite, string>
-{
+export class FilePrerequisitePlugin implements PrerequisitePlugin<
+  PrerequisiteType.file,
+  FilePrerequisite,
+  string
+> {
   async diff(
     component: Component,
     prerequisites: Array<FilePrerequisite>,

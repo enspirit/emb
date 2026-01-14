@@ -6,9 +6,11 @@ import { IOperation } from '@/operations/types.js';
 import { ResourceBuildContext } from '../ResourceFactory.js';
 import { IResourceBuilder } from '../types.js';
 
-export abstract class AbstractResourceBuilder<I, O, R>
-  implements IResourceBuilder<I, O, R>
-{
+export abstract class AbstractResourceBuilder<
+  I,
+  O,
+  R,
+> implements IResourceBuilder<I, O, R> {
   constructor(protected context: ResourceBuildContext<I>) {}
 
   abstract _build(
