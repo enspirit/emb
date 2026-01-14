@@ -73,8 +73,19 @@ jobs:
       - name: Install deps
         run: npm ci
 
-      - name: Run tests
-        run: npm run test
+      - name: Build
+        run: npm run build
+
+      - name: Run unit tests
+        run: npm run test:unit
+
+      - name: Run mocked integration tests
+        run: npm run test:integration:mocked
+
+      - name: Run Docker integration tests
+        run: npm run test:integration:docker
+        env:
+          DOCKER_TAG: test
 
   website:
     name: Website
