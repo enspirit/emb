@@ -66,19 +66,19 @@ emb tasks
 ```
 
 ```output
-
-  NAME        COMPONENT   DESCRIPTION               ID
-  dependent                                         dependent
-  greet                                             greet
-  prereq                                            prereq
-  test        buildargs                             buildargs:test
-  test        dependent                             dependent:test
-  fail        frontend    A task that will fail     frontend:fail
-  test        frontend    A simple unit test task   frontend:test
-  confirm     simple                                simple:confirm
-  inspect     simple                                simple:inspect
-  sudo        simple                                simple:sudo
-  release     utils                                 utils:release
+ NAME       COMPONENT  DESCRIPTION              ID
+---------------------------------------------------------------
+ dependent                                      dependent
+ greet                                          greet
+ prereq                                         prereq
+ test       buildargs                           buildargs:test
+ test       dependent                           dependent:test
+ fail       frontend   A task that will fail    frontend:fail
+ test       frontend   A simple unit test task  frontend:test
+ confirm    simple                              simple:confirm
+ inspect    simple                              simple:inspect
+ sudo       simple                              simple:sudo
+ release    utils                               utils:release
 ```
 
 ## What's Next?

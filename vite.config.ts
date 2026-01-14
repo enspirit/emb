@@ -19,8 +19,7 @@ export default defineConfig({
       '@/prerequisites': resolve(__dirname, './src/prerequisites/index.js'),
       '@/utils': resolve(__dirname, './src/utils/index.js'),
     },
-
-    extensions: ['.js', '.ts', '.json'], // 👈 Important
+    extensions: ['.js', '.ts', '.json'],
   },
   test: {
     disableConsoleIntercept: true,

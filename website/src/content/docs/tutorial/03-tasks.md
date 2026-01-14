@@ -16,11 +16,11 @@ emb tasks
 ```
 
 ```output
-
-  NAME     COMPONENT   DESCRIPTION                   ID
-  hello                Say hello from the tutorial   hello
-  health   api         Check API health              api:health
-  test     api         Run API tests                 api:test
+ NAME    COMPONENT  DESCRIPTION                  ID
+------------------------------------------------------------
+ hello              Say hello from the tutorial  hello
+ health  api        Check API health             api:health
+ test    api        Run API tests                api:test
 ```
 
 ## Task Types

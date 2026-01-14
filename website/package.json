@@ -18,9 +18,7 @@
   },
   "devDependencies": {
     "@types/node": "^24.10.8",
-    "execa": "^9.6.1",
     "remark-parse": "^11.0.0",
-    "remark-stringify": "^11.0.0",
     "tsx": "^4.21.0",
     "unified": "^11.0.0"
   }

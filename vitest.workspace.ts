@@ -1,3 +1,11 @@
+/**
+ * Vitest Workspace Configuration
+ *
+ * Note: This file uses the deprecated `defineWorkspace` API. The recommended
+ * approach is to use `test.projects` in vite.config.ts, but the migration
+ * causes path resolution issues with the tsconfig paths. This will be
+ * addressed when Vitest provides better project inheritance.
+ */
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import tsconfigPaths from 'vite-tsconfig-paths';

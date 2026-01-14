@@ -127,6 +127,8 @@ jobs:
       - name: Validate documentation
         working-directory: website
         run: npm test
+        env:
+          DEBUG_VALIDATE: '1'
 
       - name: Build website
         working-directory: website
