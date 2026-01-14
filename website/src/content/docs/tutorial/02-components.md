@@ -125,4 +125,4 @@ This ensures the API image is built before the web image.
 
 ## Next Step
 
-Continue to [Step 3: Tasks](/tutorial/03-tasks) to learn how to define and run tasks.
+Continue to [Step 3: Tasks](/emb/tutorial/03-tasks) to learn how to define and run tasks.

@@ -76,9 +76,9 @@ Different environments often need different build configurations. Use flavors:
 emb resources build --flavor production
 ```
 
-See [Flavors](/advanced/flavors) for more details on configuring build variants.
+See [Flavors](/emb/advanced/flavors) for more details on configuring build variants.
 
 ## Next Steps
 
-- Learn about [running services](/day-to-day/running-services)
-- Understand [component configuration](/day-to-day/managing-components)
+- Learn about [running services](/emb/day-to-day/running-services)
+- Understand [component configuration](/emb/day-to-day/managing-components)

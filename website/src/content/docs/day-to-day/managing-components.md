@@ -89,5 +89,5 @@ Components can define resources like:
 
 ## Next Steps
 
-- Learn about [running tasks](/advanced/tasks)
-- Understand [flavors for different environments](/advanced/flavors)
+- Learn about [running tasks](/emb/advanced/tasks)
+- Understand [flavors for different environments](/emb/advanced/flavors)

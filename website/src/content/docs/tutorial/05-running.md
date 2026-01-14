@@ -109,4 +109,4 @@ emb shell api
 
 ## Next Step
 
-Continue to [Step 6: Flavors](/tutorial/06-flavors) to learn about environment-specific configurations.
+Continue to [Step 6: Flavors](/emb/tutorial/06-flavors) to learn about environment-specific configurations.

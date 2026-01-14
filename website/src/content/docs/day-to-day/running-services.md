@@ -85,5 +85,5 @@ emb up --flavor production
 
 ## Next Steps
 
-- Learn about [managing components](/day-to-day/managing-components)
-- Understand [task execution](/advanced/tasks)
+- Learn about [managing components](/emb/day-to-day/managing-components)
+- Understand [task execution](/emb/advanced/tasks)

@@ -49,4 +49,4 @@ tutorial/
 
 ## Let's Get Started
 
-Continue to [Step 1: Project Setup](/tutorial/01-project-setup) to begin building your monorepo.
+Continue to [Step 1: Project Setup](/emb/tutorial/01-project-setup) to begin building your monorepo.

@@ -95,4 +95,4 @@ emb images
 
 ## Next Step
 
-Continue to [Step 5: Running](/tutorial/05-running) to learn how to run your services.
+Continue to [Step 5: Running](/emb/tutorial/05-running) to learn how to run your services.

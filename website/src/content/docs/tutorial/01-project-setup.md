@@ -134,4 +134,4 @@ flavors:
 
 ## Next Step
 
-Continue to [Step 2: Components](/tutorial/02-components) to learn how EMB discovers and manages your services.
+Continue to [Step 2: Components](/emb/tutorial/02-components) to learn how EMB discovers and manages your services.

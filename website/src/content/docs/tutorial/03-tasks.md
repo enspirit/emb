@@ -105,4 +105,4 @@ tasks:
 
 ## Next Step
 
-Continue to [Step 4: Building](/tutorial/04-building) to learn how to build Docker images.
+Continue to [Step 4: Building](/emb/tutorial/04-building) to learn how to build Docker images.

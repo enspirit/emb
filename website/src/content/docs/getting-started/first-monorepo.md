@@ -84,6 +84,6 @@ emb tasks
 
 Now that you understand the basics:
 
-- Learn about [building resources](/day-to-day/building-resources)
-- Learn about [running services](/day-to-day/running-services)
-- Explore [component configuration](/advanced/components)
+- Learn about [building resources](/emb/day-to-day/building-resources)
+- Learn about [running services](/emb/day-to-day/running-services)
+- Explore [component configuration](/emb/advanced/components)

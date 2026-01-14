@@ -132,6 +132,6 @@ Congratulations! You've learned the core concepts of EMB:
 
 ## Next Steps
 
-- Explore the [Advanced guides](/advanced/tasks) for more features
-- Check the [Reference](/reference/configuration) for complete documentation
+- Explore the [Advanced guides](/emb/advanced/tasks) for more features
+- Check the [Reference](/emb/reference/configuration) for complete documentation
 - Look at the `examples/` folder for real-world patterns
