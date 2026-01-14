@@ -91,13 +91,6 @@ jobs:
     name: Website
     runs-on: ubuntu-latest
     needs: build  # website docs reference emb commands
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     services:
       docker:
         image: docker:dind
@@ -141,17 +134,41 @@ jobs:
         working-directory: website
         run: npm run build
 
+      - name: Upload website artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: website-dist
+          path: website/dist
+          retention-days: 1
+
+  deploy-website:
+    name: Deploy Website
+    runs-on: ubuntu-latest
+    needs: website
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Download website artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: website-dist
+          path: website-dist
+
       - name: Setup Pages
-        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
         uses: actions/configure-pages@v5
 
       - name: Upload Pages artifact
-        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
         uses: actions/upload-pages-artifact@v3
         with:
-          path: website/dist
+          path: website-dist
 
       - name: Deploy to GitHub Pages
-        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
         id: deployment
         uses: actions/deploy-pages@v4
