@@ -116,10 +116,11 @@ worker:image
     └── api:image
 ```
 
-EMB will build in this order:
-1. `base:image` and `frontend:image` (in parallel, no dependencies)
-2. `api:image` (depends on base)
-3. `worker:image` (depends on both base and api)
+EMB will build in this order (one at a time):
+1. `base:image` (no dependencies)
+2. `frontend:image` (no dependencies)
+3. `api:image` (depends on base)
+4. `worker:image` (depends on both base and api)
 
 ## Circular Dependency Detection
 
