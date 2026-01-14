@@ -48,9 +48,16 @@ interface ParsedMeta {
   [key: string]: string | boolean | undefined;
 }
 
+interface LinkError {
+  line: number;
+  link: string;
+  text: string;
+}
+
 interface ValidationResult {
   file: string;
   blocks: BlockResult[];
+  linkErrors: LinkError[];
   passed: boolean;
 }
 
@@ -199,15 +206,63 @@ function normalizeOutput(output: string): string {
     .trimEnd();
 }
 
+// Base path for GitHub Pages deployment
+const BASE_PATH = '/emb';
+
+/**
+ * Validate internal links in markdown content.
+ * Internal links (starting with /) must include the base path prefix.
+ */
+function validateLinks(content: string): LinkError[] {
+  const errors: LinkError[] = [];
+  const lines = content.split('\n');
+
+  // Regex to find markdown links: [text](url)
+  const linkRegex = /\[([^\]]*)\]\(([^)]+)\)/g;
+
+  for (let lineNum = 0; lineNum < lines.length; lineNum++) {
+    const line = lines[lineNum];
+    let match;
+
+    while ((match = linkRegex.exec(line)) !== null) {
+      const [, text, url] = match;
+
+      // Skip external links, anchors, and relative paths
+      if (url.startsWith('http://') || url.startsWith('https://') ||
+          url.startsWith('#') || url.startsWith('./') || url.startsWith('../')) {
+        continue;
+      }
+
+      // Check absolute internal links
+      if (url.startsWith('/')) {
+        // Must start with base path
+        if (!url.startsWith(`${BASE_PATH}/`)) {
+          errors.push({
+            line: lineNum + 1,
+            link: url,
+            text,
+          });
+        }
+      }
+    }
+  }
+
+  return errors;
+}
+
 export async function processFile(path: string): Promise<ValidationResult> {
   debug(`Processing file: ${path}`);
   const src = await readFile(path, 'utf8');
   const tree = unified().use(remarkParse).parse(src);
 
+  // Validate internal links
+  const linkErrors = validateLinks(src);
+
   const result: ValidationResult = {
     file: relative(websiteDir, path),
     blocks: [],
-    passed: true,
+    linkErrors,
+    passed: linkErrors.length === 0,
   };
 
   const nodes = tree.children;
@@ -360,6 +415,11 @@ export async function validateDocs(docsDir: string): Promise<ValidationResult[]>
     const fileElapsed = Date.now() - fileStartTime;
     debug(`  File completed in ${fileElapsed}ms`);
 
+    // Print link errors
+    for (const linkError of result.linkErrors) {
+      console.log(`  ✗ LINK: Line ${linkError.line}: [${linkError.text}](${linkError.link}) - missing ${BASE_PATH} prefix`);
+    }
+
     // Print results for each block
     for (const block of result.blocks) {
       if (block.skipped) {
@@ -390,15 +450,20 @@ if (process.argv[1] === __filename || process.argv[1]?.endsWith('/validate-docs.
       console.log('\n===========================');
       const totalBlocks = results.reduce((sum, r) => sum + r.blocks.length, 0);
       const passedBlocks = results.reduce((sum, r) => sum + r.blocks.filter(b => b.passed).length, 0);
+      const totalLinkErrors = results.reduce((sum, r) => sum + r.linkErrors.length, 0);
       const failedFiles = results.filter(r => !r.passed);
 
       console.log(`Files: ${results.length}`);
       console.log(`Blocks: ${passedBlocks}/${totalBlocks} passed`);
+      console.log(`Links: ${totalLinkErrors} errors`);
 
       if (failedFiles.length > 0) {
         console.log(`\nFailed files:`);
         for (const f of failedFiles) {
-          console.log(`  - ${f.file}`);
+          const reasons: string[] = [];
+          if (f.linkErrors.length > 0) reasons.push(`${f.linkErrors.length} broken links`);
+          if (f.blocks.some(b => !b.passed)) reasons.push('block failures');
+          console.log(`  - ${f.file} (${reasons.join(', ')})`);
         }
         process.exit(1);
       } else {
