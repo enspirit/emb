@@ -3,8 +3,6 @@ title: Your First Monorepo
 description: Set up and explore your first EMB-managed monorepo
 ---
 
-# Your First Monorepo
-
 Let's explore EMB using a sample monorepo. We'll use the `examples/` folder that comes with EMB.
 
 ## Project Structure

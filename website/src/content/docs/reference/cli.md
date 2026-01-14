@@ -3,8 +3,6 @@ title: CLI Reference
 description: Complete reference for EMB commands
 ---
 
-# CLI Reference
-
 Complete reference for all EMB commands.
 
 ## Global Options

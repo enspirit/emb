@@ -3,8 +3,6 @@ title: "Step 4: Building"
 description: Building Docker images with EMB
 ---
 
-# Step 4: Building
-
 EMB manages Docker image builds, handling dependencies and caching automatically.
 
 ## Build All Images

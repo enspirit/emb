@@ -3,8 +3,6 @@ title: "Step 2: Components"
 description: Understanding how EMB discovers and manages components
 ---
 
-# Step 2: Components
-
 Components are the building blocks of an EMB monorepo. Each component typically represents a service, tool, or library.
 
 ## Auto-Discovery

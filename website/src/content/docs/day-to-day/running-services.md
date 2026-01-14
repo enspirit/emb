@@ -3,8 +3,6 @@ title: Running Services
 description: How to run and manage services with EMB
 ---
 
-# Running Services
-
 EMB wraps Docker Compose to provide a consistent interface for running services.
 
 ## Start Services

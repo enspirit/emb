@@ -3,8 +3,6 @@ title: Introduction
 description: What is EMB and why use it?
 ---
 
-# What is EMB?
-
 **EMB** (Enspirit's Monorepo Builder) is a CLI tool for managing Docker-based monorepos. It provides a unified interface for:
 
 - Building and managing Docker images

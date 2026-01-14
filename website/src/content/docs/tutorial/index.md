@@ -3,8 +3,6 @@ title: Tutorial Overview
 description: Learn EMB step by step with a hands-on tutorial
 ---
 
-# EMB Tutorial
-
 This tutorial walks you through building a monorepo from scratch, introducing EMB features progressively.
 
 ## What You'll Build

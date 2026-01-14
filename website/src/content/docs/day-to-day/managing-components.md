@@ -3,8 +3,6 @@ title: Managing Components
 description: How to manage components in your monorepo
 ---
 
-# Managing Components
-
 Components are the building blocks of an EMB monorepo. Each component represents a service or tool that can be built and run.
 
 ## Auto-Discovery

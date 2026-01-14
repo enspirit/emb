@@ -3,8 +3,6 @@ title: Dependencies
 description: Managing dependencies between resources
 ---
 
-# Dependencies
-
 EMB automatically manages dependencies between resources, ensuring they're built in the correct order. This is essential for:
 
 - Multi-stage builds where one image depends on another

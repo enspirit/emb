@@ -3,8 +3,6 @@ title: Tasks
 description: Define and run tasks in your monorepo
 ---
 
-# Tasks
-
 Tasks are scripts that can be executed within the context of your monorepo. They can run locally or inside containers, have dependencies on other tasks, and use variables.
 
 ## Listing Tasks

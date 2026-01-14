@@ -3,8 +3,6 @@ title: "Step 1: Project Setup"
 description: Create your first EMB project configuration
 ---
 
-# Step 1: Project Setup
-
 Every EMB project starts with a `.emb.yml` configuration file at the project root.
 
 ## Minimal Configuration

@@ -3,8 +3,6 @@ title: Flavors
 description: Environment variants using JSON Patch
 ---
 
-# Flavors
-
 Flavors allow you to define different configurations for different environments (development, staging, production) using JSON Patch (RFC 6902). Instead of duplicating configuration, you define a base config and patches that modify it.
 
 ## How Flavors Work

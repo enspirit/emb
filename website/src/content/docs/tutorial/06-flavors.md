@@ -3,8 +3,6 @@ title: "Step 6: Flavors"
 description: Environment-specific configurations with flavors
 ---
 
-# Step 6: Flavors
-
 Flavors let you define different configurations for different environments (development, staging, production) using JSON Patch.
 
 ## How Flavors Work

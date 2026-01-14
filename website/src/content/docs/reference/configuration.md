@@ -3,8 +3,6 @@ title: Configuration Reference
 description: Complete reference for .emb.yml configuration
 ---
 
-# Configuration Reference
-
 This is the complete reference for EMB configuration files.
 
 ## Configuration Files

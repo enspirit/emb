@@ -3,8 +3,6 @@ title: "Step 5: Running"
 description: Running and managing services with EMB
 ---
 
-# Step 5: Running
-
 EMB wraps Docker Compose to provide a consistent interface for running services.
 
 ## Docker Compose Integration

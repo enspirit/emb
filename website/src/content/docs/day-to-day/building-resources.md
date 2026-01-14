@@ -3,8 +3,6 @@ title: Building Resources
 description: How to build resources with EMB
 ---
 
-# Building Resources
-
 EMB manages buildable resources across your monorepo. Resources are artifacts that can be built from your components, such as Docker images or files.
 
 ## Resource Types

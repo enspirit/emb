@@ -3,8 +3,6 @@ title: Installation
 description: How to install EMB
 ---
 
-# Installation
-
 EMB requires **Node.js 20+** and **Docker** to be installed on your system.
 
 ## Using npm
