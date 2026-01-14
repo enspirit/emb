@@ -104,15 +104,24 @@ describe('Docker / DockerImageResource', () => {
       expect(reference).toBe('test-project/mycomponent:latest');
     });
 
-    test('it uses custom tag when provided in config', async () => {
+    test('it uses custom image name and tag when provided in config', async () => {
       const builder = createBuilder({ tag: 'myimage:v1.0.0' } as Partial<
         OpInput<BuildImageOperation>
       >);
 
       const reference = await builder.getReference();
 
-      // The tag is used both for image name and tag suffix
-      expect(reference).toBe('test-project/myimage:v1.0.0:myimage:v1.0.0');
+      expect(reference).toBe('test-project/myimage:v1.0.0');
+    });
+
+    test('it uses custom image name with default tag when no tag suffix', async () => {
+      const builder = createBuilder({ tag: 'myimage' } as Partial<
+        OpInput<BuildImageOperation>
+      >);
+
+      const reference = await builder.getReference();
+
+      expect(reference).toBe('test-project/myimage:latest');
     });
 
     test('it uses monorepo default tag when no tag in config', async () => {

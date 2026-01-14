@@ -34,14 +34,24 @@ class DockerImageResourceBuilder extends SentinelFileBasedBuilder<
   }
 
   async getReference(): Promise<string> {
-    const imageName = [
-      this.monorepo.name,
-      this.config?.tag || this.component.name,
-    ].join('/');
-    const tagName =
-      this.config?.tag || this.monorepo.defaults.docker?.tag || 'latest';
+    const configTag = this.config?.tag;
+    let imageNamePart: string;
+    let tagPart: string;
 
-    return this.monorepo.expand(`${imageName}:${tagName}`);
+    if (configTag && configTag.includes(':')) {
+      // config.tag contains both image name and tag (e.g., "myimage:v1.0.0")
+      const colonIndex = configTag.lastIndexOf(':');
+      imageNamePart = configTag.slice(0, colonIndex);
+      tagPart = configTag.slice(colonIndex + 1);
+    } else {
+      // config.tag is just an image name or undefined
+      imageNamePart = configTag || this.component.name;
+      tagPart = this.monorepo.defaults.docker?.tag || 'latest';
+    }
+
+    const imageName = [this.monorepo.name, imageNamePart].join('/');
+
+    return this.monorepo.expand(`${imageName}:${tagPart}`);
   }
 
   get monorepo() {
