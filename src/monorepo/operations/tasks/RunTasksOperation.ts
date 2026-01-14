@@ -28,9 +28,10 @@ export type TaskWithScriptAndComponent = TaskInfo & {
   component: string;
 };
 
-export class RunTasksOperation
-  implements IOperation<RunTasksOperationParams, Array<TaskInfo>>
-{
+export class RunTasksOperation implements IOperation<
+  RunTasksOperationParams,
+  Array<TaskInfo>
+> {
   async run(params: RunTasksOperationParams): Promise<Array<TaskInfo>> {
     const { monorepo } = getContext();
 

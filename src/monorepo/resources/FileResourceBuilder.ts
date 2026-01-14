@@ -10,14 +10,11 @@ import { OpInput, OpOutput } from '@/operations/index.js';
 
 import { ResourceBuildContext, ResourceFactory } from './ResourceFactory.js';
 
-export class FileResourceBuilder
-  implements
-    IResourceBuilder<
-      OpInput<CreateFileOperation>,
-      OpOutput<CreateFileOperation>,
-      boolean
-    >
-{
+export class FileResourceBuilder implements IResourceBuilder<
+  OpInput<CreateFileOperation>,
+  OpOutput<CreateFileOperation>,
+  boolean
+> {
   constructor(
     protected context: ResourceBuildContext<OpInput<CreateFileOperation>>,
   ) {}

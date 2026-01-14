@@ -5,9 +5,10 @@ import { ListContainersOperation } from '@/docker';
 import { Component } from '@/monorepo';
 import { IOperation } from '@/operations';
 
-export class GetComponentContainerOperation
-  implements IOperation<Component, ContainerInfo>
-{
+export class GetComponentContainerOperation implements IOperation<
+  Component,
+  ContainerInfo
+> {
   async run(component: Component | string): Promise<ContainerInfo> {
     const { monorepo } = getContext();
 

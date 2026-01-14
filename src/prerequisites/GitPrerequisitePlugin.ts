@@ -6,9 +6,10 @@ import {
   PrerequisiteType,
 } from './types.js';
 
-export class GitPrerequisitePlugin
-  implements PrerequisitePlugin<PrerequisiteType.file, FilePrerequisite>
-{
+export class GitPrerequisitePlugin implements PrerequisitePlugin<
+  PrerequisiteType.file,
+  FilePrerequisite
+> {
   async collect(path: string): Promise<Array<FilePrerequisite>> {
     const repo = simpleGit(path);
 

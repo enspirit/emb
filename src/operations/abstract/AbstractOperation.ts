@@ -9,9 +9,10 @@ export type OpInput<A extends AbstractOperation<z.Schema, unknown>> =
 export type OpOutput<A extends AbstractOperation<z.Schema, unknown>> =
   A extends AbstractOperation<z.Schema, infer O> ? O : never;
 
-export abstract class AbstractOperation<I extends z.Schema, O>
-  implements IOperation<z.infer<I>, O>
-{
+export abstract class AbstractOperation<
+  I extends z.Schema,
+  O,
+> implements IOperation<z.infer<I>, O> {
   protected context: EmbContext;
 
   constructor(protected inputSchema: I) {
