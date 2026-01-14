@@ -90,12 +90,6 @@ patches:
 
 ## Using Flavors
 
-### Build with a Flavor
-
-```shell skip
-emb build --flavor production
-```
-
 ### Run Services with a Flavor
 
 ```shell skip
@@ -146,8 +140,10 @@ flavors:
 ```
 
 Now:
-- `emb build` builds the development stage
-- `emb build --flavor production` builds the production stage
+- `emb up` builds and runs the development stage
+- `emb up --flavor production` builds and runs the production stage
+
+You can also build resources explicitly with `emb resources build --flavor production`.
 
 ## Flavor Inheritance
 

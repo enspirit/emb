@@ -72,17 +72,17 @@ emb ps
 View container logs.
 
 ```shell
-emb logs [COMPONENT...] [OPTIONS]
+emb logs <COMPONENT...> [OPTIONS]
 ```
 
 **Options:**
-- `-f, --follow` - Follow log output
+- `--no-follow` - Don't follow log output (logs are followed by default)
 
 **Examples:**
 ```shell
-emb logs              # All logs
-emb logs api          # API logs only
-emb logs -f api       # Follow API logs
+emb logs api              # Follow API logs
+emb logs api web          # Follow logs for multiple services
+emb logs --no-follow api  # Get log snapshot without following
 ```
 
 ### emb shell

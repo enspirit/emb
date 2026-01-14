@@ -40,13 +40,6 @@ emb up
 This will:
 1. Build any images that need building
 2. Start all services defined in docker-compose.yml
-3. Show logs in real-time
-
-Start in detached mode:
-
-```shell skip
-emb up -d
-```
 
 Start specific services:
 
@@ -64,16 +57,16 @@ emb ps
 
 ## Viewing Logs
 
-View all logs:
+View and follow logs for a service:
 
 ```shell skip
-emb logs
+emb logs api
 ```
 
-Follow specific service logs:
+Logs are followed by default. To get a snapshot without following:
 
 ```shell skip
-emb logs -f api
+emb logs --no-follow api
 ```
 
 ## Stopping Services

@@ -25,7 +25,7 @@ EMB solves these problems by:
 
 1. **Auto-discovering components** - Any folder with a `Dockerfile` becomes a buildable component
 2. **Managing dependencies** - Builds images in the right order automatically
-3. **Providing consistent commands** - `emb build`, `emb up`, `emb logs` work across all projects
+3. **Providing consistent commands** - `emb up`, `emb logs`, `emb run` work across all projects
 4. **Supporting flavors** - Different configurations for development, staging, production
 
 ## Quick Example
@@ -47,13 +47,14 @@ EMB automatically discovers the components:
 emb components
 ```
 
-And provides commands to build and run them:
+And provides commands to run them:
 
 ```shell
-emb build          # Build all images
-emb up             # Start all services
+emb up             # Build resources and start all services
 emb logs api       # View API logs
 emb run api:test   # Run the test task in api
 ```
 
-Ready to get started? [Install EMB](/getting-started/installation) or jump to [Your First Monorepo](/getting-started/first-monorepo).
+Note: `emb up` automatically builds all required resources (Docker images, files) before starting services, regardless of which flavor is being used.
+
+Ready to get started? [Install EMB](/emb/getting-started/installation) or jump to [Your First Monorepo](/emb/getting-started/first-monorepo).

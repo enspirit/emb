@@ -26,7 +26,7 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 		Define dependencies between images and EMB builds them in the right order.
 	</Card>
 	<Card title="Consistent Workflow" icon="rocket">
-		Use the same commands across all projects: `emb build`, `emb up`, `emb logs`.
+		Use the same commands across all projects: `emb up`, `emb logs`, `emb run`.
 	</Card>
 	<Card title="Flavors" icon="setting">
 		Define different configurations for development, staging, and production using JSON Patch.
@@ -41,6 +41,6 @@ npm install -g @enspirit/emb
 
 # In your monorepo
 emb components    # See discovered components
-emb build         # Build all images
-emb up            # Start services
+emb up            # Build resources and start services
+emb logs api      # View logs for a service
 ```
