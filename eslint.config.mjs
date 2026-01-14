@@ -53,5 +53,10 @@ export default defineConfig([
       'unicorn/prefer-array-some': 'off',
     },
   },
-  globalIgnores(['**/dist', 'examples/**', 'src/config/schema.ts']),
+  globalIgnores([
+    '**/dist',
+    'examples/**',
+    'src/config/schema.ts',
+    'website/**',
+  ]),
 ]);
