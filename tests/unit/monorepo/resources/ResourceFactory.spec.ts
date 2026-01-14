@@ -102,7 +102,9 @@ describe('Monorepo / Resources / ResourceFactory', () => {
 
       expect(() => {
         ResourceFactory.factor('unknown-type', context);
-      }).toThrow('Unknown resource type `unknown-type` (test-component:unknown-resource)');
+      }).toThrow(
+        'Unknown resource type `unknown-type` (test-component:unknown-resource)',
+      );
     });
   });
 });

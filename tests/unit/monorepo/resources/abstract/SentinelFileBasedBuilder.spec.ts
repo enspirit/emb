@@ -85,6 +85,7 @@ describe('Monorepo / Resources / SentinelFileBasedBuilder', () => {
 
   describe('#mustBuild()', () => {
     test('it returns sentinel data when no sentinel file exists (first build)', async () => {
+      // eslint-disable-next-line unicorn/no-useless-undefined
       mockStore.stat.mockResolvedValue(undefined);
       builder.mustBuildReturnValue = { mtime: Date.now(), hash: 'abc123' };
 
@@ -143,6 +144,7 @@ describe('Monorepo / Resources / SentinelFileBasedBuilder', () => {
 
   describe('#commit()', () => {
     test('it stores sentinel data after successful build', async () => {
+      // eslint-disable-next-line unicorn/no-useless-undefined
       mockStore.writeFile.mockResolvedValue(undefined);
 
       const reason: TestSentinelData = { mtime: Date.now(), hash: 'abc' };
