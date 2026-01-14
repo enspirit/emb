@@ -18,6 +18,7 @@ export default defineConfig({
 						{ label: 'Introduction', slug: 'getting-started/introduction' },
 						{ label: 'Installation', slug: 'getting-started/installation' },
 						{ label: 'Your First Monorepo', slug: 'getting-started/first-monorepo' },
+						{ label: 'Migrating from Makefile', slug: 'getting-started/migrating-from-makefile' },
 					],
 				},
 				{
