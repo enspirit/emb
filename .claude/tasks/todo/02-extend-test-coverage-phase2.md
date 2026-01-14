@@ -4,59 +4,30 @@
 Continue improving unit test coverage by adding tests for core functionality that is currently untested.
 
 ## Current Status
-- **Unit Tests:** 120 passing (25 test files)
-- **Previous Phase:** Completed tests for operations, plugins, resources, and utilities
+- **Unit Tests:** 220 passing (35 test files)
+- **Previous Phase:** Completed Phases 1-3
 
-## Priority Areas
+## Completed Phases
 
-### Phase 1: Core Monorepo (Simple)
+### ✅ Phase 1: Core Monorepo (COMPLETED)
+- Component.spec.ts (15 tests)
+- EMBStore.spec.ts (18 tests)
+- errors.spec.ts (14 tests)
 
-| File | Location | Estimated Tests |
-|------|----------|-----------------|
-| Component | `src/monorepo/component.ts` | 6 tests |
-| EMBStore | `src/monorepo/store/index.ts` | 8 tests |
-| Errors | `src/errors.ts` | 5 tests |
+### ✅ Phase 2: Config & Validation (COMPLETED)
+- validation.spec.ts (11 tests)
+- context.spec.ts (3 tests)
 
-**Component.ts tests should cover:**
-- Constructor initialization (name, config, resources, tasks, flavors)
-- `rootDir` getter (default vs custom)
-- `flavor()` method (existing and missing flavors)
-- `cloneWith()` method
-- `withFlavor()` method applying patches
-- `join()` and `relative()` path helpers
+### ✅ Phase 3: Docker Operations (COMPLETED)
+- DockerComposeClient.spec.ts (3 tests - instantiation and types)
+- ContainerExecOperation.spec.ts (10 tests)
+- PruneContainersOperation.spec.ts (5 tests)
+- BuildImageOperation.spec.ts (9 tests - instantiation and schema)
+- DockerImageResource.spec.ts (12 tests)
 
-**EMBStore tests should cover:**
-- `init()` creates store directory
-- `join()` builds correct paths with flavor
-- `writeFile()` and `readFile()` round-trip
-- `stat()` with mustExist flag
-- `createWriteStream()` and `createReadStream()`
-- `trash()` removes store directory
-- `mkdirp()` creates nested directories
+Note: DockerComposeClient and BuildImageOperation tests are limited due to ESM mocking challenges with `execa` and `spawn`. Full behavior testing requires integration tests.
 
-**Errors tests should cover:**
-- EMBError base class
-- CliError with suggestions
-- AmbiguousReferenceError
-- CircularDependencyError
-- UnknownReferenceError
-
-### Phase 2: Config & Validation (Medium)
-
-| File | Location | Estimated Tests |
-|------|----------|-----------------|
-| Validation | `src/config/validation.ts` | 6 tests |
-| Context | `src/context.ts` | 3 tests |
-
-### Phase 3: Docker Operations (Medium-Complex)
-
-| File | Location | Estimated Tests |
-|------|----------|-----------------|
-| DockerComposeClient | `src/docker/compose/client.ts` | 8 tests |
-| ContainerExecOperation | `src/docker/operations/containers/ContainerExecOperation.ts` | 4 tests |
-| PruneContainersOperation | `src/docker/operations/containers/PruneContainersOperation.ts` | 3 tests |
-| BuildImageOperation | `src/docker/operations/images/BuildImageOperation.ts` | 5 tests |
-| DockerImageResource | `src/docker/resources/DockerImageResource.ts` | 6 tests |
+## Remaining Phases
 
 ### Phase 4: Compose Operations (Requires Docker mocking)
 
