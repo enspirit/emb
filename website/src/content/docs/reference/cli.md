@@ -314,11 +314,3 @@ emb kubernetes          # Kubernetes management commands
 | 0 | Success |
 | 1 | General error |
 | 2 | Command not found |
-
-## Environment Variables
-
-| Variable | Description |
-|----------|-------------|
-| `DOCKER_TAG` | Default image tag (commonly used) |
-| `EMB_FLAVOR` | Default flavor to use |
-| `NO_COLOR` | Disable colored output |

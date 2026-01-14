@@ -12,17 +12,18 @@ Let's explore EMB using a sample monorepo. We'll use the `examples/` folder that
 A minimal EMB monorepo looks like this:
 
 ```
-examples/
-├── simple/
+my-project/
+├── .emb.yml              # EMB configuration
+├── api/
+│   ├── Dockerfile
+│   └── server.js
+├── web/
 │   ├── Dockerfile
 │   └── index.html
-├── frontend/
-│   ├── Dockerfile
-│   └── package.json
 └── docker-compose.yml
 ```
 
-That's it! EMB auto-discovers any folder containing a `Dockerfile` as a component.
+The `.emb.yml` file configures EMB. With the `autodocker` plugin, EMB auto-discovers any folder containing a `Dockerfile` as a component.
 
 ## Discovering Components
 
@@ -85,6 +86,6 @@ emb tasks
 
 Now that you understand the basics:
 
-- Learn about [building images](/day-to-day/building-images)
+- Learn about [building resources](/day-to-day/building-resources)
 - Learn about [running services](/day-to-day/running-services)
 - Explore [component configuration](/advanced/components)

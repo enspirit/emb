@@ -43,7 +43,7 @@ website/
     │   ├── installation.md
     │   └── first-monorepo.md  # ✓ Has executable examples
     └── day-to-day/
-        ├── building-images.md
+        ├── building-resources.md
         ├── running-services.md
         └── managing-components.md  # ✓ Has executable examples
 ```

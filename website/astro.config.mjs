@@ -33,7 +33,7 @@ export default defineConfig({
 				{
 					label: 'Day to Day',
 					items: [
-						{ label: 'Building Images', slug: 'day-to-day/building-images' },
+						{ label: 'Building Resources', slug: 'day-to-day/building-resources' },
 						{ label: 'Running Services', slug: 'day-to-day/running-services' },
 						{ label: 'Managing Components', slug: 'day-to-day/managing-components' },
 					],

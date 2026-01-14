@@ -7,6 +7,8 @@ description: Defining and running tasks in your monorepo
 
 Tasks are scripts you can run across your monorepo. They can be defined at the project level or within components.
 
+A key feature of EMB tasks is that the same script can run either inside a container or on your local machine - you control this via **executors** without changing the script itself. This makes it easy to test locally during development and run in containers for CI/CD.
+
 ## Listing Tasks
 
 Let's see what tasks are available in our tutorial:

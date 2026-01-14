@@ -49,10 +49,10 @@ View logs for specific services:
 emb logs api
 ```
 
-Follow logs in real-time:
+Logs are followed in real-time by default. To get a snapshot instead:
 
 ```shell skip
-emb logs -f api
+emb logs --no-follow api
 ```
 
 ## Stop Services

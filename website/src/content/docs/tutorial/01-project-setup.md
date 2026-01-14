@@ -107,7 +107,7 @@ env:
   DOCKER_TAG: ${env:DOCKER_TAG:-latest}
 ```
 
-The `${env:VAR:-default}` syntax means: use the environment variable if set, otherwise use the default.
+The `${env:VAR:-fallback}` syntax means: use the `VAR` environment variable if set, otherwise use the fallback value. In this case, `DOCKER_TAG` defaults to `latest` when not set.
 
 ### Defaults
 
