@@ -75,6 +75,45 @@ Main config file is `.emb.yml` with:
 
 Custom error hierarchy with `EMBError` base class. Notable: `CliError` (user-friendly with suggestions), `AmbiguousReferenceError`, `CircularDependencyError`, `ShellExitError`.
 
+## Documentation Website (`website/`)
+
+The documentation site is built with Astro Starlight and lives in the `website/` directory.
+
+### Website Commands
+
+```bash
+cd website
+npm run dev            # Start dev server
+npm run build          # Build static site
+npm run validate-docs  # Validate executable code blocks
+npm test               # Same as validate-docs
+```
+
+### Structure
+
+- `src/content/docs/` - Markdown documentation files
+- `tutorial/` - Self-contained example monorepo used by tutorial docs
+- `scripts/validate-docs.ts` - Validates executable code blocks in docs
+
+### Executable Documentation
+
+Documentation code blocks can be marked for execution and validation:
+
+```markdown
+```shell exec cwd="tutorial"
+emb tasks
+```
+
+```output
+  NAME     COMPONENT   DESCRIPTION   ID
+  ...
+```
+```
+
+Options: `exec` (run the command), `cwd="path"` (working directory), `skip` (skip execution).
+
+The `npm test` command validates all executable blocks match their expected output.
+
 ## Development
 
 - Node.js 22+ (see `.nvmrc`)
