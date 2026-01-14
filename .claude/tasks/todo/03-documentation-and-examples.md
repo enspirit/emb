@@ -75,19 +75,20 @@ From `website/`:
 
 ---
 
+### Phase 2: Content Expansion (Done)
+
+- [x] Add advanced documentation pages:
+  - [x] `advanced/tasks.md` - Task definition and execution
+  - [x] `advanced/flavors.md` - Environment variants with JSON Patch
+  - [x] `advanced/dependencies.md` - Image dependency management
+  - [ ] `advanced/kubernetes.md` - K8s deployment (deferred)
+- [x] Add reference documentation:
+  - [x] `reference/configuration.md` - Full `.emb.yml` schema
+  - [x] `reference/cli.md` - All CLI commands
+
+---
+
 ## Remaining Work
-
-### Phase 2: Content Expansion
-
-- [ ] Add advanced documentation pages:
-  - [ ] `advanced/tasks.md` - Task definition and execution
-  - [ ] `advanced/flavors.md` - Environment variants with JSON Patch
-  - [ ] `advanced/dependencies.md` - Image dependency management
-  - [ ] `advanced/kubernetes.md` - K8s deployment
-- [ ] Add reference documentation:
-  - [ ] `reference/configuration.md` - Full `.emb.yml` schema
-  - [ ] `reference/cli.md` - All CLI commands
-- [ ] Add more executable examples throughout docs
 
 ### Phase 3: Example Monorepo Enhancement
 
