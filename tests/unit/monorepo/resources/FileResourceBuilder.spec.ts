@@ -10,6 +10,9 @@ import { OpInput } from '@/operations/index.js';
 import { FileResourceBuilder } from '../../../../src/monorepo/resources/FileResourceBuilder.js';
 import { ResourceBuildContext } from '../../../../src/monorepo/resources/ResourceFactory.js';
 
+// FileResourceBuilder expects params where 'path' is optional since it can derive from config name
+type FileResourceParams = Partial<OpInput<CreateFileOperation>>;
+
 describe('Monorepo / Resources / FileResourceBuilder', () => {
   let mockComponent: Component;
   let rootDir: string;
@@ -27,10 +30,10 @@ describe('Monorepo / Resources / FileResourceBuilder', () => {
   });
 
   const createBuilder = (
-    params: OpInput<CreateFileOperation> = {},
+    params: FileResourceParams = {},
     name = 'test-file.txt',
   ) => {
-    const config: ResourceInfo<OpInput<CreateFileOperation>> = {
+    const config: ResourceInfo<FileResourceParams> = {
       id: 'mycomponent:test-file',
       name,
       component: 'mycomponent',
@@ -38,11 +41,11 @@ describe('Monorepo / Resources / FileResourceBuilder', () => {
       params,
     };
 
-    const context: ResourceBuildContext<OpInput<CreateFileOperation>> = {
+    const context = {
       config,
       component: mockComponent,
       monorepo: {} as never,
-    };
+    } as ResourceBuildContext<OpInput<CreateFileOperation>>;
 
     return new FileResourceBuilder(context);
   };
@@ -112,13 +115,13 @@ describe('Monorepo / Resources / FileResourceBuilder', () => {
     test('it returns CreateFileOperation with correct input', async () => {
       const builder = createBuilder({ script: 'echo hello' }, 'output.txt');
 
-      const resource: ResourceInfo<OpInput<CreateFileOperation>> = {
+      const resource = {
         id: 'mycomponent:test-file',
         name: 'output.txt',
         component: 'mycomponent',
         type: 'file',
         params: { script: 'echo hello' },
-      };
+      } as ResourceInfo<OpInput<CreateFileOperation>>;
 
       const result = await builder.build(resource);
 
@@ -133,13 +136,13 @@ describe('Monorepo / Resources / FileResourceBuilder', () => {
     test('it passes undefined script when not provided in resource params', async () => {
       const builder = createBuilder({}, 'output.txt');
 
-      const resource: ResourceInfo<OpInput<CreateFileOperation>> = {
+      const resource = {
         id: 'mycomponent:test-file',
         name: 'output.txt',
         component: 'mycomponent',
         type: 'file',
         params: {},
-      };
+      } as ResourceInfo<OpInput<CreateFileOperation>>;
 
       const result = await builder.build(resource);
 

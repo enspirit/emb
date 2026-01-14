@@ -85,7 +85,7 @@ describe('Monorepo / Resources / SentinelFileBasedBuilder', () => {
 
   describe('#mustBuild()', () => {
     test('it returns sentinel data when no sentinel file exists (first build)', async () => {
-      mockStore.stat.mockResolvedValue();
+      mockStore.stat.mockResolvedValue(undefined);
       builder.mustBuildReturnValue = { mtime: Date.now(), hash: 'abc123' };
 
       const result = await builder.mustBuild(createResource());
@@ -143,7 +143,7 @@ describe('Monorepo / Resources / SentinelFileBasedBuilder', () => {
 
   describe('#commit()', () => {
     test('it stores sentinel data after successful build', async () => {
-      mockStore.writeFile.mockResolvedValue();
+      mockStore.writeFile.mockResolvedValue(undefined);
 
       const reason: TestSentinelData = { mtime: Date.now(), hash: 'abc' };
       await builder.commit(createResource(), { result: 'done' }, reason);

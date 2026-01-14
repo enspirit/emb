@@ -71,7 +71,9 @@ describe('Monorepo / Resources / ResourceFactory', () => {
 
       const context: ResourceBuildContext<unknown> = {
         config: {
-          id: 'test-resource',
+          id: 'test-component:test-resource',
+          name: 'test-resource',
+          component: 'test-component',
           type: 'factored-type',
           params: {},
         },
@@ -88,7 +90,9 @@ describe('Monorepo / Resources / ResourceFactory', () => {
     test('it throws an error for unknown resource type', () => {
       const context: ResourceBuildContext<unknown> = {
         config: {
-          id: 'unknown-resource',
+          id: 'test-component:unknown-resource',
+          name: 'unknown-resource',
+          component: 'test-component',
           type: 'unknown-type',
           params: {},
         },
@@ -98,7 +102,7 @@ describe('Monorepo / Resources / ResourceFactory', () => {
 
       expect(() => {
         ResourceFactory.factor('unknown-type', context);
-      }).toThrow('Unknown resource type `unknown-type` (unknown-resource)');
+      }).toThrow('Unknown resource type `unknown-type` (test-component:unknown-resource)');
     });
   });
 });
