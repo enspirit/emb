@@ -11,3 +11,100 @@ Let's start with a very first step where we put the bases for the following acce
 * The website uses astro or equivalent
 * The documentation is written in such a way that it actually runs in a monorepo (subfolder) showcasing the different use cases
 * The code blocks in the documentation are used and executed to ensure the command actually work, combining documentation with integration testing
+
+---
+
+# Progress
+
+## Completed
+
+### Phase 1: Foundation (Done)
+
+- [x] Set up Astro Starlight documentation site in `website/`
+- [x] Created `validate-docs.ts` script based on remark approach from commits `69ca879` & `e30a22d`
+- [x] Integrated validation with Vitest (`npm test` runs docs validation)
+- [x] Adapted existing `examples/` folder as the documentation target monorepo
+
+### Structure Created
+
+```
+website/
+├── astro.config.mjs          # Starlight config for EMB
+├── package.json              # Dependencies (remark, vitest, etc.)
+├── vite.config.ts            # Vitest configuration
+├── scripts/
+│   └── validate-docs.ts      # Parses markdown, executes code blocks
+├── tests/
+│   └── docs.spec.ts          # Vitest integration
+└── src/content/docs/
+    ├── index.mdx             # Landing page
+    ├── getting-started/
+    │   ├── introduction.md
+    │   ├── installation.md
+    │   └── first-monorepo.md  # ✓ Has executable examples
+    └── day-to-day/
+        ├── building-images.md
+        ├── running-services.md
+        └── managing-components.md  # ✓ Has executable examples
+```
+
+### Code Block Syntax
+
+```markdown
+```shell exec cwd="../examples"
+emb tasks
+```
+
+```output
+  NAME        COMPONENT   DESCRIPTION ...
+```
+```
+
+Options:
+- `exec` - Mark block for execution
+- `cwd="path"` - Set working directory (relative to website/)
+- `skip` - Skip execution (for commands requiring Docker/user input)
+
+### Commands
+
+From `website/`:
+- `npm run dev` - Start dev server
+- `npm run build` - Build static site
+- `npm run validate-docs` - Validate executable code blocks
+- `npm test` - Run Vitest (includes docs validation)
+
+---
+
+## Remaining Work
+
+### Phase 2: Content Expansion
+
+- [ ] Add advanced documentation pages:
+  - [ ] `advanced/tasks.md` - Task definition and execution
+  - [ ] `advanced/flavors.md` - Environment variants with JSON Patch
+  - [ ] `advanced/dependencies.md` - Image dependency management
+  - [ ] `advanced/kubernetes.md` - K8s deployment
+- [ ] Add reference documentation:
+  - [ ] `reference/configuration.md` - Full `.emb.yml` schema
+  - [ ] `reference/cli.md` - All CLI commands
+- [ ] Add more executable examples throughout docs
+
+### Phase 3: Example Monorepo Enhancement
+
+- [ ] Consider creating a simpler "tutorial" example separate from the existing `examples/`
+- [ ] Add progressive complexity examples (simple → intermediate → advanced)
+- [ ] Document each example component's purpose
+
+### Phase 4: Deployment & CI
+
+- [ ] Add `site` URL to `astro.config.mjs` for sitemap
+- [ ] Set up GitHub Actions to run `npm test` on PRs
+- [ ] Configure deployment (Netlify/Vercel/GitHub Pages)
+- [ ] Add custom domain configuration
+
+### Phase 5: Polish
+
+- [ ] Add custom "output" language highlighting for Starlight
+- [ ] Create EMB logo/branding for docs
+- [ ] Add search configuration
+- [ ] Consider i18n support

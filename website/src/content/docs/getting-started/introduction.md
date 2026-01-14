@@ -1,0 +1,59 @@
+---
+title: Introduction
+description: What is EMB and why use it?
+---
+
+# What is EMB?
+
+**EMB** (Enspirit's Monorepo Builder) is a CLI tool for managing Docker-based monorepos. It provides a unified interface for:
+
+- Building and managing Docker images
+- Running services via Docker Compose
+- Executing tasks across components
+- Managing Kubernetes deployments
+
+## Why EMB?
+
+If you're managing a monorepo with multiple Docker services, you've probably encountered:
+
+- **Complex Makefiles** that become unmaintainable
+- **Inconsistent workflows** across different services
+- **Manual dependency tracking** between images
+- **Repetitive docker-compose commands**
+
+EMB solves these problems by:
+
+1. **Auto-discovering components** - Any folder with a `Dockerfile` becomes a buildable component
+2. **Managing dependencies** - Builds images in the right order automatically
+3. **Providing consistent commands** - `emb build`, `emb up`, `emb logs` work across all projects
+4. **Supporting flavors** - Different configurations for development, staging, production
+
+## Quick Example
+
+In a monorepo with this structure:
+
+```
+my-project/
+├── api/
+│   └── Dockerfile
+├── web/
+│   └── Dockerfile
+└── docker-compose.yml
+```
+
+EMB automatically discovers the components:
+
+```shell
+emb components
+```
+
+And provides commands to build and run them:
+
+```shell
+emb build          # Build all images
+emb up             # Start all services
+emb logs api       # View API logs
+emb run api:test   # Run the test task in api
+```
+
+Ready to get started? [Install EMB](/getting-started/installation) or jump to [Your First Monorepo](/getting-started/first-monorepo).
