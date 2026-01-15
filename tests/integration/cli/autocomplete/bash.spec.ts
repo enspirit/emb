@@ -50,7 +50,11 @@ describe('CLI - bash autocomplete', () => {
    * @returns Array of completion suggestions
    */
   function getCompletions(words: string[]): string[] {
+    // Define emb as a function that calls ./bin/run.js
+    // This ensures task completion works even when emb isn't globally installed
     const script = `
+      emb() { ./bin/run.js "$@"; }
+      export -f emb
       source "${completionScriptPath}"
       COMP_WORDS=(${words.map((w) => `"${w}"`).join(' ')})
       COMP_CWORD=${words.length - 1}
@@ -159,5 +163,62 @@ describe('CLI - bash autocomplete', () => {
     expect(completions).to.include('--flavor');
     expect(completions).not.to.include('--force');
     expect(completions).not.to.include('--json');
+  });
+
+  // Task name completion tests - these should fail until we implement
+  // custom argument completion for the tasks:run command
+
+  test('completes task names for "emb tasks run <TAB>"', () => {
+    const completions = getCompletions(['emb', 'tasks', 'run', '']);
+
+    // Should include all available tasks
+    expect(completions).to.include('dependent');
+    expect(completions).to.include('greet');
+    expect(completions).to.include('prereq');
+    expect(completions).to.include('buildargs:test');
+    expect(completions).to.include('dependent:test');
+    expect(completions).to.include('frontend:fail');
+    expect(completions).to.include('frontend:test');
+    expect(completions).to.include('simple:confirm');
+    expect(completions).to.include('simple:inspect');
+    expect(completions).to.include('simple:sudo');
+    expect(completions).to.include('utils:release');
+  });
+
+  test('completes task names for "emb run <TAB>" (alias)', () => {
+    const completions = getCompletions(['emb', 'run', '']);
+
+    // Should include all available tasks (same as tasks:run)
+    expect(completions).to.include('dependent');
+    expect(completions).to.include('greet');
+    expect(completions).to.include('prereq');
+    expect(completions).to.include('buildargs:test');
+    expect(completions).to.include('frontend:test');
+  });
+
+  test('filters task names for "emb tasks run dep<TAB>"', () => {
+    const completions = getCompletions(['emb', 'tasks', 'run', 'dep']);
+
+    // Should include tasks starting with "dep"
+    expect(completions).to.include('dependent');
+    expect(completions).to.include('dependent:test');
+
+    // Should NOT include unrelated tasks
+    expect(completions).not.to.include('greet');
+    expect(completions).not.to.include('prereq');
+    expect(completions).not.to.include('frontend:test');
+  });
+
+  test('filters task names for "emb tasks run test<TAB>"', () => {
+    const completions = getCompletions(['emb', 'tasks', 'run', 'test']);
+
+    // Should include all tasks containing "test"
+    expect(completions).to.include('buildargs:test');
+    expect(completions).to.include('dependent:test');
+    expect(completions).to.include('frontend:test');
+
+    // Should NOT include unrelated tasks
+    expect(completions).not.to.include('dependent');
+    expect(completions).not.to.include('greet');
   });
 });
