@@ -115,7 +115,8 @@
     "commands": "./dist/src/cli/commands",
     "hooks": {
       "init": "./dist/src/cli/hooks/init",
-      "command_not_found": "./dist/src/cli/hooks/not-found"
+      "command_not_found": "./dist/src/cli/hooks/not-found",
+      "postrun": "./dist/src/cli/hooks/postrun"
     },
     "macos": {
       "identifier": "dev.enspirit.emb"
