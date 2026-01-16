@@ -7,7 +7,7 @@ import { DockerComposeClient, SecretManager, setContext } from '@';
  * by the globalSetup before tests run. The VAULT_ADDR and VAULT_TOKEN
  * environment variables are set automatically.
  */
-import { createSign } from 'node:crypto';
+import { createSign, generateKeyPairSync } from 'node:crypto';
 import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -36,45 +36,14 @@ const getKeycloakClientSecret = () => process.env.KEYCLOAK_CLIENT_SECRET!;
 // needs host.docker.internal to reach Keycloak on the host)
 const getKeycloakUrlForVault = () => process.env.KEYCLOAK_URL_FOR_VAULT!;
 
-// Test RSA key pair (2048-bit) for JWT signing
-// Generated for testing purposes only - NOT FOR PRODUCTION
-const TEST_RSA_PRIVATE_KEY = `-----BEGIN RSA PRIVATE KEY-----
-MIIEpAIBAAKCAQEA2Z3qX2BTLS4e0ezLq4CKhkc/jnDHDZFx3vp+gXa4PwmIl2Wv
-Lsz2PNlW3OO7hs3gkSuDqMZAfvlK2JNuZaVBJV3IZ2k5r1kF4o3u3NzG2jNF4sC6
-oJkH7f1LqB0THAaJiYwMmAJD6oM8g3aOUq7TT5bfmqINFYMvHGKdZjQ3NzGXG5rP
-k2Q3xM8K7X5zDCekjGNv5VRZbPgJ5bPgx6xEjWi2zwVGp4J7zJ0ZG9WQkF0Rw0Rm
-bCmJvMFwkPmJjGCUAMvrRK/4pJPvL0D7S9OV3kKlXf6p7p0mHLJlZMG6rz0Bkqj4
-e0hdJLwG4mJnmqaT6bJbO3o3lKxYl7tG4MdkNwIDAQABAoIBAC3q0p27wGFb0pRk
-iVfPLcQQp6KwqJmGZhXS3JZz6mENTL0VMBsXU8g/0sHk6Y4zXLiO3I8vpfBMNK4c
-/0nKCvVpLbK7LGm5n4m9I7CRxVclhkVqAkJNP2f7pzpE0LlqLhDC93oLjNGK0xsF
-+pXN9AJkCi3RrGI1c5k5Z3A1D0yQBHvP2D3c+Lnt2xPwqG/c0X+lhJqHqC0N8wbC
-0o/GnN7gKXHnwKL/hVK5JCJr5G2+AQUj0VEB/EAQ1EyePctS0M/xq+wOQGM8HREv
-eSfGQQc0VctVEKn+HxbJD8IrDbhXqA6d8z2p4o+2xdK+t8R/0QCJlB0zDnrJ5z+2
-LVdKBsECgYEA7gRf2DKnHU7mB5lX0lE6q1X0R2YPt1J4nD/VC4KSFD1P0GDt9g8f
-9+U5e01M/p7F1ZRPeS0y8X8gJTC4B8u2MdFp0JhKd1XGLF0rSGS2ZIHG0NpS7Rmq
-SsAaJb3qMgVwRxgLxqD3QwRBvHK8L0QhPTe1Y0e8cSVNB7CbbrLHhyECgYEA6YDP
-jGGRBmFP8YqGNi3yGBM5wHqgfMRTwrZGqHnCJdpL0HQKq4eDvSKE5FKZV1s1M8xH
-KdWdbK/0H5an9wslOQLcJGDJBMfDI/9Y8mNfnJidZsG+jwqTUQv1Sy1TvB7lbNfF
-VVsDVXjH3C6TcNhXb7RmBfFJCCXlnmJPPAJpTycCgYAz0xk4rPk6OhBrFLl7VgQF
-RXK/wLPb0X7p8q0bFJnYkRsjJvYEpWaJBpHY+Sm9N0P8Rp+M5xpM8cYMKL0tLJJb
-+TCg2DxlTvZHNxHqRf1y4h3MzKv7sjhe3P7I+b8VKsKB5cCB0BUQV1N1HrP2gSLI
-K8vNOp5nQi0TD1k5Z8LYoQKBgQDBMK3M1xE5X7FgB2p1fYNO6kzPK8uKPCnB7nMM
-2OcI2RP4T3Z+PadO+k0J7n1rqp/EL0XjWcPzVHZFrLhEka6x1dRRfYfTdVfvTnvA
-Y9K5V5tV7rq5VJTnmqSxLPaF0Y79qw8PxFvWZPjT2XO9kRG/PV4shT0XoZP0gWjI
-7f6nhQKBgQC6q0TdG3X7qcnHd0cnclePZ5Fm0MHEJjvzKVtPFRfLhU1BTCF0tXDZ
-nJvKDZrP3fnrwGVhnNNnMTcJRDcxKZrFBTonXvP8HuKP0pX3lqFq0HPOCKV+p3F8
-n8rIxYvlKNPfF5sVD1X4rWL+bj9D2qf0RA1FMrxCdNPNLfCpua3Dmw==
------END RSA PRIVATE KEY-----`;
-
-const TEST_RSA_PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2Z3qX2BTLS4e0ezLq4CK
-hkc/jnDHDZFx3vp+gXa4PwmIl2WvLsz2PNlW3OO7hs3gkSuDqMZAfvlK2JNuZaVB
-JV3IZ2k5r1kF4o3u3NzG2jNF4sC6oJkH7f1LqB0THAaJiYwMmAJD6oM8g3aOUq7T
-T5bfmqINFYMvHGKdZjQ3NzGXG5rPk2Q3xM8K7X5zDCekjGNv5VRZbPgJ5bPgx6xE
-jWi2zwVGp4J7zJ0ZG9WQkF0Rw0RmbCmJvMFwkPmJjGCUAMvrRK/4pJPvL0D7S9OV
-3kKlXf6p7p0mHLJlZMG6rz0Bkqj4e0hdJLwG4mJnmqaT6bJbO3o3lKxYl7tG4Mdk
-NwIDAQAB
------END PUBLIC KEY-----`;
+// Generate RSA key pair dynamically for JWT signing tests
+// This avoids storing private keys in the codebase (GitGuardian compliance)
+const { publicKey: TEST_RSA_PUBLIC_KEY, privateKey: TEST_RSA_PRIVATE_KEY } =
+  generateKeyPairSync('rsa', {
+    modulusLength: 2048,
+    publicKeyEncoding: { type: 'spki', format: 'pem' },
+    privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+  });
 
 /**
  * Configure Vault's JWT auth backend for testing.
