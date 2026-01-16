@@ -1,5 +1,10 @@
 /* eslint-disable n/no-unsupported-features/node-builtins -- fetch is stable in Node 20+ */
 import { AbstractSecretProvider, SecretReference } from '../SecretProvider.js';
+import {
+  cacheToken,
+  clearCachedToken,
+  getCachedToken,
+} from './VaultTokenCache.js';
 
 /**
  * Authentication configuration for HashiCorp Vault.
@@ -38,6 +43,15 @@ export class VaultError extends Error {
 }
 
 /**
+ * Result of an authentication operation.
+ */
+interface AuthResult {
+  token: string;
+  /** Token TTL in seconds */
+  ttlSeconds: number;
+}
+
+/**
  * HashiCorp Vault secret provider.
  * Supports KV v2 secrets engine.
  */
@@ -45,31 +59,51 @@ export class VaultProvider extends AbstractSecretProvider<VaultProviderConfig> {
   private token: null | string = null;
 
   async connect(): Promise<void> {
-    const { auth } = this.config;
+    const { auth, address, namespace } = this.config;
+
+    // Try to use cached token first (for methods that benefit from caching)
+    if (auth.method === 'oidc') {
+      const cached = await getCachedToken(address, namespace);
+      if (cached) {
+        this.token = cached.token;
+        try {
+          await this.verifyToken();
+          // Cached token is still valid
+          return;
+        } catch {
+          // Cached token is invalid, clear it and proceed with fresh auth
+          await clearCachedToken(address, namespace);
+          this.token = null;
+        }
+      }
+    }
+
+    let authResult: AuthResult;
 
     switch (auth.method) {
       case 'approle': {
-        this.token = await this.loginAppRole(auth.roleId, auth.secretId);
+        authResult = await this.loginAppRole(auth.roleId, auth.secretId);
         break;
       }
 
       case 'jwt': {
-        this.token = await this.loginJwt(auth.role, auth.jwt);
+        authResult = await this.loginJwt(auth.role, auth.jwt);
         break;
       }
 
       case 'kubernetes': {
-        this.token = await this.loginKubernetes(auth.role);
+        authResult = await this.loginKubernetes(auth.role);
         break;
       }
 
       case 'oidc': {
-        this.token = await this.loginOidc(auth.role, auth.port);
+        authResult = await this.loginOidc(auth.role, auth.port);
         break;
       }
 
       case 'token': {
-        this.token = auth.token;
+        // For explicit tokens, we don't know the TTL - use a default
+        authResult = { token: auth.token, ttlSeconds: 3600 };
         break;
       }
 
@@ -81,8 +115,15 @@ export class VaultProvider extends AbstractSecretProvider<VaultProviderConfig> {
       }
     }
 
+    this.token = authResult.token;
+
     // Verify the token works by looking it up
     await this.verifyToken();
+
+    // Cache the token for methods that benefit from caching
+    if (auth.method === 'oidc' && authResult.ttlSeconds > 0) {
+      await cacheToken(address, authResult.token, authResult.ttlSeconds, namespace);
+    }
   }
 
   async disconnect(): Promise<void> {
@@ -177,7 +218,7 @@ export class VaultProvider extends AbstractSecretProvider<VaultProviderConfig> {
   private async loginAppRole(
     roleId: string,
     secretId: string,
-  ): Promise<string> {
+  ): Promise<AuthResult> {
     const url = new URL('/v1/auth/approle/login', this.config.address);
 
     const response = await fetch(url.toString(), {
@@ -203,12 +244,15 @@ export class VaultProvider extends AbstractSecretProvider<VaultProviderConfig> {
     }
 
     const data = (await response.json()) as {
-      auth?: { client_token?: string };
+      auth?: { client_token?: string; lease_duration?: number };
     };
-    return data.auth?.client_token || '';
+    return {
+      token: data.auth?.client_token || '',
+      ttlSeconds: data.auth?.lease_duration || 3600,
+    };
   }
 
-  private async loginKubernetes(role: string): Promise<string> {
+  private async loginKubernetes(role: string): Promise<AuthResult> {
     // Read the service account token from the mounted file
     const fs = await import('node:fs/promises');
     const tokenPath = '/var/run/secrets/kubernetes.io/serviceaccount/token';
@@ -246,16 +290,19 @@ export class VaultProvider extends AbstractSecretProvider<VaultProviderConfig> {
     }
 
     const data = (await response.json()) as {
-      auth?: { client_token?: string };
+      auth?: { client_token?: string; lease_duration?: number };
     };
-    return data.auth?.client_token || '';
+    return {
+      token: data.auth?.client_token || '',
+      ttlSeconds: data.auth?.lease_duration || 3600,
+    };
   }
 
   /**
    * Authenticate using JWT (non-interactive).
    * Suitable for CI/CD pipelines where a JWT is provided externally.
    */
-  private async loginJwt(role: string, jwt: string): Promise<string> {
+  private async loginJwt(role: string, jwt: string): Promise<AuthResult> {
     const url = new URL('/v1/auth/jwt/login', this.config.address);
 
     const response = await fetch(url.toString(), {
@@ -279,23 +326,30 @@ export class VaultProvider extends AbstractSecretProvider<VaultProviderConfig> {
     }
 
     const data = (await response.json()) as {
-      auth?: { client_token?: string };
+      auth?: { client_token?: string; lease_duration?: number };
     };
-    return data.auth?.client_token || '';
+    return {
+      token: data.auth?.client_token || '',
+      ttlSeconds: data.auth?.lease_duration || 3600,
+    };
   }
 
   /**
    * Authenticate using OIDC (interactive browser flow).
    * Opens a browser for the user to authenticate with Keycloak/OIDC provider.
    */
-  private async loginOidc(role?: string, port?: number): Promise<string> {
+  private async loginOidc(role?: string, port?: number): Promise<AuthResult> {
     const { performOidcLogin } = await import('./VaultOidcHelper.js');
-    return performOidcLogin({
+    const result = await performOidcLogin({
       vaultAddress: this.config.address,
       role,
       port: port ?? 8250,
       namespace: this.config.namespace,
     });
+    return {
+      token: result.token,
+      ttlSeconds: result.ttlSeconds,
+    };
   }
 
   private async verifyToken(): Promise<void> {

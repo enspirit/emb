@@ -32,6 +32,16 @@ interface OidcAuthUrlResponse {
 }
 
 /**
+ * Result of an OIDC login.
+ */
+export interface OidcLoginResult {
+  /** The Vault client token */
+  token: string;
+  /** Token TTL in seconds */
+  ttlSeconds: number;
+}
+
+/**
  * Perform an interactive OIDC login with Vault.
  *
  * This function:
@@ -39,15 +49,15 @@ interface OidcAuthUrlResponse {
  * 2. Requests an OIDC auth URL from Vault
  * 3. Opens the user's browser to the auth URL
  * 4. Waits for the callback with the Vault token
- * 5. Returns the token
+ * 5. Returns the token and TTL
  *
  * @param options - OIDC login options
- * @returns The Vault client token
+ * @returns The Vault client token and TTL
  * @throws VaultError if the login fails
  */
 export async function performOidcLogin(
   options: OidcLoginOptions,
-): Promise<string> {
+): Promise<OidcLoginResult> {
   const { vaultAddress, role, namespace, timeout = 120_000 } = options;
   const port = options.port ?? 8250;
   const callbackUrl = `http://localhost:${port}/oidc/callback`;
@@ -136,7 +146,7 @@ export async function performOidcLogin(
           // Exchange the code for a Vault token
           // Pass the returned state/nonce from Keycloak (which are Vault's values)
           const returnedNonce = url.searchParams.get('nonce') || nonce;
-          const token = await exchangeCodeForToken({
+          const result = await exchangeCodeForToken({
             vaultAddress,
             role,
             namespace,
@@ -151,7 +161,7 @@ export async function performOidcLogin(
             '<p>You have been authenticated. You may close this window.</p>',
           );
           cleanup();
-          resolve(token);
+          resolve(result);
         } catch (error_) {
           const errorMessage =
             error_ instanceof Error ? error_.message : 'Unknown error';
@@ -284,7 +294,7 @@ async function exchangeCodeForToken(options: {
   code: string;
   state: string;
   nonce: string;
-}): Promise<string> {
+}): Promise<OidcLoginResult> {
   const { vaultAddress, role, namespace, code, state, nonce } = options;
 
   const url = new URL('/v1/auth/oidc/oidc/callback', vaultAddress);
@@ -323,7 +333,9 @@ async function exchangeCodeForToken(options: {
     );
   }
 
-  const data = (await response.json()) as { auth?: { client_token?: string } };
+  const data = (await response.json()) as {
+    auth?: { client_token?: string; lease_duration?: number };
+  };
   const token = data.auth?.client_token;
 
   if (!token) {
@@ -333,7 +345,10 @@ async function exchangeCodeForToken(options: {
     );
   }
 
-  return token;
+  return {
+    token,
+    ttlSeconds: data.auth?.lease_duration || 3600,
+  };
 }
 
 /**

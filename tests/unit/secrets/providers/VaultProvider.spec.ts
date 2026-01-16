@@ -149,9 +149,19 @@ describe('Secrets / Providers / VaultProvider', () => {
       };
       provider = new VaultProvider(oidcConfig);
 
-      // Mock the OIDC helper module
+      // Mock the token cache to return null (no cached token)
+      vi.mock('@/secrets/providers/VaultTokenCache.js', () => ({
+        getCachedToken: vi.fn().mockResolvedValue(null),
+        cacheToken: vi.fn().mockResolvedValue(undefined),
+        clearCachedToken: vi.fn().mockResolvedValue(undefined),
+      }));
+
+      // Mock the OIDC helper module to return the new format
       vi.mock('@/secrets/providers/VaultOidcHelper.js', () => ({
-        performOidcLogin: vi.fn().mockResolvedValue('oidc-vault-token'),
+        performOidcLogin: vi.fn().mockResolvedValue({
+          token: 'oidc-vault-token',
+          ttlSeconds: 3600,
+        }),
       }));
 
       // Mock token verification
