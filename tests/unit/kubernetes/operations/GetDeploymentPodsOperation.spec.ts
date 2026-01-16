@@ -1,16 +1,9 @@
-import { SecretManager, setContext } from '@';
-import { mkdir, mkdtemp, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
-import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { createTestContext } from 'tests/setup/set.context.js';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 
-import { DockerComposeClient } from '@/docker';
 import { GetDeploymentPodsOperation } from '@/kubernetes/operations/GetDeploymentPodsOperation.js';
-import { Monorepo } from '@/monorepo';
 
 describe('Kubernetes / Operations / GetDeploymentPodsOperation', () => {
-  let tempDir: string;
-  let repo: Monorepo;
   let mockKubernetes: {
     core: {
       listNamespacedPod: ReturnType<typeof vi.fn>;
@@ -18,40 +11,13 @@ describe('Kubernetes / Operations / GetDeploymentPodsOperation', () => {
   };
 
   beforeEach(async () => {
-    tempDir = await mkdtemp(join(tmpdir(), 'embK8sTest'));
-    await mkdir(join(tempDir, '.emb'), { recursive: true });
-
-    repo = new Monorepo(
-      {
-        project: { name: 'test-k8s' },
-        plugins: [],
-        components: {},
-      },
-      tempDir,
-    );
-
-    await repo.init();
-
     mockKubernetes = {
       core: {
         listNamespacedPod: vi.fn().mockResolvedValue({ items: [] }),
       },
     };
 
-    const compose = new DockerComposeClient(repo);
-    vi.spyOn(compose, 'isService').mockResolvedValue(false);
-
-    setContext({
-      docker: vi.mockObject({} as never),
-      kubernetes: mockKubernetes as never,
-      monorepo: repo,
-      compose,
-      secrets: new SecretManager(),
-    });
-  });
-
-  afterEach(async () => {
-    await rm(tempDir, { recursive: true, force: true });
+    await createTestContext({ kubernetes: mockKubernetes as never });
   });
 
   describe('instantiation', () => {
