@@ -1,34 +1,16 @@
 /* eslint-disable n/no-unsupported-features/node-builtins -- fetch is stable in Node 20+ */
-/* eslint-disable mocha/no-top-level-hooks -- hooks are inside describe.skipIf which linter doesn't recognize */
 import { DockerComposeClient, SecretManager, setContext } from '@';
 /**
  * Integration tests for HashiCorp Vault secrets.
  *
- * These tests require a running Vault dev server:
- *   docker run -d --name vault-test -p 8200:8200 \
- *     -e 'VAULT_DEV_ROOT_TOKEN_ID=test-token' \
- *     hashicorp/vault server -dev
- *
- * To set up test secrets:
- *   export VAULT_ADDR=http://localhost:8200
- *   export VAULT_TOKEN=test-token
- *   vault kv put secret/test password=secret123 username=testuser
- *
- * Run integration tests:
- *   VAULT_ADDR=http://localhost:8200 VAULT_TOKEN=test-token npm run test:integration
+ * These tests use a Vault dev server that is automatically started
+ * by the globalSetup before tests run. The VAULT_ADDR and VAULT_TOKEN
+ * environment variables are set automatically.
  */
 import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import {
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  test,
-  vi,
-} from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { createKubernetesClient } from '@/kubernetes/client.js';
 import { Monorepo } from '@/monorepo';
@@ -37,49 +19,16 @@ import {
   VaultProviderConfig,
 } from '@/secrets/providers/VaultProvider.js';
 
-// Skip tests if Vault is not configured
-const { VAULT_ADDR } = process.env;
-const { VAULT_TOKEN } = process.env;
-const VAULT_AVAILABLE = Boolean(VAULT_ADDR && VAULT_TOKEN);
+// Environment variables are set by global-setup.ts
+const getVaultAddr = () => process.env.VAULT_ADDR!;
+const getVaultToken = () => process.env.VAULT_TOKEN!;
 
-// Helper to check if Vault is reachable
-async function isVaultReachable(): Promise<boolean> {
-  if (!VAULT_AVAILABLE) {
-    return false;
-  }
-
-  try {
-    const response = await fetch(`${VAULT_ADDR}/v1/sys/health`, {
-      method: 'GET',
-    });
-    return response.ok || response.status === 429; // 429 = standby node
-  } catch {
-    return false;
-  }
-}
-
-describe.skipIf(!VAULT_AVAILABLE)('Integration / Secrets / Vault', () => {
+describe('Integration / Secrets / Vault', () => {
   let tempDir: string;
   let monorepo: Monorepo;
   let secrets: SecretManager;
-  let vaultReachable: boolean;
-
-  beforeAll(async () => {
-    vaultReachable = await isVaultReachable();
-    if (!vaultReachable) {
-      console.warn(
-        'Vault is not reachable. Start a dev server to run integration tests:\n' +
-          '  docker run -d --name vault-test -p 8200:8200 ' +
-          "-e 'VAULT_DEV_ROOT_TOKEN_ID=test-token' hashicorp/vault server -dev",
-      );
-    }
-  });
 
   beforeEach(async () => {
-    if (!vaultReachable) {
-      return;
-    }
-
     tempDir = await mkdtemp(join(tmpdir(), 'embVaultIntegrationTest'));
     await mkdir(join(tempDir, '.emb'), { recursive: true });
 
@@ -115,32 +64,29 @@ describe.skipIf(!VAULT_AVAILABLE)('Integration / Secrets / Vault', () => {
   });
 
   describe('VaultProvider', () => {
-    test.skipIf(!VAULT_AVAILABLE)(
-      'connects to Vault dev server with token auth',
-      async () => {
-        const config: VaultProviderConfig = {
-          address: VAULT_ADDR!,
-          auth: { method: 'token', token: VAULT_TOKEN! },
-        };
+    test('connects to Vault dev server with token auth', async () => {
+      const config: VaultProviderConfig = {
+        address: getVaultAddr(),
+        auth: { method: 'token', token: getVaultToken() },
+      };
 
-        const provider = new VaultProvider(config);
-        await provider.connect();
+      const provider = new VaultProvider(config);
+      await provider.connect();
 
-        // If we get here without error, connection succeeded
-        expect(true).to.equal(true);
+      // If we get here without error, connection succeeded
+      expect(true).to.equal(true);
 
-        await provider.disconnect();
-      },
-    );
+      await provider.disconnect();
+    });
 
-    test.skipIf(!VAULT_AVAILABLE)('fetches secrets from KV v2', async () => {
+    test('fetches secrets from KV v2', async () => {
       // First, create a test secret
       const createResponse = await fetch(
-        `${VAULT_ADDR}/v1/secret/data/integration-test`,
+        `${getVaultAddr()}/v1/secret/data/integration-test`,
         {
           method: 'POST',
           headers: {
-            'X-Vault-Token': VAULT_TOKEN!,
+            'X-Vault-Token': getVaultToken(),
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
@@ -152,14 +98,11 @@ describe.skipIf(!VAULT_AVAILABLE)('Integration / Secrets / Vault', () => {
         },
       );
 
-      if (!createResponse.ok) {
-        console.warn('Could not create test secret. Skipping test.');
-        return;
-      }
+      expect(createResponse.ok).to.equal(true);
 
       const config: VaultProviderConfig = {
-        address: VAULT_ADDR!,
-        auth: { method: 'token', token: VAULT_TOKEN! },
+        address: getVaultAddr(),
+        auth: { method: 'token', token: getVaultToken() },
       };
 
       const provider = new VaultProvider(config);
@@ -177,39 +120,41 @@ describe.skipIf(!VAULT_AVAILABLE)('Integration / Secrets / Vault', () => {
   });
 
   describe('Template expansion with vault source', () => {
-    test.skipIf(!VAULT_AVAILABLE)(
-      'expands vault references in strings',
-      async () => {
-        // Create test secret
-        await fetch(`${VAULT_ADDR}/v1/secret/data/expand-test`, {
+    test('expands vault references in strings', async () => {
+      // Create test secret
+      const createResponse = await fetch(
+        `${getVaultAddr()}/v1/secret/data/expand-test`,
+        {
           method: 'POST',
           headers: {
-            'X-Vault-Token': VAULT_TOKEN!,
+            'X-Vault-Token': getVaultToken(),
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             data: { apiKey: 'test-api-key-123' },
           }),
-        });
+        },
+      );
 
-        // Set up provider
-        const config: VaultProviderConfig = {
-          address: VAULT_ADDR!,
-          auth: { method: 'token', token: VAULT_TOKEN! },
-        };
+      expect(createResponse.ok).to.equal(true);
 
-        const provider = new VaultProvider(config);
-        await provider.connect();
-        secrets.register('vault', provider);
+      // Set up provider
+      const config: VaultProviderConfig = {
+        address: getVaultAddr(),
+        auth: { method: 'token', token: getVaultToken() },
+      };
 
-        // Test expansion
-        const expanded = await monorepo.expand({
-          // eslint-disable-next-line no-template-curly-in-string
-          key: '${vault:secret/expand-test#apiKey}',
-        });
+      const provider = new VaultProvider(config);
+      await provider.connect();
+      secrets.register('vault', provider);
 
-        expect(expanded.key).to.equal('test-api-key-123');
-      },
-    );
+      // Test expansion
+      const expanded = await monorepo.expand({
+        // eslint-disable-next-line no-template-curly-in-string
+        key: '${vault:secret/expand-test#apiKey}',
+      });
+
+      expect(expanded.key).to.equal('test-api-key-123');
+    });
   });
 });

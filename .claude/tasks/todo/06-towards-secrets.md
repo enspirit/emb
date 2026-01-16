@@ -4,6 +4,33 @@
 
 Extend EMB to load secrets from external providers (HashiCorp Vault first, 1Password later) and inject them into docker buildArgs, environment variables, and template expansions.
 
+## Status
+
+### Completed
+
+- [x] Phase 1: Core Infrastructure
+  - [x] SecretProvider abstract class with caching
+  - [x] SecretManager for provider registry
+  - [x] TemplateExpander refactored for async sources
+- [x] Phase 2: HashiCorp Vault Implementation
+  - [x] VaultProvider with token, AppRole, Kubernetes auth
+  - [x] VaultPlugin for configuration-based integration
+- [x] Phase 3: Integration
+  - [x] SecretManager added to EmbContext
+  - [x] Monorepo.expand() updated with vault source
+  - [x] Configuration schema updated
+- [x] Phase 4: Testing
+  - [x] Unit tests for all components
+  - [x] Integration tests with automatic Vault container management
+
+### Remaining
+
+- [ ] GitHub Actions CI integration
+- [ ] Documentation
+- [ ] 1Password provider (future)
+
+---
+
 ## Recommended Approach: Hybrid (Plugin + Async Template Source)
 
 - **Plugin** handles connection setup and authentication during `init()`
@@ -14,239 +41,101 @@ This approach offers the best balance: plugins manage connections, template sour
 
 ---
 
-## Phase 1: Core Infrastructure
+## Implementation Summary
 
-### 1.1 Create Secret Provider Interface
-
-**New file: `src/secrets/SecretProvider.ts`**
-
-```typescript
-export interface SecretReference {
-  path: string;       // e.g., "secret/data/myapp/db"
-  key?: string;       // Optional field within the secret
-  version?: string;   // Optional version
-}
-
-export abstract class AbstractSecretProvider<C = unknown> {
-  protected cache = new Map<string, Record<string, unknown>>();
-
-  constructor(protected config: C) {}
-
-  abstract connect(): Promise<void>;
-  abstract disconnect(): Promise<void>;
-  abstract fetchSecret(ref: SecretReference): Promise<Record<string, unknown>>;
-
-  async get(ref: SecretReference): Promise<unknown> {
-    const cacheKey = `${ref.path}:${ref.version || 'latest'}`;
-    if (!this.cache.has(cacheKey)) {
-      this.cache.set(cacheKey, await this.fetchSecret(ref));
-    }
-    const cached = this.cache.get(cacheKey)!;
-    return ref.key ? cached[ref.key] : cached;
-  }
-}
-```
-
-### 1.2 Create Secret Manager
-
-**New file: `src/secrets/SecretManager.ts`**
-
-```typescript
-export class SecretManager {
-  private providers = new Map<string, AbstractSecretProvider>();
-
-  register(name: string, provider: AbstractSecretProvider): void;
-  get(name: string): AbstractSecretProvider | undefined;
-  async connectAll(): Promise<void>;
-
-  // Create an async source function for TemplateExpander
-  createSource(providerName: string): AsyncSource {
-    return async (key: string) => {
-      const provider = this.get(providerName);
-      const ref = this.parseReference(key); // "path#field" -> SecretReference
-      return provider.get(ref);
-    };
-  }
-}
-```
-
-### 1.3 Refactor TemplateExpander for Async Sources
-
-**Modify: `src/utils/TemplateExpander.ts`**
-
-Current problem: `replaceAll()` callback is synchronous but method is marked async.
-
-Required changes:
-1. Add async source type: `type AsyncSource = (key: string) => Promise<unknown>`
-2. Refactor `expand()` to collect all matches first, resolve async sources, then build result string
-3. Keep backward compatibility with sync sources (Record objects)
-
-```typescript
-type StaticSource = Record<string, unknown>;
-type AsyncSource = (key: string) => Promise<unknown>;
-type Source = StaticSource | AsyncSource;
-
-type ExpandOptions = {
-  default?: string;
-  sources?: Record<string, Source>;
-};
-
-async expand(str: string, options: ExpandOptions = {}): Promise<string> {
-  // 1. Collect all matches with their positions
-  const matches = [...str.matchAll(TPL_REGEX)];
-
-  // 2. Resolve all values (async for function sources, sync for objects)
-  const resolutions = await Promise.all(matches.map(async (match) => {
-    const source = options.sources?.[sourceName];
-    if (typeof source === 'function') {
-      return source(key);  // Async source
-    }
-    return source?.[key];  // Static source
-  }));
-
-  // 3. Build result string with resolved values
-  // ...
-}
-```
-
----
-
-## Phase 2: HashiCorp Vault Implementation
-
-### 2.1 Vault Provider
-
-**New file: `src/secrets/providers/VaultProvider.ts`**
-
-```typescript
-export interface VaultProviderConfig {
-  address: string;        // VAULT_ADDR
-  namespace?: string;     // VAULT_NAMESPACE
-  auth: VaultAuthConfig;
-}
-
-type VaultAuthConfig =
-  | { method: 'token'; token: string }
-  | { method: 'approle'; roleId: string; secretId: string }
-  | { method: 'kubernetes'; role: string };
-
-export class VaultProvider extends AbstractSecretProvider<VaultProviderConfig> {
-  async connect(): Promise<void> { /* authenticate */ }
-  async fetchSecret(ref: SecretReference): Promise<Record<string, unknown>> {
-    // GET /v1/{mount}/data/{path} for KV v2
-  }
-}
-```
-
-Dependencies: Consider `node-vault` or direct HTTP calls.
-
-### 2.2 Vault Plugin
-
-**New file: `src/monorepo/plugins/VaultPlugin.ts`**
-
-```typescript
-export class VaultPlugin extends AbstractPlugin<VaultPluginConfig> {
-  static name = 'vault';
-
-  async init(): Promise<void> {
-    // 1. Resolve config (merge with env vars like VAULT_ADDR, VAULT_TOKEN)
-    // 2. Create and connect VaultProvider
-    // 3. Register with global SecretManager
-  }
-}
-```
-
-**Modify: `src/monorepo/plugins/index.ts`**
-
-Register VaultPlugin.
-
----
-
-## Phase 3: Integration
-
-### 3.1 Add SecretManager to Context
-
-**Modify: `src/types.ts`** - Add `secrets: SecretManager` to EmbContext
-
-### 3.2 Update Monorepo.expand()
-
-**Modify: `src/monorepo/monorepo.ts`**
-
-```typescript
-async expand<T extends Expandable>(toExpand: T, vars?: Record<string, unknown>) {
-  const secrets = getContext()?.secrets;
-  const options = {
-    default: 'vars',
-    sources: {
-      env: process.env,
-      vars: vars || this.vars,
-      // Add secret sources dynamically
-      vault: secrets?.createSource('vault'),
-      // Future: op: secrets?.createSource('op'),
-    },
-  };
-  return expander.expandRecord(toExpand, options);
-}
-```
-
-### 3.3 Update Configuration Schema
-
-**Modify: `src/config/schema.json`**
-
-Add VaultPluginConfig definition for validation.
-
----
-
-## Phase 4: Testing Strategy
-
-### Unit Tests
-
-| File | Tests |
-|------|-------|
-| `tests/unit/secrets/SecretProvider.spec.ts` | Cache behavior, reference parsing |
-| `tests/unit/secrets/SecretManager.spec.ts` | Provider registration, source creation |
-| `tests/unit/secrets/providers/VaultProvider.spec.ts` | Auth flows (mocked), KV read, error handling |
-| `tests/unit/monorepo/plugins/VaultPlugin.spec.ts` | Config resolution, provider registration |
-| `tests/unit/utils/TemplateExpander/expand.spec.ts` | **Add** async source tests, mixed sync/async |
-
-### Integration Tests
-
-**New file: `tests/integration/secrets/vault.spec.ts`**
-
-Use Vault dev server in Docker:
-```bash
-docker run -d --name vault-test -p 8200:8200 hashicorp/vault server -dev
-```
-
-Test scenarios:
-- Full authentication flow
-- Secret reading through `${vault:path#key}` expansion
-- Task execution with vault secrets
-- Docker buildArgs with vault secrets
-
----
-
-## File Structure
+### Files Created
 
 ```
 src/
   secrets/
-    index.ts
-    SecretProvider.ts           # Abstract interface
+    index.ts                    # Exports
+    SecretProvider.ts           # Abstract interface with caching
     SecretManager.ts            # Provider registry
     providers/
-      index.ts
-      VaultProvider.ts          # HashiCorp Vault
+      index.ts                  # Exports
+      VaultProvider.ts          # HashiCorp Vault KV v2 implementation
   monorepo/plugins/
-    VaultPlugin.ts              # NEW
-    index.ts                    # MODIFY: register VaultPlugin
-  utils/
-    TemplateExpander.ts         # MODIFY: async sources
-  types.ts                      # MODIFY: add secrets to context
+    VaultPlugin.ts              # Plugin for Vault configuration
 
 tests/
-  unit/secrets/                 # NEW: all unit tests
-  integration/secrets/          # NEW: vault integration tests
+  unit/secrets/
+    SecretProvider.spec.ts      # Cache behavior tests
+    SecretManager.spec.ts       # Registry tests
+    providers/
+      VaultProvider.spec.ts     # Auth flows, KV read (mocked)
+  unit/monorepo/plugins/
+    VaultPlugin.spec.ts         # Config resolution tests
+  integration/secrets/
+    vault.spec.ts               # Full integration tests
+    global-setup.ts             # Automatic Vault container management
 ```
+
+### Files Modified
+
+- `src/types.ts` - Added `secrets: SecretManager` to EmbContext
+- `src/cli/abstract/BaseCommand.ts` - Creates SecretManager in context
+- `src/monorepo/monorepo.ts` - Updated expand() to include vault source
+- `src/monorepo/plugins/index.ts` - Registered VaultPlugin
+- `src/utils/TemplateExpander.ts` - Added async source support
+- `src/config/schema.json` - Added VaultPluginConfig schema
+- `tsconfig.json` - Added @/secrets path mapping
+- `vitest.workspace.ts` - Added integration-secrets test workspace
+
+---
+
+## Integration Testing
+
+Integration tests automatically manage a Vault dev server:
+
+1. **globalSetup** (`tests/integration/secrets/global-setup.ts`):
+   - Starts a Vault container before tests
+   - Waits for Vault to be ready
+   - Sets VAULT_ADDR and VAULT_TOKEN environment variables
+   - Tears down container after tests
+
+2. **Test execution**:
+   - Tests run without skipIf conditions
+   - Tests will fail if Vault is unavailable (container startup failure)
+   - Sequential execution to avoid Docker conflicts
+
+### Running Integration Tests
+
+```bash
+# Run all integration tests (includes Vault)
+npm run test:integration
+
+# Run only Vault integration tests
+npx vitest run --project integration-secrets
+```
+
+---
+
+## GitHub Actions CI
+
+To run Vault integration tests in GitHub Actions, the workflow needs Docker access:
+
+```yaml
+# .github/workflows/test.yml
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+      - run: npm run build
+      - run: npm run test:unit
+      - run: npm run test:integration
+        # Docker is available by default on ubuntu-latest
+```
+
+The global-setup.ts handles:
+- Starting the Vault container
+- Waiting for readiness
+- Setting environment variables
+- Cleanup after tests
 
 ---
 
@@ -277,31 +166,9 @@ components:
 
 ---
 
-## Implementation Order
-
-1. **Core infrastructure** - SecretProvider, SecretManager, TemplateExpander refactor
-2. **VaultProvider** - Vault-specific implementation
-3. **VaultPlugin** - Plugin integration
-4. **Context integration** - Wire up SecretManager
-5. **Testing** - Unit + integration tests
-6. **(Future)** 1Password support using same pattern
-
----
-
-## Verification
-
-1. **Unit tests pass**: `npm run test:unit`
-2. **Integration tests pass**: `npm run test:integration` (requires Docker for Vault)
-3. **Manual test**:
-   - Start Vault dev server: `docker run -d -p 8200:8200 hashicorp/vault server -dev`
-   - Create test secret: `vault kv put secret/test password=mysecret`
-   - Configure `.emb.yml` with vault plugin and `${vault:secret/data/test#password}`
-   - Run a task that uses the secret and verify it resolves correctly
-
----
-
 ## Notes
 
 - **Circular dependency**: Vault plugin config cannot use `${vault:...}` (it can use `${env:...}`)
-- **Error handling**: Distinguish connection errors vs. auth errors vs. secret not found
+- **Error handling**: VaultError distinguishes connection errors vs. auth errors vs. secret not found
 - **Caching**: Secrets cached per-command run (cleared when process exits)
+- **Authentication**: Supports token, AppRole, and Kubernetes auth methods

@@ -18,7 +18,14 @@ type ExpandOptions = {
   sources?: Record<string, Source>;
 };
 
-const TPL_REGEX = /(?<!\\)\${(?:(\w+):)?(\w+)(?::-(.*?))?}/g;
+// Matches ${source:key} or ${key} patterns
+// - Source name: word characters only (e.g., "vault", "env")
+// - Key: word characters, slashes, hashes, dots, with hyphens allowed between segments
+//   (e.g., "secret/path#field", "MY_VAR", "secret/my-app#key")
+// - Optional fallback: :-value
+// The key pattern uses (?:-[\w/#.]+)* to allow hyphens only between valid segments,
+// preventing the key from consuming the :- fallback delimiter.
+const TPL_REGEX = /(?<!\\)\${(?:(\w+):)?([\w/#.]+(?:-[\w/#.]+)*)(?::-(.*?))?}/g;
 
 export type ExpansionHistory = {
   source: string;
