@@ -34,9 +34,10 @@
     "test": "npm run build:types && npm run test:unit && npm run test:integration",
     "test:unit": "vitest run --project unit",
     "test:unit:watch": "vitest --project unit",
-    "test:integration": "npm run test:integration:mocked && npm run test:integration:docker",
+    "test:integration": "npm run test:integration:mocked && npm run test:integration:docker && npm run test:integration:secrets",
     "test:integration:mocked": "vitest run --project integration-mocked",
     "test:integration:docker": "vitest run --project integration-docker --project integration-compose",
+    "test:integration:secrets": "vitest run --project integration-secrets",
     "test:integration:watch": "vitest --project integration-mocked",
     "test:watch": "vitest",
     "version": "oclif readme && git add README.md"
