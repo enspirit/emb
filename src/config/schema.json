@@ -381,6 +381,65 @@
         { "$ref": "#/definitions/JsonPatchMoveOperation" },
         { "$ref": "#/definitions/JsonPatchCopyOperation" }
       ]
+    },
+
+    "VaultTokenAuth": {
+      "type": "object",
+      "required": ["method", "token"],
+      "properties": {
+        "method": { "const": "token" },
+        "token": { "type": "string", "description": "Vault token for authentication" }
+      },
+      "additionalProperties": false
+    },
+
+    "VaultAppRoleAuth": {
+      "type": "object",
+      "required": ["method", "roleId", "secretId"],
+      "properties": {
+        "method": { "const": "approle" },
+        "roleId": { "type": "string", "description": "AppRole role ID" },
+        "secretId": { "type": "string", "description": "AppRole secret ID" }
+      },
+      "additionalProperties": false
+    },
+
+    "VaultKubernetesAuth": {
+      "type": "object",
+      "required": ["method", "role"],
+      "properties": {
+        "method": { "const": "kubernetes" },
+        "role": { "type": "string", "description": "Kubernetes auth role name" }
+      },
+      "additionalProperties": false
+    },
+
+    "VaultAuthConfig": {
+      "description": "Authentication configuration for HashiCorp Vault",
+      "oneOf": [
+        { "$ref": "#/definitions/VaultTokenAuth" },
+        { "$ref": "#/definitions/VaultAppRoleAuth" },
+        { "$ref": "#/definitions/VaultKubernetesAuth" }
+      ]
+    },
+
+    "VaultPluginConfig": {
+      "type": "object",
+      "description": "Configuration for the HashiCorp Vault plugin",
+      "properties": {
+        "address": {
+          "type": "string",
+          "description": "Vault server address. Defaults to VAULT_ADDR env var."
+        },
+        "namespace": {
+          "type": "string",
+          "description": "Vault namespace. Defaults to VAULT_NAMESPACE env var."
+        },
+        "auth": {
+          "$ref": "#/definitions/VaultAuthConfig"
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

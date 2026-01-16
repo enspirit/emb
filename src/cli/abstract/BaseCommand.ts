@@ -5,6 +5,7 @@ import Dockerode from 'dockerode';
 import { loadConfig } from '@/config/index.js';
 import { createKubernetesClient } from '@/kubernetes/client.js';
 import { Monorepo } from '@/monorepo/monorepo.js';
+import { SecretManager } from '@/secrets';
 
 import { withMarker } from '../utils.js';
 
@@ -40,12 +41,14 @@ export abstract class BaseCommand extends Command {
       }
 
       const compose = new DockerComposeClient(monorepo);
+      const secrets = new SecretManager();
 
       this.context = setContext({
         docker: new Dockerode(),
         monorepo,
         compose,
         kubernetes: createKubernetesClient(),
+        secrets,
       });
     } catch (error) {
       this.error(error as Error);

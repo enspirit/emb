@@ -1,4 +1,4 @@
-import { TaskManagerFactory } from '@';
+import { getContext, TaskManagerFactory } from '@';
 import jsonpatch from 'fast-json-patch';
 import { ListrRendererValue } from 'listr2';
 import { join } from 'node:path';
@@ -153,12 +153,23 @@ export class Monorepo {
     vars?: Record<string, unknown>,
     expander = new TemplateExpander(),
   ) {
+    const secrets = getContext()?.secrets;
+    const sources: Record<
+      string,
+      ((key: string) => Promise<unknown>) | Record<string, unknown>
+    > = {
+      env: process.env as Record<string, unknown>,
+      vars: vars || this.vars,
+    };
+
+    // Add secret sources dynamically if available
+    if (secrets?.has('vault')) {
+      sources.vault = secrets.createSource('vault');
+    }
+
     const options = {
       default: 'vars',
-      sources: {
-        env: process.env,
-        vars: vars || this.vars,
-      },
+      sources,
     };
 
     return expander.expandRecord(toExpand, options);

@@ -25,7 +25,9 @@
       "@/docker": ["./src/docker/index.js"],
       "@/docker/*": ["./src/docker/*"],
       "@/utils": ["./src/utils/index.js"],
-      "@/utils/*": ["./src/utils/*"]
+      "@/utils/*": ["./src/utils/*"],
+      "@/secrets": ["./src/secrets/index.js"],
+      "@/secrets/*": ["./src/secrets/*"]
     }
   },
   "include": ["src/**/*", "tests/**/*"],

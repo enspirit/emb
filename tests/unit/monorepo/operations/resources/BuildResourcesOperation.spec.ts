@@ -1,4 +1,4 @@
-import { DockerComposeClient, setContext } from '@';
+import { DockerComposeClient, SecretManager, setContext } from '@';
 import Dockerode from 'dockerode';
 import { mkdir, mkdtemp, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -17,6 +17,7 @@ const setMonorepoContext = (repo: Monorepo): void => {
     kubernetes: vi.mockObject(createKubernetesClient()),
     monorepo: repo,
     compose,
+    secrets: new SecretManager(),
   });
 };
 

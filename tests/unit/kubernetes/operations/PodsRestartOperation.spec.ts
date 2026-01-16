@@ -1,4 +1,4 @@
-import { setContext } from '@';
+import { SecretManager, setContext } from '@';
 import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -55,6 +55,7 @@ describe('Kubernetes / Operations / PodsRestartOperation', () => {
       kubernetes: mockKubernetes as never,
       monorepo: repo,
       compose,
+      secrets: new SecretManager(),
     });
   });
 

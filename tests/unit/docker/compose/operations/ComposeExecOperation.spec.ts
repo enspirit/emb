@@ -1,4 +1,4 @@
-import { setContext } from '@';
+import { SecretManager, setContext } from '@';
 import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -39,6 +39,7 @@ describe('Docker / Compose / Operations / ComposeExecOperation', () => {
       kubernetes: vi.mockObject(createKubernetesClient()),
       monorepo: repo,
       compose,
+      secrets: new SecretManager(),
     });
   });
 

@@ -1,4 +1,4 @@
-import { DockerComposeClient, setContext } from '@';
+import { DockerComposeClient, SecretManager, setContext } from '@';
 import Dockerode from 'dockerode';
 import { CompleteExample } from 'tests/fixtures/complete-example.js';
 import { beforeEach, vi } from 'vitest';
@@ -11,11 +11,13 @@ beforeEach(async () => {
   const config = new MonorepoConfig(CompleteExample);
   const monorepo = new Monorepo(config, '/tmp/monorepo');
   const compose = new DockerComposeClient(monorepo);
+  const secrets = new SecretManager();
 
   setContext({
     docker: vi.mockObject(new Dockerode()),
     kubernetes: vi.mockObject(createKubernetesClient()),
     monorepo,
     compose,
+    secrets,
   });
 });

@@ -3,12 +3,14 @@ import { AbstractPlugin } from './plugin.js';
 export * from './AutoDockerPlugin.js';
 export * from './DotEnvPlugin.js';
 export * from './EmbfileLoaderPlugin.js';
+export * from './VaultPlugin.js';
 
 import { Monorepo } from '@/monorepo';
 
 import { AutoDockerPlugin } from './AutoDockerPlugin.js';
 import { DotEnvPlugin } from './DotEnvPlugin.js';
 import { EmbfileLoaderPlugin } from './EmbfileLoaderPlugin.js';
+import { VaultPlugin } from './VaultPlugin.js';
 
 export type AbstractPluginConstructor = new <C, P extends AbstractPlugin<C>>(
   config: C,
@@ -37,3 +39,4 @@ export const getPlugin = (name: string) => {
 registerPlugin(AutoDockerPlugin as AbstractPluginConstructor);
 registerPlugin(DotEnvPlugin as AbstractPluginConstructor);
 registerPlugin(EmbfileLoaderPlugin as AbstractPluginConstructor);
+registerPlugin(VaultPlugin as AbstractPluginConstructor);
