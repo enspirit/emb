@@ -6,7 +6,9 @@ import { AbstractSecretProvider, SecretReference } from '../SecretProvider.js';
  */
 export type VaultAuthConfig =
   | { method: 'approle'; roleId: string; secretId: string }
+  | { method: 'jwt'; role: string; jwt: string }
   | { method: 'kubernetes'; role: string }
+  | { method: 'oidc'; role?: string; port?: number }
   | { method: 'token'; token: string };
 
 /**
@@ -51,8 +53,18 @@ export class VaultProvider extends AbstractSecretProvider<VaultProviderConfig> {
         break;
       }
 
+      case 'jwt': {
+        this.token = await this.loginJwt(auth.role, auth.jwt);
+        break;
+      }
+
       case 'kubernetes': {
         this.token = await this.loginKubernetes(auth.role);
+        break;
+      }
+
+      case 'oidc': {
+        this.token = await this.loginOidc(auth.role, auth.port);
         break;
       }
 
@@ -222,6 +234,53 @@ export class VaultProvider extends AbstractSecretProvider<VaultProviderConfig> {
       auth?: { client_token?: string };
     };
     return data.auth?.client_token || '';
+  }
+
+  /**
+   * Authenticate using JWT (non-interactive).
+   * Suitable for CI/CD pipelines where a JWT is provided externally.
+   */
+  private async loginJwt(role: string, jwt: string): Promise<string> {
+    const url = new URL('/v1/auth/jwt/login', this.config.address);
+
+    const response = await fetch(url.toString(), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(this.config.namespace && {
+          'X-Vault-Namespace': this.config.namespace,
+        }),
+      },
+      body: JSON.stringify({ role, jwt }),
+    });
+
+    if (!response.ok) {
+      const error = await this.parseErrorResponse(response);
+      throw new VaultError(
+        `JWT login failed: ${error.message}`,
+        'VAULT_AUTH_ERROR',
+        response.status,
+      );
+    }
+
+    const data = (await response.json()) as {
+      auth?: { client_token?: string };
+    };
+    return data.auth?.client_token || '';
+  }
+
+  /**
+   * Authenticate using OIDC (interactive browser flow).
+   * Opens a browser for the user to authenticate with Keycloak/OIDC provider.
+   */
+  private async loginOidc(role?: string, port?: number): Promise<string> {
+    const { performOidcLogin } = await import('./VaultOidcHelper.js');
+    return performOidcLogin({
+      vaultAddress: this.config.address,
+      role,
+      port: port ?? 8250,
+      namespace: this.config.namespace,
+    });
   }
 
   private async verifyToken(): Promise<void> {

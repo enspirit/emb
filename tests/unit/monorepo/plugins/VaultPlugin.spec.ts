@@ -115,11 +115,17 @@ describe('Monorepo / Plugins / VaultPlugin', () => {
       const originalRoleId = process.env.VAULT_ROLE_ID;
       const originalSecretId = process.env.VAULT_SECRET_ID;
       const originalK8sRole = process.env.VAULT_K8S_ROLE;
+      const originalJwt = process.env.VAULT_JWT;
+      const originalJwtRole = process.env.VAULT_JWT_ROLE;
+      const originalOidcRole = process.env.VAULT_OIDC_ROLE;
 
       delete process.env.VAULT_TOKEN;
       delete process.env.VAULT_ROLE_ID;
       delete process.env.VAULT_SECRET_ID;
       delete process.env.VAULT_K8S_ROLE;
+      delete process.env.VAULT_JWT;
+      delete process.env.VAULT_JWT_ROLE;
+      delete process.env.VAULT_OIDC_ROLE;
 
       const config: VaultPluginConfig = {
         address: 'http://localhost:8200',
@@ -134,6 +140,103 @@ describe('Monorepo / Plugins / VaultPlugin', () => {
       process.env.VAULT_ROLE_ID = originalRoleId;
       process.env.VAULT_SECRET_ID = originalSecretId;
       process.env.VAULT_K8S_ROLE = originalK8sRole;
+      process.env.VAULT_JWT = originalJwt;
+      process.env.VAULT_JWT_ROLE = originalJwtRole;
+      process.env.VAULT_OIDC_ROLE = originalOidcRole;
+    });
+
+    test('uses VAULT_JWT and VAULT_JWT_ROLE from environment when auth not specified', async () => {
+      const originalToken = process.env.VAULT_TOKEN;
+      const originalRoleId = process.env.VAULT_ROLE_ID;
+      const originalSecretId = process.env.VAULT_SECRET_ID;
+      const originalK8sRole = process.env.VAULT_K8S_ROLE;
+      const originalJwt = process.env.VAULT_JWT;
+      const originalJwtRole = process.env.VAULT_JWT_ROLE;
+
+      delete process.env.VAULT_TOKEN;
+      delete process.env.VAULT_ROLE_ID;
+      delete process.env.VAULT_SECRET_ID;
+      delete process.env.VAULT_K8S_ROLE;
+      process.env.VAULT_JWT = 'env-jwt-token';
+      process.env.VAULT_JWT_ROLE = 'ci-runner';
+
+      const config: VaultPluginConfig = {
+        address: 'http://localhost:8200',
+      };
+
+      // Mock JWT login
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          // eslint-disable-next-line camelcase -- Vault API uses snake_case
+          Promise.resolve({ auth: { client_token: 'jwt-vault-token' } }),
+      });
+      // Mock token verification
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ data: {} }),
+      });
+
+      const plugin = new VaultPlugin(config, setup.monorepo);
+      await plugin.init();
+
+      expect(mockFetch).toHaveBeenNthCalledWith(
+        1,
+        'http://localhost:8200/v1/auth/jwt/login',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ role: 'ci-runner', jwt: 'env-jwt-token' }),
+        }),
+      );
+
+      process.env.VAULT_TOKEN = originalToken;
+      process.env.VAULT_ROLE_ID = originalRoleId;
+      process.env.VAULT_SECRET_ID = originalSecretId;
+      process.env.VAULT_K8S_ROLE = originalK8sRole;
+      process.env.VAULT_JWT = originalJwt;
+      process.env.VAULT_JWT_ROLE = originalJwtRole;
+    });
+
+    test('VAULT_OIDC_ROLE env var is detected for auth resolution', async () => {
+      // This test verifies that VAULT_OIDC_ROLE env var is detected by the plugin
+      // The actual OIDC flow is interactive (opens browser) and can't be unit tested
+      // So we just verify the config doesn't throw "authentication not configured"
+      // when VAULT_OIDC_ROLE is set - it will fail later trying to open browser
+      const originalToken = process.env.VAULT_TOKEN;
+      const originalRoleId = process.env.VAULT_ROLE_ID;
+      const originalSecretId = process.env.VAULT_SECRET_ID;
+      const originalK8sRole = process.env.VAULT_K8S_ROLE;
+      const originalJwt = process.env.VAULT_JWT;
+      const originalJwtRole = process.env.VAULT_JWT_ROLE;
+      const originalOidcRole = process.env.VAULT_OIDC_ROLE;
+
+      delete process.env.VAULT_TOKEN;
+      delete process.env.VAULT_ROLE_ID;
+      delete process.env.VAULT_SECRET_ID;
+      delete process.env.VAULT_K8S_ROLE;
+      delete process.env.VAULT_JWT;
+      delete process.env.VAULT_JWT_ROLE;
+      process.env.VAULT_OIDC_ROLE = 'developer';
+
+      const config: VaultPluginConfig = {
+        address: 'http://localhost:8200',
+      };
+
+      const plugin = new VaultPlugin(config, setup.monorepo);
+      // The init will fail during OIDC flow (trying to get auth URL or open browser)
+      // but it should NOT fail with "authentication not configured"
+      const initPromise = plugin.init();
+      await expect(initPromise).rejects.not.toThrow(
+        'Vault authentication not configured',
+      );
+
+      process.env.VAULT_TOKEN = originalToken;
+      process.env.VAULT_ROLE_ID = originalRoleId;
+      process.env.VAULT_SECRET_ID = originalSecretId;
+      process.env.VAULT_K8S_ROLE = originalK8sRole;
+      process.env.VAULT_JWT = originalJwt;
+      process.env.VAULT_JWT_ROLE = originalJwtRole;
+      process.env.VAULT_OIDC_ROLE = originalOidcRole;
     });
   });
 });

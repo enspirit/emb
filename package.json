@@ -67,6 +67,8 @@
     "@listr2/prompt-adapter-inquirer": "^3.0.5",
     "listr2": "^9.0.5",
     "luxon": "^3.7.2",
+    "open": "^10.1.0",
+    "openid-client": "^6.4.3",
     "protobufjs": "^7.5.4",
     "p-map": "^7.0.4",
     "simple-git": "^3.30.0",

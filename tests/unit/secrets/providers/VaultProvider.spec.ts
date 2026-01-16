@@ -93,6 +93,87 @@ describe('Secrets / Providers / VaultProvider', () => {
       await expect(provider.connect()).rejects.toThrow(VaultError);
     });
 
+    test('authenticates with jwt method', async () => {
+      const jwtConfig: VaultProviderConfig = {
+        address: 'http://localhost:8200',
+        auth: { method: 'jwt', role: 'ci-runner', jwt: 'my-jwt-token' },
+      };
+      provider = new VaultProvider(jwtConfig);
+
+      // Mock JWT login
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          // eslint-disable-next-line camelcase -- Vault API uses snake_case
+          Promise.resolve({ auth: { client_token: 'jwt-vault-token' } }),
+      });
+      // Mock token verification
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ data: { id: 'jwt-vault-token' } }),
+      });
+
+      await provider.connect();
+
+      expect(mockFetch).toHaveBeenNthCalledWith(
+        1,
+        'http://localhost:8200/v1/auth/jwt/login',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ role: 'ci-runner', jwt: 'my-jwt-token' }),
+        }),
+      );
+    });
+
+    test('throws VaultError on JWT authentication failure', async () => {
+      const jwtConfig: VaultProviderConfig = {
+        address: 'http://localhost:8200',
+        auth: { method: 'jwt', role: 'ci-runner', jwt: 'invalid-jwt' },
+      };
+      provider = new VaultProvider(jwtConfig);
+
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        statusText: 'Unauthorized',
+        json: () => Promise.resolve({ errors: ['invalid JWT'] }),
+      });
+
+      await expect(provider.connect()).rejects.toThrow('JWT login failed');
+    });
+
+    test('authenticates with oidc method (mocked helper)', async () => {
+      const oidcConfig: VaultProviderConfig = {
+        address: 'http://localhost:8200',
+        auth: { method: 'oidc', role: 'developer', port: 8251 },
+      };
+      provider = new VaultProvider(oidcConfig);
+
+      // Mock the OIDC helper module
+      vi.mock('@/secrets/providers/VaultOidcHelper.js', () => ({
+        performOidcLogin: vi.fn().mockResolvedValue('oidc-vault-token'),
+      }));
+
+      // Mock token verification
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ data: { id: 'oidc-vault-token' } }),
+      });
+
+      await provider.connect();
+
+      // Verify token verification was called with the token from OIDC helper
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://localhost:8200/v1/auth/token/lookup-self',
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'X-Vault-Token': 'oidc-vault-token',
+          }),
+        }),
+      );
+    });
+
     test('includes namespace header when configured', async () => {
       config.namespace = 'test-ns';
       provider = new VaultProvider(config);

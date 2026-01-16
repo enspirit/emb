@@ -102,10 +102,24 @@ export class VaultPlugin extends AbstractPlugin<VaultPluginConfig> {
       return { method: 'kubernetes', role: k8sRole };
     }
 
+    // JWT auth (non-interactive, for CI/CD)
+    const jwt = process.env.VAULT_JWT;
+    const jwtRole = process.env.VAULT_JWT_ROLE;
+    if (jwt && jwtRole) {
+      return { method: 'jwt', role: jwtRole, jwt };
+    }
+
+    // OIDC auth (interactive browser flow)
+    const oidcRole = process.env.VAULT_OIDC_ROLE;
+    if (oidcRole !== undefined) {
+      return { method: 'oidc', role: oidcRole || undefined };
+    }
+
     throw new Error(
       'Vault authentication not configured. ' +
         'Set VAULT_TOKEN, or VAULT_ROLE_ID + VAULT_SECRET_ID, ' +
-        'or VAULT_K8S_ROLE environment variable, ' +
+        'or VAULT_K8S_ROLE, or VAULT_JWT + VAULT_JWT_ROLE, ' +
+        'or VAULT_OIDC_ROLE environment variable, ' +
         'or configure auth in plugin config.',
     );
   }
