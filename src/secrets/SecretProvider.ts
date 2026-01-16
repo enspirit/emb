@@ -58,6 +58,7 @@ export abstract class AbstractSecretProvider<C = unknown> {
           `Key '${ref.key}' not found in secret '${ref.path}'. Available keys: ${availableKeys}`,
         );
       }
+
       return cached[ref.key];
     }
 
