@@ -31,7 +31,7 @@ describe('Secrets / Providers / VaultTokenCache', () => {
   });
 
   describe('#cacheToken()', () => {
-    test('creates cache file with correct structure', async () => {
+    test('creates encrypted cache file with correct structure', async () => {
       const vaultAddress = 'https://vault.example.com';
       const token = 'test-token-123';
       const ttlSeconds = 3600;
@@ -46,15 +46,32 @@ describe('Secrets / Providers / VaultTokenCache', () => {
       );
       expect(files).toHaveLength(1);
 
-      // Verify file contents
+      // Verify file contains encrypted data (not plaintext token)
       const content = await readFile(join(testCacheDir, files[0]), 'utf8');
-      const cached = JSON.parse(content) as CachedToken;
+      const encryptedFile = JSON.parse(content) as {
+        version: number;
+        salt: string;
+        iv: string;
+        authTag: string;
+        encrypted: string;
+      };
 
-      expect(cached.token).toBe(token);
-      expect(cached.vaultAddress).toBe(vaultAddress);
-      expect(cached.namespace).toBeUndefined();
-      expect(cached.expiresAt).toBeGreaterThan(Date.now());
-      expect(cached.createdAt).toBeLessThanOrEqual(Date.now());
+      // File should have encryption structure, not plaintext
+      expect(encryptedFile.version).toBe(1);
+      expect(encryptedFile.salt).toBeDefined();
+      expect(encryptedFile.iv).toBeDefined();
+      expect(encryptedFile.authTag).toBeDefined();
+      expect(encryptedFile.encrypted).toBeDefined();
+
+      // Token should NOT be visible in plaintext
+      expect(content).not.toContain(token);
+
+      // But we should be able to read it back via getCachedToken
+      const cached = await getCachedToken(vaultAddress, undefined, {
+        cacheDir: testCacheDir,
+      });
+      expect(cached?.token).toBe(token);
+      expect(cached?.vaultAddress).toBe(vaultAddress);
     });
 
     test('includes namespace in cache when provided', async () => {
@@ -65,13 +82,18 @@ describe('Secrets / Providers / VaultTokenCache', () => {
         cacheDir: testCacheDir,
       });
 
+      // Namespace should NOT be visible in plaintext file
       const files = await import('node:fs/promises').then((fs) =>
         fs.readdir(testCacheDir),
       );
       const content = await readFile(join(testCacheDir, files[0]), 'utf8');
-      const cached = JSON.parse(content) as CachedToken;
+      expect(content).not.toContain(namespace);
 
-      expect(cached.namespace).toBe(namespace);
+      // But we should be able to read it back via getCachedToken
+      const cached = await getCachedToken(vaultAddress, namespace, {
+        cacheDir: testCacheDir,
+      });
+      expect(cached?.namespace).toBe(namespace);
     });
 
     test('creates separate cache files for different namespaces', async () => {

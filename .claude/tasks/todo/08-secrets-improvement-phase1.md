@@ -62,6 +62,24 @@ Modify `VaultProvider.connect()`:
 
 - Tokens are cached in `~/.emb/vault-tokens/` with restricted permissions (0600)
 - Cache key is a SHA256 hash of `vaultAddress::namespace`
-- Token files are JSON with: token, expiresAt, createdAt, namespace, vaultAddress
 - Default expiry buffer is 5 minutes (configurable)
 - Only OIDC auth method benefits from caching (other methods like token, approle don't need it)
+
+## Encryption
+
+Tokens are encrypted at rest using AES-256-GCM:
+- Key derived from machine-specific data (hostname + username) via PBKDF2
+- Random salt and IV for each encryption operation
+- Authentication tag prevents tampering
+- Tokens cannot be used if copied to another machine or by another user
+
+File format:
+```json
+{
+  "version": 1,
+  "salt": "<hex>",
+  "iv": "<hex>",
+  "authTag": "<hex>",
+  "encrypted": "<hex>"
+}
+```

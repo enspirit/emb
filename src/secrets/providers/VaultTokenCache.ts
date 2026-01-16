@@ -1,6 +1,12 @@
-import { createHash } from 'node:crypto';
+import {
+  createCipheriv,
+  createDecipheriv,
+  createHash,
+  pbkdf2Sync,
+  randomBytes,
+} from 'node:crypto';
 import { chmod, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
-import { homedir } from 'node:os';
+import { homedir, hostname, userInfo } from 'node:os';
 import { join } from 'node:path';
 
 /**
@@ -31,6 +37,95 @@ export interface TokenCacheOptions {
 
 const DEFAULT_EXPIRY_BUFFER = 5 * 60 * 1000; // 5 minutes
 const DEFAULT_CACHE_DIR = join(homedir(), '.emb', 'vault-tokens');
+
+// Encryption constants
+const ALGORITHM = 'aes-256-gcm';
+const IV_LENGTH = 16;
+const AUTH_TAG_LENGTH = 16;
+const SALT_LENGTH = 32;
+const KEY_LENGTH = 32;
+const PBKDF2_ITERATIONS = 100_000;
+
+/**
+ * Encrypted cache file format stored on disk.
+ */
+interface EncryptedCacheFile {
+  /** Version of the encryption format */
+  version: 1;
+  /** Salt used for key derivation (hex) */
+  salt: string;
+  /** Initialization vector (hex) */
+  iv: string;
+  /** Authentication tag (hex) */
+  authTag: string;
+  /** Encrypted data (hex) */
+  encrypted: string;
+}
+
+/**
+ * Derive an encryption key from machine-specific data.
+ * The key is derived from hostname + username + a static pepper,
+ * making the cache file unusable if copied to another machine or user.
+ */
+function deriveKey(salt: Buffer): Buffer {
+  const machineId = `${hostname()}:${userInfo().username}:emb-vault-cache`;
+  return pbkdf2Sync(machineId, salt, PBKDF2_ITERATIONS, KEY_LENGTH, 'sha256');
+}
+
+/**
+ * Encrypt data using AES-256-GCM.
+ */
+function encrypt(data: string): EncryptedCacheFile {
+  const salt = randomBytes(SALT_LENGTH);
+  const key = deriveKey(salt);
+  const iv = randomBytes(IV_LENGTH);
+
+  const cipher = createCipheriv(ALGORITHM, key, iv);
+  const encrypted = Buffer.concat([
+    cipher.update(data, 'utf8'),
+    cipher.final(),
+  ]);
+  const authTag = cipher.getAuthTag();
+
+  return {
+    version: 1,
+    salt: salt.toString('hex'),
+    iv: iv.toString('hex'),
+    authTag: authTag.toString('hex'),
+    encrypted: encrypted.toString('hex'),
+  };
+}
+
+/**
+ * Decrypt data using AES-256-GCM.
+ * Returns null if decryption fails (wrong machine, corrupted data, etc.)
+ */
+function decrypt(file: EncryptedCacheFile): string | null {
+  try {
+    if (file.version !== 1) {
+      return null;
+    }
+
+    const salt = Buffer.from(file.salt, 'hex');
+    const key = deriveKey(salt);
+    const iv = Buffer.from(file.iv, 'hex');
+    const authTag = Buffer.from(file.authTag, 'hex');
+    const encrypted = Buffer.from(file.encrypted, 'hex');
+
+    const decipher = createDecipheriv(ALGORITHM, key, iv);
+    decipher.setAuthTag(authTag);
+
+    const decrypted = Buffer.concat([
+      decipher.update(encrypted),
+      decipher.final(),
+    ]);
+
+    return decrypted.toString('utf8');
+  } catch {
+    // Decryption failed - wrong key (different machine/user) or corrupted data
+    return null;
+  }
+}
 
 /**
  * Generate a cache key for a Vault address and namespace combination.
@@ -71,7 +166,17 @@ export async function getCachedToken(
 
   try {
     const content = await readFile(cachePath, 'utf8');
-    const cached = JSON.parse(content) as CachedToken;
+    const encryptedFile = JSON.parse(content) as EncryptedCacheFile;
+
+    // Decrypt the cached data
+    const decrypted = decrypt(encryptedFile);
+    if (!decrypted) {
+      // Decryption failed - likely different machine/user or corrupted
+      await clearCachedToken(vaultAddress, namespace, options);
+      return null;
+    }
+
+    const cached = JSON.parse(decrypted) as CachedToken;
 
     // Verify the cached token matches the requested address/namespace
     if (
@@ -97,7 +202,7 @@ export async function getCachedToken(
 }
 
 /**
- * Cache a Vault token to disk.
+ * Cache a Vault token to disk (encrypted).
  *
  * @param vaultAddress - The Vault server address
  * @param token - The Vault client token
@@ -124,11 +229,14 @@ export async function cacheToken(
     vaultAddress,
   };
 
+  // Encrypt the token data
+  const encryptedFile = encrypt(JSON.stringify(cached));
+
   // Ensure cache directory exists
   await mkdir(cacheDir, { recursive: true, mode: 0o700 });
 
-  // Write the cache file with restricted permissions
-  await writeFile(cachePath, JSON.stringify(cached, null, 2), {
+  // Write the encrypted cache file with restricted permissions
+  await writeFile(cachePath, JSON.stringify(encryptedFile, null, 2), {
     mode: 0o600,
     encoding: 'utf8',
   });
