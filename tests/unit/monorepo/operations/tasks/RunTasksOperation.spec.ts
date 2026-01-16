@@ -1,55 +1,21 @@
-import { DockerComposeClient, SecretManager, setContext } from '@';
-import Dockerode from 'dockerode';
-import { mkdir, mkdtemp, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
-import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-
-import { createKubernetesClient } from '@/kubernetes/client.js';
-import { Monorepo } from '@/monorepo';
+import { createTestSetup, TestSetup } from 'tests/setup/set.context.js';
+import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 
 import {
   ExecutorType,
   RunTasksOperation,
 } from '../../../../../src/monorepo/operations/tasks/RunTasksOperation.js';
 
-const createMockCompose = (repo: Monorepo): DockerComposeClient => {
-  const compose = new DockerComposeClient(repo);
-  // Mock isService to return false (no docker services)
-  vi.spyOn(compose, 'isService').mockResolvedValue(false);
-  return compose;
-};
-
-const setMonorepoContext = (repo: Monorepo): void => {
-  const compose = createMockCompose(repo);
-  setContext({
-    docker: vi.mockObject(new Dockerode()),
-    kubernetes: vi.mockObject(createKubernetesClient()),
-    monorepo: repo,
-    compose,
-    secrets: new SecretManager(),
-  });
-};
-
 describe('Monorepo / Operations / Tasks / RunTasksOperation', () => {
-  let tempDir: string;
+  let setup: TestSetup;
 
   beforeEach(async () => {
-    tempDir = await mkdtemp(join(tmpdir(), 'embRunTasksTest'));
-    await mkdir(join(tempDir, 'api'), { recursive: true });
-    await mkdir(join(tempDir, '.emb'), { recursive: true });
-  });
-
-  afterEach(async () => {
-    await rm(tempDir, { recursive: true, force: true });
-  });
-
-  const createMonorepoWithTasks = async (): Promise<Monorepo> => {
-    const repo = new Monorepo(
-      {
-        project: {
-          name: 'test-tasks',
-        },
+    setup = await createTestSetup({
+      tempDirPrefix: 'embRunTasksTest',
+      embfile: {
+        project: { name: 'test-tasks' },
         plugins: [],
         components: {
           api: {
@@ -64,12 +30,13 @@ describe('Monorepo / Operations / Tasks / RunTasksOperation', () => {
           },
         },
       },
-      tempDir,
-    );
+    });
+    await mkdir(join(setup.tempDir, 'api'), { recursive: true });
+  });
 
-    await repo.init();
-    return repo;
-  };
+  afterEach(async () => {
+    await setup.cleanup();
+  });
 
   describe('ExecutorType', () => {
     test('it has container and local types', () => {
@@ -80,9 +47,6 @@ describe('Monorepo / Operations / Tasks / RunTasksOperation', () => {
 
   describe('#run()', () => {
     test('it runs a local task and returns task info', async () => {
-      const repo = await createMonorepoWithTasks();
-      setMonorepoContext(repo);
-
       const operation = new RunTasksOperation();
       const result = await operation.run({
         tasks: ['build'],
@@ -96,9 +60,6 @@ describe('Monorepo / Operations / Tasks / RunTasksOperation', () => {
     });
 
     test('it runs multiple tasks in order', async () => {
-      const repo = await createMonorepoWithTasks();
-      setMonorepoContext(repo);
-
       const operation = new RunTasksOperation();
       const result = await operation.run({
         tasks: ['build', 'test'],
@@ -111,11 +72,10 @@ describe('Monorepo / Operations / Tasks / RunTasksOperation', () => {
     });
 
     test('it runs tasks with dependencies in correct order', async () => {
-      const repo = new Monorepo(
-        {
-          project: {
-            name: 'test-tasks',
-          },
+      const depSetup = await createTestSetup({
+        tempDirPrefix: 'embRunTasksDepsTest',
+        embfile: {
+          project: { name: 'test-tasks' },
           plugins: [],
           components: {
             api: {
@@ -131,28 +91,27 @@ describe('Monorepo / Operations / Tasks / RunTasksOperation', () => {
             },
           },
         },
-        tempDir,
-      );
-
-      await repo.init();
-      setMonorepoContext(repo);
-
-      const operation = new RunTasksOperation();
-      const result = await operation.run({
-        tasks: ['build'],
-        executor: ExecutorType.local,
       });
 
-      // Both setup and build should be run, with setup first
-      expect(result).toHaveLength(2);
-      expect(result[0].id).toBe('api:setup');
-      expect(result[1].id).toBe('api:build');
+      await mkdir(join(depSetup.tempDir, 'api'), { recursive: true });
+
+      try {
+        const operation = new RunTasksOperation();
+        const result = await operation.run({
+          tasks: ['build'],
+          executor: ExecutorType.local,
+        });
+
+        // Both setup and build should be run, with setup first
+        expect(result).toHaveLength(2);
+        expect(result[0].id).toBe('api:setup');
+        expect(result[1].id).toBe('api:build');
+      } finally {
+        await depSetup.cleanup();
+      }
     });
 
     test('it uses task ID for full reference', async () => {
-      const repo = await createMonorepoWithTasks();
-      setMonorepoContext(repo);
-
       const operation = new RunTasksOperation();
       const result = await operation.run({
         tasks: ['api:build'],
@@ -164,11 +123,10 @@ describe('Monorepo / Operations / Tasks / RunTasksOperation', () => {
     });
 
     test('it handles tasks with environment variables', async () => {
-      const repo = new Monorepo(
-        {
-          project: {
-            name: 'test-tasks',
-          },
+      const envSetup = await createTestSetup({
+        tempDirPrefix: 'embRunTasksEnvTest',
+        embfile: {
+          project: { name: 'test-tasks' },
           plugins: [],
           components: {
             api: {
@@ -183,30 +141,29 @@ describe('Monorepo / Operations / Tasks / RunTasksOperation', () => {
             },
           },
         },
-        tempDir,
-      );
-
-      await repo.init();
-      setMonorepoContext(repo);
-
-      const operation = new RunTasksOperation();
-      const result = await operation.run({
-        tasks: ['greet'],
-        executor: ExecutorType.local,
       });
 
-      expect(result).toHaveLength(1);
-      expect(result[0].vars).toEqual({ NAME: 'World' });
+      await mkdir(join(envSetup.tempDir, 'api'), { recursive: true });
+
+      try {
+        const operation = new RunTasksOperation();
+        const result = await operation.run({
+          tasks: ['greet'],
+          executor: ExecutorType.local,
+        });
+
+        expect(result).toHaveLength(1);
+        expect(result[0].vars).toEqual({ NAME: 'World' });
+      } finally {
+        await envSetup.cleanup();
+      }
     });
 
     test('it runs tasks across multiple components', async () => {
-      await mkdir(join(tempDir, 'frontend'), { recursive: true });
-
-      const repo = new Monorepo(
-        {
-          project: {
-            name: 'test-tasks',
-          },
+      const multiSetup = await createTestSetup({
+        tempDirPrefix: 'embRunTasksMultiTest',
+        embfile: {
+          project: { name: 'test-tasks' },
           plugins: [],
           components: {
             api: {
@@ -225,24 +182,27 @@ describe('Monorepo / Operations / Tasks / RunTasksOperation', () => {
             },
           },
         },
-        tempDir,
-      );
-
-      await repo.init();
-      setMonorepoContext(repo);
-
-      const operation = new RunTasksOperation();
-      const result = await operation.run({
-        tasks: ['build'],
-        allMatching: true,
-        executor: ExecutorType.local,
       });
 
-      // Should run both api:build and frontend:build
-      expect(result).toHaveLength(2);
-      const ids = result.map((t) => t.id);
-      expect(ids).toContain('api:build');
-      expect(ids).toContain('frontend:build');
+      await mkdir(join(multiSetup.tempDir, 'api'), { recursive: true });
+      await mkdir(join(multiSetup.tempDir, 'frontend'), { recursive: true });
+
+      try {
+        const operation = new RunTasksOperation();
+        const result = await operation.run({
+          tasks: ['build'],
+          allMatching: true,
+          executor: ExecutorType.local,
+        });
+
+        // Should run both api:build and frontend:build
+        expect(result).toHaveLength(2);
+        const ids = result.map((t) => t.id);
+        expect(ids).toContain('api:build');
+        expect(ids).toContain('frontend:build');
+      } finally {
+        await multiSetup.cleanup();
+      }
     });
   });
 });

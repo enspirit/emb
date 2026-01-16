@@ -1,44 +1,18 @@
-import { DockerComposeClient, SecretManager, setContext } from '@';
-import Dockerode from 'dockerode';
-import { mkdir, mkdtemp, rm, stat, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { mkdir, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-
-import { createKubernetesClient } from '@/kubernetes/client.js';
-import { Monorepo } from '@/monorepo';
+import { createTestSetup, TestSetup } from 'tests/setup/set.context.js';
+import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 
 import { BuildResourcesOperation } from '../../../../../src/monorepo/operations/resources/BuildResourcesOperation.js';
 
-const setMonorepoContext = (repo: Monorepo): void => {
-  const compose = new DockerComposeClient(repo);
-  setContext({
-    docker: vi.mockObject(new Dockerode()),
-    kubernetes: vi.mockObject(createKubernetesClient()),
-    monorepo: repo,
-    compose,
-    secrets: new SecretManager(),
-  });
-};
-
 describe('Monorepo / Operations / Resources / BuildResourcesOperation', () => {
-  let tempDir: string;
+  let setup: TestSetup;
 
   beforeEach(async () => {
-    tempDir = await mkdtemp(join(tmpdir(), 'embBuildResourcesTest'));
-    await mkdir(join(tempDir, 'api'), { recursive: true });
-  });
-
-  afterEach(async () => {
-    await rm(tempDir, { recursive: true, force: true });
-  });
-
-  const createMonorepoWithFileResources = async (): Promise<Monorepo> => {
-    const repo = new Monorepo(
-      {
-        project: {
-          name: 'test-build',
-        },
+    setup = await createTestSetup({
+      tempDirPrefix: 'embBuildResourcesTest',
+      embfile: {
+        project: { name: 'test-build' },
         plugins: [],
         components: {
           api: {
@@ -53,19 +27,17 @@ describe('Monorepo / Operations / Resources / BuildResourcesOperation', () => {
           },
         },
       },
-      tempDir,
-    );
+    });
+    await mkdir(join(setup.tempDir, 'api'), { recursive: true });
+  });
 
-    await repo.init();
-    setMonorepoContext(repo);
-    return repo;
-  };
+  afterEach(async () => {
+    await setup.cleanup();
+  });
 
   describe('#run()', () => {
     test('it builds a file resource and creates the file', async () => {
-      const repo = await createMonorepoWithFileResources();
-
-      const result = await repo.run(new BuildResourcesOperation(), {
+      const result = await setup.monorepo.run(new BuildResourcesOperation(), {
         resources: ['testfile'],
         silent: true,
       });
@@ -74,14 +46,12 @@ describe('Monorepo / Operations / Resources / BuildResourcesOperation', () => {
       expect(result['api:testfile'].resource?.id).toBe('api:testfile');
 
       // Verify file was created
-      const fileStat = await stat(join(tempDir, 'api', 'output.txt'));
+      const fileStat = await stat(join(setup.tempDir, 'api', 'output.txt'));
       expect(fileStat.isFile()).toBe(true);
     });
 
     test('it supports dry run mode without creating file', async () => {
-      const repo = await createMonorepoWithFileResources();
-
-      const result = await repo.run(new BuildResourcesOperation(), {
+      const result = await setup.monorepo.run(new BuildResourcesOperation(), {
         resources: ['testfile'],
         dryRun: true,
         silent: true,
@@ -92,12 +62,10 @@ describe('Monorepo / Operations / Resources / BuildResourcesOperation', () => {
     });
 
     test('it detects cache hit when file exists', async () => {
-      const repo = await createMonorepoWithFileResources();
-
       // Create the file first
-      await writeFile(join(tempDir, 'api', 'output.txt'), 'existing');
+      await writeFile(join(setup.tempDir, 'api', 'output.txt'), 'existing');
 
-      const result = await repo.run(new BuildResourcesOperation(), {
+      const result = await setup.monorepo.run(new BuildResourcesOperation(), {
         resources: ['testfile'],
         silent: true,
       });
@@ -107,12 +75,10 @@ describe('Monorepo / Operations / Resources / BuildResourcesOperation', () => {
     });
 
     test('it forces rebuild when force option is set', async () => {
-      const repo = await createMonorepoWithFileResources();
-
       // Create the file first
-      await writeFile(join(tempDir, 'api', 'output.txt'), 'existing');
+      await writeFile(join(setup.tempDir, 'api', 'output.txt'), 'existing');
 
-      const result = await repo.run(new BuildResourcesOperation(), {
+      const result = await setup.monorepo.run(new BuildResourcesOperation(), {
         resources: ['testfile'],
         force: true,
         silent: true,
@@ -123,13 +89,12 @@ describe('Monorepo / Operations / Resources / BuildResourcesOperation', () => {
     });
 
     test('it builds multiple resources', async () => {
-      await mkdir(join(tempDir, 'frontend'), { recursive: true });
+      await mkdir(join(setup.tempDir, 'frontend'), { recursive: true });
 
-      const repo = new Monorepo(
-        {
-          project: {
-            name: 'test-build',
-          },
+      const multiSetup = await createTestSetup({
+        tempDirPrefix: 'embBuildMultiTest',
+        embfile: {
+          project: { name: 'test-build' },
           plugins: [],
           components: {
             api: {
@@ -150,27 +115,33 @@ describe('Monorepo / Operations / Resources / BuildResourcesOperation', () => {
             },
           },
         },
-        tempDir,
-      );
-      await repo.init();
-      setMonorepoContext(repo);
-
-      const result = await repo.run(new BuildResourcesOperation(), {
-        resources: ['file1', 'file2'],
-        silent: true,
       });
 
-      expect(Object.keys(result).length).toBe(2);
-      expect(result['api:file1']).toBeDefined();
-      expect(result['frontend:file2']).toBeDefined();
+      await mkdir(join(multiSetup.tempDir, 'api'), { recursive: true });
+      await mkdir(join(multiSetup.tempDir, 'frontend'), { recursive: true });
+
+      try {
+        const result = await multiSetup.monorepo.run(
+          new BuildResourcesOperation(),
+          {
+            resources: ['file1', 'file2'],
+            silent: true,
+          },
+        );
+
+        expect(Object.keys(result).length).toBe(2);
+        expect(result['api:file1']).toBeDefined();
+        expect(result['frontend:file2']).toBeDefined();
+      } finally {
+        await multiSetup.cleanup();
+      }
     });
 
     test('it respects resource dependencies ordering', async () => {
-      const repo = new Monorepo(
-        {
-          project: {
-            name: 'test-build',
-          },
+      const depSetup = await createTestSetup({
+        tempDirPrefix: 'embBuildDepsTest',
+        embfile: {
+          project: { name: 'test-build' },
           plugins: [],
           components: {
             api: {
@@ -188,19 +159,25 @@ describe('Monorepo / Operations / Resources / BuildResourcesOperation', () => {
             },
           },
         },
-        tempDir,
-      );
-      await repo.init();
-      setMonorepoContext(repo);
-
-      const result = await repo.run(new BuildResourcesOperation(), {
-        resources: ['dependent'],
-        silent: true,
       });
 
-      // Both base and dependent should be built
-      expect(result['api:base']).toBeDefined();
-      expect(result['api:dependent']).toBeDefined();
+      await mkdir(join(depSetup.tempDir, 'api'), { recursive: true });
+
+      try {
+        const result = await depSetup.monorepo.run(
+          new BuildResourcesOperation(),
+          {
+            resources: ['dependent'],
+            silent: true,
+          },
+        );
+
+        // Both base and dependent should be built
+        expect(result['api:base']).toBeDefined();
+        expect(result['api:dependent']).toBeDefined();
+      } finally {
+        await depSetup.cleanup();
+      }
     });
   });
 });

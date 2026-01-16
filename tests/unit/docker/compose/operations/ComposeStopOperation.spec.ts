@@ -1,53 +1,23 @@
-import { SecretManager, setContext } from '@';
-import { mkdir, mkdtemp, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
 import { PassThrough, Readable } from 'node:stream';
+import { createTestSetup, TestSetup } from 'tests/setup/set.context.js';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
-import { ComposeStopOperation, DockerComposeClient } from '@/docker';
-import { createKubernetesClient } from '@/kubernetes/client.js';
-import { Monorepo } from '@/monorepo';
+import { ComposeStopOperation } from '@/docker';
 
 describe('Docker / Compose / Operations / ComposeStopOperation', () => {
-  let tempDir: string;
-  let repo: Monorepo;
+  let setup: TestSetup;
   let mockOutput: PassThrough;
 
   beforeEach(async () => {
-    tempDir = await mkdtemp(join(tmpdir(), 'embComposeStopTest'));
-    await mkdir(join(tempDir, '.emb'), { recursive: true });
-
-    repo = new Monorepo(
-      {
-        project: { name: 'test-compose' },
-        plugins: [],
-        components: {},
-      },
-      tempDir,
-    );
-
-    await repo.init();
-
+    setup = await createTestSetup({ tempDirPrefix: 'embComposeStopTest' });
     mockOutput = new PassThrough();
 
     // Mock the run method to return a Readable stream
-    vi.spyOn(repo, 'run').mockResolvedValue(new Readable() as never);
-
-    const compose = new DockerComposeClient(repo);
-    vi.spyOn(compose, 'isService').mockResolvedValue(false);
-
-    setContext({
-      docker: vi.mockObject({} as never),
-      kubernetes: vi.mockObject(createKubernetesClient()),
-      monorepo: repo,
-      compose,
-      secrets: new SecretManager(),
-    });
+    vi.spyOn(setup.monorepo, 'run').mockResolvedValue(new Readable() as never);
   });
 
   afterEach(async () => {
-    await rm(tempDir, { recursive: true, force: true });
+    await setup.cleanup();
   });
 
   describe('instantiation', () => {
@@ -62,7 +32,7 @@ describe('Docker / Compose / Operations / ComposeStopOperation', () => {
       const operation = new ComposeStopOperation(mockOutput);
       await operation.run({});
 
-      expect(repo.run).toHaveBeenCalledTimes(1);
+      expect(setup.monorepo.run).toHaveBeenCalledTimes(1);
     });
 
     test('it returns a Readable stream', async () => {

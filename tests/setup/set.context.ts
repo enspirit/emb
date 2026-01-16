@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { CompleteExample } from 'tests/fixtures/complete-example.js';
 import { beforeEach, vi } from 'vitest';
 
-import { EmbfileSchema } from '@/config';
+import { EMBConfig } from '@/config';
 import { createKubernetesClient } from '@/kubernetes/client.js';
 import { Monorepo, MonorepoConfig } from '@/monorepo';
 
@@ -80,7 +80,7 @@ export interface TestSetupOptions {
   /** Context overrides (e.g., custom kubernetes mock) */
   context?: Partial<Omit<EmbContext, 'compose' | 'monorepo' | 'secrets'>>;
   /** Custom embfile config (defaults to minimal config) */
-  embfile?: EmbfileSchema;
+  embfile?: EMBConfig;
   /** Prefix for temp directory name */
   tempDirPrefix?: string;
 }

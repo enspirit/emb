@@ -1,50 +1,20 @@
-import { SecretManager, setContext } from '@';
-import { mkdir, mkdtemp, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
 import { PassThrough } from 'node:stream';
-import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { createTestSetup, TestSetup } from 'tests/setup/set.context.js';
+import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 
-import { ComposeExecOperation, DockerComposeClient } from '@/docker';
-import { createKubernetesClient } from '@/kubernetes/client.js';
-import { Monorepo } from '@/monorepo';
+import { ComposeExecOperation } from '@/docker';
 
 describe('Docker / Compose / Operations / ComposeExecOperation', () => {
-  let tempDir: string;
-  let repo: Monorepo;
+  let setup: TestSetup;
   let mockOutput: PassThrough;
 
   beforeEach(async () => {
-    tempDir = await mkdtemp(join(tmpdir(), 'embComposeExecTest'));
-    await mkdir(join(tempDir, '.emb'), { recursive: true });
-
-    repo = new Monorepo(
-      {
-        project: { name: 'test-compose' },
-        plugins: [],
-        components: {},
-      },
-      tempDir,
-    );
-
-    await repo.init();
-
+    setup = await createTestSetup({ tempDirPrefix: 'embComposeExecTest' });
     mockOutput = new PassThrough();
-
-    const compose = new DockerComposeClient(repo);
-    vi.spyOn(compose, 'isService').mockResolvedValue(false);
-
-    setContext({
-      docker: vi.mockObject({} as never),
-      kubernetes: vi.mockObject(createKubernetesClient()),
-      monorepo: repo,
-      compose,
-      secrets: new SecretManager(),
-    });
   });
 
   afterEach(async () => {
-    await rm(tempDir, { recursive: true, force: true });
+    await setup.cleanup();
   });
 
   describe('instantiation', () => {

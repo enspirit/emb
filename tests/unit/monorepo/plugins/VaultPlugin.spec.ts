@@ -1,52 +1,25 @@
 /* eslint-disable n/no-unsupported-features/node-builtins -- fetch is stable in Node 20+ */
-import { SecretManager, setContext, VaultPlugin, VaultPluginConfig } from '@';
-import { mkdir, mkdtemp, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { VaultPlugin, VaultPluginConfig } from '@';
+import { createTestSetup, TestSetup } from 'tests/setup/set.context.js';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-
-import { DockerComposeClient } from '@/docker';
-import { createKubernetesClient } from '@/kubernetes/client.js';
-import { Monorepo } from '@/monorepo';
 
 // Mock fetch globally
 const mockFetch = vi.fn();
 globalThis.fetch = mockFetch;
 
 describe('Monorepo / Plugins / VaultPlugin', () => {
-  let tempDir: string;
-  let monorepo: Monorepo;
-  let secrets: SecretManager;
+  let setup: TestSetup;
 
   beforeEach(async () => {
     mockFetch.mockReset();
-    tempDir = await mkdtemp(join(tmpdir(), 'embVaultPluginTest'));
-    await mkdir(join(tempDir, '.emb'), { recursive: true });
-
-    monorepo = new Monorepo(
-      {
-        project: { name: 'test-vault' },
-        plugins: [],
-        components: {},
-      },
-      tempDir,
-    );
-    await monorepo.init();
-
-    secrets = new SecretManager();
-    const compose = new DockerComposeClient(monorepo);
-
-    setContext({
-      docker: vi.mockObject({} as never),
-      kubernetes: vi.mockObject(createKubernetesClient()),
-      monorepo,
-      compose,
-      secrets,
+    setup = await createTestSetup({
+      tempDirPrefix: 'embVaultPluginTest',
+      embfile: { project: { name: 'test-vault' }, plugins: [], components: {} },
     });
   });
 
   afterEach(async () => {
-    await rm(tempDir, { recursive: true, force: true });
+    await setup.cleanup();
     vi.restoreAllMocks();
   });
 
@@ -63,10 +36,10 @@ describe('Monorepo / Plugins / VaultPlugin', () => {
         json: () => Promise.resolve({ data: { id: 'test-token' } }),
       });
 
-      const plugin = new VaultPlugin(config, monorepo);
+      const plugin = new VaultPlugin(config, setup.monorepo);
       await plugin.init();
 
-      expect(secrets.has('vault')).to.equal(true);
+      expect(setup.secrets.has('vault')).to.equal(true);
     });
 
     test('uses VAULT_ADDR from environment when address not specified', async () => {
@@ -82,7 +55,7 @@ describe('Monorepo / Plugins / VaultPlugin', () => {
         json: () => Promise.resolve({ data: {} }),
       });
 
-      const plugin = new VaultPlugin(config, monorepo);
+      const plugin = new VaultPlugin(config, setup.monorepo);
       await plugin.init();
 
       expect(mockFetch).toHaveBeenCalledWith(
@@ -106,7 +79,7 @@ describe('Monorepo / Plugins / VaultPlugin', () => {
         json: () => Promise.resolve({ data: {} }),
       });
 
-      const plugin = new VaultPlugin(config, monorepo);
+      const plugin = new VaultPlugin(config, setup.monorepo);
       await plugin.init();
 
       expect(mockFetch).toHaveBeenCalledWith(
@@ -129,7 +102,7 @@ describe('Monorepo / Plugins / VaultPlugin', () => {
         auth: { method: 'token', token: 'test-token' },
       };
 
-      const plugin = new VaultPlugin(config, monorepo);
+      const plugin = new VaultPlugin(config, setup.monorepo);
       await expect(plugin.init()).rejects.toThrow(
         'Vault address not configured',
       );
@@ -152,7 +125,7 @@ describe('Monorepo / Plugins / VaultPlugin', () => {
         address: 'http://localhost:8200',
       };
 
-      const plugin = new VaultPlugin(config, monorepo);
+      const plugin = new VaultPlugin(config, setup.monorepo);
       await expect(plugin.init()).rejects.toThrow(
         'Vault authentication not configured',
       );
