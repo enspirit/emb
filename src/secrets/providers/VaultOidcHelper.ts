@@ -128,31 +128,21 @@ export async function performOidcLogin(
           return;
         }
 
-        if (returnedState !== state) {
-          sendHtmlResponse(
-            res,
-            'Login Failed',
-            '<p>State mismatch - possible CSRF attack.</p>',
-          );
-          cleanup();
-          reject(
-            new VaultError(
-              'OIDC login failed: State mismatch',
-              'VAULT_AUTH_ERROR',
-            ),
-          );
-          return;
-        }
+        // Note: We don't validate state client-side because Vault generates
+        // its own state (prefixed with 'st_') regardless of what we send.
+        // Vault validates the state internally when we call the callback endpoint.
 
         try {
           // Exchange the code for a Vault token
+          // Pass the returned state/nonce from Keycloak (which are Vault's values)
+          const returnedNonce = url.searchParams.get('nonce') || nonce;
           const token = await exchangeCodeForToken({
             vaultAddress,
             role,
             namespace,
             code,
-            state,
-            nonce,
+            state: returnedState || state,
+            nonce: returnedNonce,
           });
 
           sendHtmlResponse(

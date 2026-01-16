@@ -32,6 +32,17 @@ export abstract class BaseCommand extends Command {
         loadConfig(),
       );
 
+      // Create SecretManager early so plugins can register providers during init
+      const secrets = new SecretManager();
+
+      // Set a partial context before monorepo init so plugins can access secrets
+      const partialContext = {
+        docker: new Dockerode(),
+        kubernetes: createKubernetesClient(),
+        secrets,
+      };
+      setContext(partialContext as EmbContext);
+
       const monorepo = await withMarker('emb:monorepo', 'init', () => {
         return new Monorepo(config, rootDir).init();
       });
@@ -41,14 +52,11 @@ export abstract class BaseCommand extends Command {
       }
 
       const compose = new DockerComposeClient(monorepo);
-      const secrets = new SecretManager();
 
       this.context = setContext({
-        docker: new Dockerode(),
+        ...partialContext,
         monorepo,
         compose,
-        kubernetes: createKubernetesClient(),
-        secrets,
       });
     } catch (error) {
       this.error(error as Error);

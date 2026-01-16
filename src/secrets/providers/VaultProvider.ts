@@ -111,7 +111,14 @@ export class VaultProvider extends AbstractSecretProvider<VaultProviderConfig> {
 
     if (!response.ok) {
       const error = await this.parseErrorResponse(response);
-      throw new VaultError(error.message, 'VAULT_READ_ERROR', response.status);
+      const namespace = this.config.namespace
+        ? ` (namespace: ${this.config.namespace})`
+        : '';
+      throw new VaultError(
+        `Failed to read secret at '${ref.path}'${namespace}: ${error.message}`,
+        'VAULT_READ_ERROR',
+        response.status,
+      );
     }
 
     const data = await response.json();
@@ -125,15 +132,23 @@ export class VaultProvider extends AbstractSecretProvider<VaultProviderConfig> {
   }
 
   /**
-   * Normalize a KV path for KV v2 engine.
-   * If the path doesn't contain '/data/', insert it after the mount point.
+   * Normalize a path for the appropriate secrets engine.
+   * - KV v2: Insert '/data/' after the mount point
+   * - 1Password Connect: Use path as-is (contains /vaults/ and /items/)
+   * - Other engines: Use path as-is
    */
   private normalizeKvPath(path: string): string {
-    // If path already contains '/data/', assume it's correctly formatted
+    // If path already contains '/data/', assume it's correctly formatted for KV v2
     if (path.includes('/data/')) {
       return path;
     }
 
+    // 1Password Connect paths contain /vaults/ and /items/ - don't modify
+    if (path.includes('/vaults/') || path.includes('/items/')) {
+      return path;
+    }
+
+    // For KV v2, insert /data/ after the mount point
     // Split by first '/' to get mount and rest of path
     const firstSlash = path.indexOf('/');
     if (firstSlash === -1) {

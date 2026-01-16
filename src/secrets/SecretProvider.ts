@@ -50,7 +50,18 @@ export abstract class AbstractSecretProvider<C = unknown> {
     }
 
     const cached = this.cache.get(cacheKey)!;
-    return ref.key ? cached[ref.key] : cached;
+
+    if (ref.key) {
+      if (!(ref.key in cached)) {
+        const availableKeys = Object.keys(cached).join(', ') || 'none';
+        throw new Error(
+          `Key '${ref.key}' not found in secret '${ref.path}'. Available keys: ${availableKeys}`,
+        );
+      }
+      return cached[ref.key];
+    }
+
+    return cached;
   }
 
   /**
