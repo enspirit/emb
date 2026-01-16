@@ -42,6 +42,7 @@ plugins:
 - `autodocker` - Auto-discovers components by looking for Dockerfiles
 - `dotenv` - Loads environment variables from .env files
 - `embfiles` - Loads component configuration from Embfile.yml files
+- `vault` - Fetches secrets from HashiCorp Vault (see [Secrets Management](/emb/advanced/secrets/))
 
 ### env
 
@@ -240,12 +241,16 @@ env:
 
   # Use another config variable
   IMAGE: ${vars:registry}/app:${env:TAG}
+
+  # Use a secret from Vault
+  DATABASE_URL: ${vault:secret/myapp/database#url}
 ```
 
 **Syntax:**
 - `${env:VAR_NAME}` - Environment variable (required)
 - `${env:VAR_NAME:-default}` - Environment variable with default
 - `${vars:VAR_NAME}` - Config variable
+- `${vault:path#key}` - Secret from Vault (requires vault plugin)
 
 ## JSON Patch Operations
 
