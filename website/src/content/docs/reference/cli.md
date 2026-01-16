@@ -299,6 +299,14 @@ emb containers prune    # Prune stopped containers
 emb config print        # Print configuration
 ```
 
+### secrets
+
+```shell
+emb secrets             # List secret references in configuration
+emb secrets validate    # Validate that secrets can be resolved
+emb secrets providers   # Show configured secret providers
+```
+
 ### kubernetes
 
 ```shell

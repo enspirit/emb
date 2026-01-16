@@ -116,6 +116,8 @@ The OIDC flow:
 3. You authenticate with your identity provider (Keycloak, Okta, etc.)
 4. EMB receives the token and continues
 
+**Token Caching:** OIDC tokens are cached locally (encrypted) in `~/.emb/vault-tokens/` to avoid repeated browser authentication. The cache is machine-specific and automatically expires before the token TTL.
+
 #### Kubernetes Authentication
 
 For workloads running in Kubernetes:
@@ -184,6 +186,66 @@ To fetch a specific version of a secret, add the version to the path:
 # This requires explicit API calls (not yet supported in template syntax)
 # Use the current/latest version for now
 DATABASE_URL: ${vault:secret/myapp/database#url}
+```
+
+## CLI Commands
+
+EMB provides commands to inspect and validate secret references in your configuration.
+
+### List Secret References
+
+Show all secret references discovered in your configuration:
+
+```bash
+emb secrets
+```
+
+Example output:
+```
+  PROVIDER   PATH                    KEY        COMPONENT   USAGECOUNT
+  vault      secret/myapp/database   url        api         2
+  vault      secret/myapp/api        key        -           1
+```
+
+Use `--json` for machine-readable output.
+
+### Validate Secrets
+
+Verify that all secret references can be resolved (without revealing values):
+
+```bash
+emb secrets validate
+```
+
+Example output:
+```
+  STATUS   PROVIDER   PATH                    KEY
+  ✔        vault      secret/myapp/database   url
+  ✔        vault      secret/myapp/api        key
+  ✖        vault      secret/missing          password
+
+Validation: 2 passed, 1 failed
+
+Error details:
+  - vault:secret/missing#password: Secret not found
+```
+
+Options:
+- `--fail-fast` - Stop on first validation error
+- `--json` - Output results as JSON
+
+### Show Providers
+
+List configured secret providers and their connection status:
+
+```bash
+emb secrets providers
+```
+
+Example output:
+```
+  NAME    TYPE    STATUS
+  vault   vault   connected
 ```
 
 ## Environment Variables Reference
