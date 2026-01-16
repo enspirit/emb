@@ -27,20 +27,26 @@ export default class SecretsIndex extends FlavoredCommand<typeof SecretsIndex> {
   public async run(): Promise<SecretInfo[]> {
     const { flags } = await this.parse(SecretsIndex);
     const context = getContext();
-    const { monorepo } = context;
+    const { monorepo, secrets } = context;
+
+    // Get registered secret providers dynamically
+    const secretProviders = new Set(secrets.getProviderNames());
 
     // Collect secrets from all configuration sources
     const allSecrets: ReturnType<typeof discoverSecrets> = [];
 
-    // Scan monorepo-level config (env, vars, tasks)
+    // Scan monorepo-level config (env, vars, tasks, defaults, flavors)
     allSecrets.push(
       ...discoverSecrets(
         {
           env: monorepo.config.env,
           vars: monorepo.config.vars,
           tasks: monorepo.config.tasks,
+          defaults: monorepo.config.defaults,
+          flavors: monorepo.config.flavors,
         },
         { file: '.emb.yml' },
+        secretProviders,
       ),
     );
 
@@ -56,6 +62,7 @@ export default class SecretsIndex extends FlavoredCommand<typeof SecretsIndex> {
             file: `${component.name}/Embfile.yml`,
             component: component.name,
           },
+          secretProviders,
         ),
       );
     }

@@ -162,9 +162,11 @@ export class Monorepo {
       vars: vars || this.vars,
     };
 
-    // Add secret sources dynamically if available
-    if (secrets?.has('vault')) {
-      sources.vault = secrets.createSource('vault');
+    // Add all registered secret providers as sources
+    if (secrets) {
+      for (const providerName of secrets.getProviderNames()) {
+        sources[providerName] = secrets.createSource(providerName);
+      }
     }
 
     const options = {

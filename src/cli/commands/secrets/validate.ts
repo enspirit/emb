@@ -38,21 +38,26 @@ export default class SecretsValidate extends FlavoredCommand<
   public async run(): Promise<ValidationResult[]> {
     const { flags } = await this.parse(SecretsValidate);
     const context = getContext();
-    const { monorepo } = context;
-    const { secrets } = context;
+    const { monorepo, secrets } = context;
+
+    // Get registered secret providers dynamically
+    const secretProviders = new Set(secrets.getProviderNames());
 
     // Collect secrets from all configuration sources
     const allSecrets: ReturnType<typeof discoverSecrets> = [];
 
-    // Scan monorepo-level config
+    // Scan monorepo-level config (env, vars, tasks, defaults, flavors)
     allSecrets.push(
       ...discoverSecrets(
         {
           env: monorepo.config.env,
           vars: monorepo.config.vars,
           tasks: monorepo.config.tasks,
+          defaults: monorepo.config.defaults,
+          flavors: monorepo.config.flavors,
         },
         { file: '.emb.yml' },
+        secretProviders,
       ),
     );
 
@@ -68,6 +73,7 @@ export default class SecretsValidate extends FlavoredCommand<
             file: `${component.name}/Embfile.yml`,
             component: component.name,
           },
+          secretProviders,
         ),
       );
     }

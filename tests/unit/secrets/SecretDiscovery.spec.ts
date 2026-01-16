@@ -9,6 +9,9 @@ import {
 /* eslint-disable no-template-curly-in-string */
 // Test data intentionally contains literal ${...} patterns as test input
 
+// Mock set of registered providers for testing
+const TEST_PROVIDERS = new Set(['vault']);
+
 describe('Secrets / SecretDiscovery', () => {
   describe('#discoverSecrets()', () => {
     test('finds vault secret references in strings', () => {
@@ -18,7 +21,7 @@ describe('Secrets / SecretDiscovery', () => {
         },
       };
 
-      const secrets = discoverSecrets(config);
+      const secrets = discoverSecrets(config, {}, TEST_PROVIDERS);
 
       expect(secrets).toHaveLength(1);
       expect(secrets[0]).toMatchObject({
@@ -34,7 +37,7 @@ describe('Secrets / SecretDiscovery', () => {
         data: '${vault:secret/myapp/config}',
       };
 
-      const secrets = discoverSecrets(config);
+      const secrets = discoverSecrets(config, {}, TEST_PROVIDERS);
 
       expect(secrets).toHaveLength(1);
       expect(secrets[0]).toMatchObject({
@@ -50,7 +53,7 @@ describe('Secrets / SecretDiscovery', () => {
           '${vault:op/q8s.dev/vaults/my-vault/items/my-item#cookie-secret}',
       };
 
-      const secrets = discoverSecrets(config);
+      const secrets = discoverSecrets(config, {}, TEST_PROVIDERS);
 
       expect(secrets).toHaveLength(1);
       expect(secrets[0]).toMatchObject({
@@ -66,7 +69,7 @@ describe('Secrets / SecretDiscovery', () => {
           'user=${vault:secret/db#user}:${vault:secret/db#password}@host',
       };
 
-      const secrets = discoverSecrets(config);
+      const secrets = discoverSecrets(config, {}, TEST_PROVIDERS);
 
       expect(secrets).toHaveLength(2);
       expect(secrets[0].key).toBe('user');
@@ -82,7 +85,7 @@ describe('Secrets / SecretDiscovery', () => {
         },
       };
 
-      const secrets = discoverSecrets(config);
+      const secrets = discoverSecrets(config, {}, TEST_PROVIDERS);
 
       expect(secrets).toHaveLength(1);
       expect(secrets[0].location.field).toBe('database.credentials.password');
@@ -93,7 +96,7 @@ describe('Secrets / SecretDiscovery', () => {
         secrets: ['${vault:secret/first#key}', '${vault:secret/second#key}'],
       };
 
-      const secrets = discoverSecrets(config);
+      const secrets = discoverSecrets(config, {}, TEST_PROVIDERS);
 
       expect(secrets).toHaveLength(2);
       expect(secrets[0].location.field).toBe('secrets[0]');
@@ -106,7 +109,7 @@ describe('Secrets / SecretDiscovery', () => {
         user: '${env:USER:-default}',
       };
 
-      const secrets = discoverSecrets(config);
+      const secrets = discoverSecrets(config, {}, TEST_PROVIDERS);
 
       expect(secrets).toHaveLength(0);
     });
@@ -116,7 +119,17 @@ describe('Secrets / SecretDiscovery', () => {
         value: '${vars:MY_VAR}',
       };
 
-      const secrets = discoverSecrets(config);
+      const secrets = discoverSecrets(config, {}, TEST_PROVIDERS);
+
+      expect(secrets).toHaveLength(0);
+    });
+
+    test('ignores unregistered providers', () => {
+      const config = {
+        secret: '${unknown:path/to/secret#key}',
+      };
+
+      const secrets = discoverSecrets(config, {}, TEST_PROVIDERS);
 
       expect(secrets).toHaveLength(0);
     });
@@ -126,10 +139,14 @@ describe('Secrets / SecretDiscovery', () => {
         password: '${vault:secret/app#pass}',
       };
 
-      const secrets = discoverSecrets(config, {
-        file: 'Embfile.yml',
-        component: 'api',
-      });
+      const secrets = discoverSecrets(
+        config,
+        {
+          file: 'Embfile.yml',
+          component: 'api',
+        },
+        TEST_PROVIDERS,
+      );
 
       expect(secrets[0].location).toMatchObject({
         file: 'Embfile.yml',
@@ -143,7 +160,7 @@ describe('Secrets / SecretDiscovery', () => {
         optional: '${vault:secret/optional#key:-default}',
       };
 
-      const secrets = discoverSecrets(config);
+      const secrets = discoverSecrets(config, {}, TEST_PROVIDERS);
 
       expect(secrets).toHaveLength(1);
       expect(secrets[0].path).toBe('secret/optional');
@@ -151,7 +168,7 @@ describe('Secrets / SecretDiscovery', () => {
     });
 
     test('handles empty config', () => {
-      const secrets = discoverSecrets({});
+      const secrets = discoverSecrets({}, {}, TEST_PROVIDERS);
       expect(secrets).toHaveLength(0);
     });
 
@@ -162,7 +179,11 @@ describe('Secrets / SecretDiscovery', () => {
         c: '${vault:secret#key}',
       };
 
-      const secrets = discoverSecrets(config as Record<string, unknown>);
+      const secrets = discoverSecrets(
+        config as Record<string, unknown>,
+        {},
+        TEST_PROVIDERS,
+      );
 
       expect(secrets).toHaveLength(1);
     });

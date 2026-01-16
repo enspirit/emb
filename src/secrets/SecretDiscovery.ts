@@ -31,16 +31,15 @@ export interface DiscoveredSecret {
 const SECRET_REGEX =
   /\${(\w+):([\w/.]+(?:-[\w/.]+)*)(?:#([\w-]+))?(?::-[^}]*)?}/g;
 
-// Providers that are secret providers (not env or vars)
-const SECRET_PROVIDERS = new Set(['1password', 'aws', 'azure', 'op', 'vault']);
-
 /**
  * Recursively find all secret references in an object.
  */
+// eslint-disable-next-line max-params
 function findSecretsInValue(
   value: unknown,
   fieldPath: string,
   location: Omit<SecretLocation, 'field'>,
+  secretProviders: Set<string>,
   results: DiscoveredSecret[],
 ): void {
   if (typeof value === 'string') {
@@ -50,8 +49,8 @@ function findSecretsInValue(
     while ((match = SECRET_REGEX.exec(value)) !== null) {
       const [original, provider, pathWithKey, explicitKey] = match;
 
-      // Only include known secret providers
-      if (!SECRET_PROVIDERS.has(provider)) {
+      // Only include registered secret providers
+      if (!secretProviders.has(provider)) {
         continue;
       }
 
@@ -79,12 +78,18 @@ function findSecretsInValue(
     }
   } else if (Array.isArray(value)) {
     value.forEach((item, index) => {
-      findSecretsInValue(item, `${fieldPath}[${index}]`, location, results);
+      findSecretsInValue(
+        item,
+        `${fieldPath}[${index}]`,
+        location,
+        secretProviders,
+        results,
+      );
     });
   } else if (value !== null && typeof value === 'object') {
     for (const [key, val] of Object.entries(value)) {
       const newPath = fieldPath ? `${fieldPath}.${key}` : key;
-      findSecretsInValue(val, newPath, location, results);
+      findSecretsInValue(val, newPath, location, secretProviders, results);
     }
   }
 }
@@ -94,14 +99,16 @@ function findSecretsInValue(
  *
  * @param config - The configuration object to scan
  * @param location - Base location information
+ * @param secretProviders - Set of registered secret provider names to look for
  * @returns Array of discovered secret references
  */
 export function discoverSecrets(
   config: Record<string, unknown>,
   location: Omit<SecretLocation, 'field'> = {},
+  secretProviders: Set<string> = new Set(),
 ): DiscoveredSecret[] {
   const results: DiscoveredSecret[] = [];
-  findSecretsInValue(config, '', location, results);
+  findSecretsInValue(config, '', location, secretProviders, results);
   return results;
 }
 
