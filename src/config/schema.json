@@ -24,15 +24,7 @@
     "plugins": {
       "type": "array",
       "items": {
-        "type": "object",
-        "required": ["name"],
-        "properties": {
-          "name": {
-            "$ref": "#/definitions/Identifier"
-          },
-          "config": {}
-        },
-        "additionalProperties": false
+        "$ref": "#/definitions/PluginConfigItem"
       }
     },
     "env": {
@@ -414,12 +406,36 @@
       "additionalProperties": false
     },
 
+    "VaultJwtAuth": {
+      "type": "object",
+      "required": ["method", "role", "jwt"],
+      "properties": {
+        "method": { "const": "jwt" },
+        "role": { "type": "string", "description": "JWT auth role name" },
+        "jwt": { "type": "string", "description": "JWT token for authentication" }
+      },
+      "additionalProperties": false
+    },
+
+    "VaultOidcAuth": {
+      "type": "object",
+      "required": ["method"],
+      "properties": {
+        "method": { "const": "oidc" },
+        "role": { "type": "string", "description": "OIDC auth role name" },
+        "port": { "type": "integer", "description": "Local port for OIDC callback" }
+      },
+      "additionalProperties": false
+    },
+
     "VaultAuthConfig": {
       "description": "Authentication configuration for HashiCorp Vault",
       "oneOf": [
         { "$ref": "#/definitions/VaultTokenAuth" },
         { "$ref": "#/definitions/VaultAppRoleAuth" },
-        { "$ref": "#/definitions/VaultKubernetesAuth" }
+        { "$ref": "#/definitions/VaultKubernetesAuth" },
+        { "$ref": "#/definitions/VaultJwtAuth" },
+        { "$ref": "#/definitions/VaultOidcAuth" }
       ]
     },
 
@@ -440,6 +456,106 @@
         }
       },
       "additionalProperties": false
+    },
+
+    "AutoDockerPluginConfig": {
+      "type": "object",
+      "description": "Configuration for the AutoDocker plugin",
+      "properties": {
+        "glob": {
+          "type": "string",
+          "description": "Glob pattern to find Dockerfiles. Defaults to '*/Dockerfile'."
+        },
+        "ignore": {
+          "oneOf": [
+            { "type": "string" },
+            { "type": "array", "items": { "type": "string" } }
+          ],
+          "description": "Patterns to ignore when searching for Dockerfiles."
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "DotEnvPluginConfig": {
+      "type": "array",
+      "description": "Array of .env file paths to load",
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "EmbfilesPluginConfig": {
+      "type": "object",
+      "description": "Configuration for the Embfiles loader plugin",
+      "properties": {
+        "glob": {
+          "oneOf": [
+            { "type": "string" },
+            { "type": "array", "items": { "type": "string" } }
+          ],
+          "description": "Glob pattern(s) to find Embfiles. Defaults to '*/Embfile.{yaml,yml}'."
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "PluginConfigItem": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "$ref": "#/definitions/Identifier"
+        },
+        "config": {}
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": { "name": { "const": "vault" } },
+            "required": ["name"]
+          },
+          "then": {
+            "properties": {
+              "config": { "$ref": "#/definitions/VaultPluginConfig" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "name": { "const": "autodocker" } },
+            "required": ["name"]
+          },
+          "then": {
+            "properties": {
+              "config": { "$ref": "#/definitions/AutoDockerPluginConfig" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "name": { "const": "dotenv" } },
+            "required": ["name"]
+          },
+          "then": {
+            "properties": {
+              "config": { "$ref": "#/definitions/DotEnvPluginConfig" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "name": { "const": "embfiles" } },
+            "required": ["name"]
+          },
+          "then": {
+            "properties": {
+              "config": { "$ref": "#/definitions/EmbfilesPluginConfig" }
+            }
+          }
+        }
+      ]
     }
   }
 }
