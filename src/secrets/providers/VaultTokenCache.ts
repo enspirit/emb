@@ -13,14 +13,14 @@ import { join } from 'node:path';
  * Cached token metadata stored on disk.
  */
 export interface CachedToken {
-  /** The Vault client token */
-  token: string;
-  /** Unix timestamp (ms) when the token expires */
-  expiresAt: number;
   /** Unix timestamp (ms) when the token was cached */
   createdAt: number;
+  /** Unix timestamp (ms) when the token expires */
+  expiresAt: number;
   /** Vault namespace (if any) */
   namespace?: string;
+  /** The Vault client token */
+  token: string;
   /** Vault address this token is for */
   vaultAddress: string;
 }
@@ -29,10 +29,10 @@ export interface CachedToken {
  * Options for token caching.
  */
 export interface TokenCacheOptions {
-  /** Buffer time in ms before expiry to consider token invalid (default: 5 minutes) */
-  expiryBuffer?: number;
   /** Custom cache directory (default: ~/.emb/vault-tokens) */
   cacheDir?: string;
+  /** Buffer time in ms before expiry to consider token invalid (default: 5 minutes) */
+  expiryBuffer?: number;
 }
 
 const DEFAULT_EXPIRY_BUFFER = 5 * 60 * 1000; // 5 minutes
@@ -41,7 +41,7 @@ const DEFAULT_CACHE_DIR = join(homedir(), '.emb', 'vault-tokens');
 // Encryption constants
 const ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 16;
-const AUTH_TAG_LENGTH = 16;
+const _AUTH_TAG_LENGTH = 16;
 const SALT_LENGTH = 32;
 const KEY_LENGTH = 32;
 const PBKDF2_ITERATIONS = 100_000;
@@ -50,16 +50,16 @@ const PBKDF2_ITERATIONS = 100_000;
  * Encrypted cache file format stored on disk.
  */
 interface EncryptedCacheFile {
-  /** Version of the encryption format */
-  version: 1;
-  /** Salt used for key derivation (hex) */
-  salt: string;
-  /** Initialization vector (hex) */
-  iv: string;
   /** Authentication tag (hex) */
   authTag: string;
   /** Encrypted data (hex) */
   encrypted: string;
+  /** Initialization vector (hex) */
+  iv: string;
+  /** Salt used for key derivation (hex) */
+  salt: string;
+  /** Version of the encryption format */
+  version: 1;
 }
 
 /**
@@ -100,7 +100,7 @@ function encrypt(data: string): EncryptedCacheFile {
  * Decrypt data using AES-256-GCM.
  * Returns null if decryption fails (wrong machine, corrupted data, etc.)
  */
-function decrypt(file: EncryptedCacheFile): string | null {
+function decrypt(file: EncryptedCacheFile): null | string {
   try {
     if (file.version !== 1) {
       return null;
@@ -210,6 +210,7 @@ export async function getCachedToken(
  * @param namespace - Optional Vault namespace
  * @param options - Cache options
  */
+// eslint-disable-next-line max-params
 export async function cacheToken(
   vaultAddress: string,
   token: string,

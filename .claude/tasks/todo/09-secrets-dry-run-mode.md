@@ -110,16 +110,14 @@ class SecretValidator {
 }
 ```
 
-## Files to Create
+## Files Created
 
-- [ ] `src/cli/commands/secrets/index.ts` - Base command
-- [ ] `src/cli/commands/secrets/list.ts` - List subcommand
-- [ ] `src/cli/commands/secrets/validate.ts` - Validate subcommand
-- [ ] `src/cli/commands/secrets/providers.ts` - Providers subcommand
-- [ ] `src/secrets/SecretDiscovery.ts` - Reference discovery utility
-- [ ] `src/secrets/SecretValidator.ts` - Validation logic
-- [ ] `tests/unit/secrets/SecretDiscovery.spec.ts`
-- [ ] `tests/unit/secrets/SecretValidator.spec.ts`
+- [x] `src/cli/commands/secrets/index.ts` - List command (also base for subcommands)
+- [x] `src/cli/commands/secrets/validate.ts` - Validate subcommand
+- [x] `src/cli/commands/secrets/providers.ts` - Providers subcommand
+- [x] `src/secrets/SecretDiscovery.ts` - Reference discovery utility
+- [x] `src/secrets/index.ts` - Updated exports
+- [x] `tests/unit/secrets/SecretDiscovery.spec.ts` - 15 unit tests
 
 ## Open Questions
 

@@ -1,12 +1,10 @@
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 
 import {
   cacheToken,
-  CachedToken,
   clearCachedToken,
   getCachedToken,
   hasCachedToken,
@@ -17,7 +15,10 @@ describe('Secrets / Providers / VaultTokenCache', () => {
 
   beforeEach(async () => {
     // Create a unique temp directory for each test
-    testCacheDir = join(tmpdir(), `emb-test-cache-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    testCacheDir = join(
+      tmpdir(),
+      `emb-test-cache-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    );
     await mkdir(testCacheDir, { recursive: true });
   });
 
@@ -118,9 +119,13 @@ describe('Secrets / Providers / VaultTokenCache', () => {
 
   describe('#getCachedToken()', () => {
     test('returns null when no cache file exists', async () => {
-      const result = await getCachedToken('https://vault.example.com', undefined, {
-        cacheDir: testCacheDir,
-      });
+      const result = await getCachedToken(
+        'https://vault.example.com',
+        undefined,
+        {
+          cacheDir: testCacheDir,
+        },
+      );
 
       expect(result).toBeNull();
     });
@@ -323,9 +328,13 @@ describe('Secrets / Providers / VaultTokenCache', () => {
     });
 
     test('returns false when no token exists', async () => {
-      const result = await hasCachedToken('https://vault.example.com', undefined, {
-        cacheDir: testCacheDir,
-      });
+      const result = await hasCachedToken(
+        'https://vault.example.com',
+        undefined,
+        {
+          cacheDir: testCacheDir,
+        },
+      );
 
       expect(result).toBe(false);
     });

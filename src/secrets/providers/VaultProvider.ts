@@ -122,7 +122,12 @@ export class VaultProvider extends AbstractSecretProvider<VaultProviderConfig> {
 
     // Cache the token for methods that benefit from caching
     if (auth.method === 'oidc' && authResult.ttlSeconds > 0) {
-      await cacheToken(address, authResult.token, authResult.ttlSeconds, namespace);
+      await cacheToken(
+        address,
+        authResult.token,
+        authResult.ttlSeconds,
+        namespace,
+      );
     }
   }
 

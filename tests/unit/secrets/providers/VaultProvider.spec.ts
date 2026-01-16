@@ -152,7 +152,9 @@ describe('Secrets / Providers / VaultProvider', () => {
       // Mock the token cache to return null (no cached token)
       vi.mock('@/secrets/providers/VaultTokenCache.js', () => ({
         getCachedToken: vi.fn().mockResolvedValue(null),
+        // eslint-disable-next-line unicorn/no-useless-undefined
         cacheToken: vi.fn().mockResolvedValue(undefined),
+        // eslint-disable-next-line unicorn/no-useless-undefined
         clearCachedToken: vi.fn().mockResolvedValue(undefined),
       }));
 
