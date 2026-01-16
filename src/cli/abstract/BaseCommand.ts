@@ -5,6 +5,7 @@ import Dockerode from 'dockerode';
 import { loadConfig } from '@/config/index.js';
 import { createKubernetesClient } from '@/kubernetes/client.js';
 import { Monorepo } from '@/monorepo/monorepo.js';
+import { SecretManager } from '@/secrets';
 
 import { withMarker } from '../utils.js';
 
@@ -31,6 +32,17 @@ export abstract class BaseCommand extends Command {
         loadConfig(),
       );
 
+      // Create SecretManager early so plugins can register providers during init
+      const secrets = new SecretManager();
+
+      // Set a partial context before monorepo init so plugins can access secrets
+      const partialContext = {
+        docker: new Dockerode(),
+        kubernetes: createKubernetesClient(),
+        secrets,
+      };
+      setContext(partialContext as EmbContext);
+
       const monorepo = await withMarker('emb:monorepo', 'init', () => {
         return new Monorepo(config, rootDir).init();
       });
@@ -42,10 +54,9 @@ export abstract class BaseCommand extends Command {
       const compose = new DockerComposeClient(monorepo);
 
       this.context = setContext({
-        docker: new Dockerode(),
+        ...partialContext,
         monorepo,
         compose,
-        kubernetes: createKubernetesClient(),
       });
     } catch (error) {
       this.error(error as Error);

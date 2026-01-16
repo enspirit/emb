@@ -88,4 +88,22 @@ export default defineWorkspace([
       testTimeout: 120_000,
     },
   },
+  {
+    // Vault secrets integration tests
+    ...sharedConfig,
+    test: {
+      name: 'integration-secrets',
+      include: ['tests/integration/secrets/**/*.spec.ts'],
+      disableConsoleIntercept: true,
+      setupFiles: ['tsx/esm'],
+      globalSetup: './tests/integration/secrets/global-setup.ts',
+      // Sequential execution to avoid conflicts
+      pool: 'forks',
+      poolOptions: {
+        forks: { singleFork: true },
+      },
+      // Longer timeout for container operations
+      testTimeout: 60_000,
+    },
+  },
 ]);

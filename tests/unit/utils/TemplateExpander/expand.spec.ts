@@ -115,5 +115,90 @@ describe('TemplateExpander', () => {
 
       expect(expander.expansionCount).to.equal(2);
     });
+
+    test('supports async sources (functions)', async () => {
+      const asyncSource = vi.fn(async (key: string) => {
+        if (key === 'password') {
+          return 'secret123';
+        }
+
+        if (key === 'username') {
+          return 'testuser';
+        }
+
+        throw new Error(`Unknown key: ${key}`);
+      });
+
+      const options = {
+        sources: {
+          vault: asyncSource,
+        },
+      };
+
+      const result = await expander.expand(
+        'Password: ${vault:password}',
+        options,
+      );
+      expect(result).to.equal('Password: secret123');
+      expect(asyncSource).toHaveBeenCalledWith('password');
+    });
+
+    test('supports mixed sync and async sources', async () => {
+      const asyncSource = vi.fn(async (key: string) => {
+        if (key === 'secret') {
+          return 'vault-secret';
+        }
+
+        throw new Error(`Unknown key: ${key}`);
+      });
+
+      const options = {
+        default: 'env',
+        sources: {
+          env: { HOME: '/home/user' },
+          vault: asyncSource,
+        },
+      };
+
+      const result = await expander.expand(
+        'Home: ${env:HOME}, Secret: ${vault:secret}',
+        options,
+      );
+      expect(result).to.equal('Home: /home/user, Secret: vault-secret');
+    });
+
+    test('falls back to default when async source throws', async () => {
+      const asyncSource = vi.fn(async () => {
+        throw new Error('Connection failed');
+      });
+
+      const options = {
+        sources: {
+          vault: asyncSource,
+        },
+      };
+
+      const result = await expander.expand(
+        'Password: ${vault:password:-fallback}',
+        options,
+      );
+      expect(result).to.equal('Password: fallback');
+    });
+
+    test('throws error when async source fails without default', async () => {
+      const asyncSource = vi.fn(async () => {
+        throw new Error('Connection failed');
+      });
+
+      const options = {
+        sources: {
+          vault: asyncSource,
+        },
+      };
+
+      await expect(
+        expander.expand('Password: ${vault:password}', options),
+      ).rejects.toThrow('Connection failed');
+    });
   });
 });

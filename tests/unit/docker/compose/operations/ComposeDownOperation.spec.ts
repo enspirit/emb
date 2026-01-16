@@ -1,52 +1,23 @@
-import { setContext } from '@';
-import { mkdir, mkdtemp, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
 import { PassThrough, Readable } from 'node:stream';
+import { createTestSetup, TestSetup } from 'tests/setup/set.context.js';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
-import { ComposeDownOperation, DockerComposeClient } from '@/docker';
-import { createKubernetesClient } from '@/kubernetes/client.js';
-import { Monorepo } from '@/monorepo';
+import { ComposeDownOperation } from '@/docker';
 
 describe('Docker / Compose / Operations / ComposeDownOperation', () => {
-  let tempDir: string;
-  let repo: Monorepo;
+  let setup: TestSetup;
   let mockOutput: PassThrough;
 
   beforeEach(async () => {
-    tempDir = await mkdtemp(join(tmpdir(), 'embComposeDownTest'));
-    await mkdir(join(tempDir, '.emb'), { recursive: true });
-
-    repo = new Monorepo(
-      {
-        project: { name: 'test-compose' },
-        plugins: [],
-        components: {},
-      },
-      tempDir,
-    );
-
-    await repo.init();
-
+    setup = await createTestSetup({ tempDirPrefix: 'embComposeDownTest' });
     mockOutput = new PassThrough();
 
     // Mock the run method to capture what command is being executed
-    vi.spyOn(repo, 'run').mockResolvedValue(new Readable() as never);
-
-    const compose = new DockerComposeClient(repo);
-    vi.spyOn(compose, 'isService').mockResolvedValue(false);
-
-    setContext({
-      docker: vi.mockObject({} as never),
-      kubernetes: vi.mockObject(createKubernetesClient()),
-      monorepo: repo,
-      compose,
-    });
+    vi.spyOn(setup.monorepo, 'run').mockResolvedValue(new Readable() as never);
   });
 
   afterEach(async () => {
-    await rm(tempDir, { recursive: true, force: true });
+    await setup.cleanup();
   });
 
   describe('instantiation', () => {
@@ -57,11 +28,11 @@ describe('Docker / Compose / Operations / ComposeDownOperation', () => {
   });
 
   describe('#run()', () => {
-    test('it calls monorepo.run with ExecuteLocalCommandOperation', async () => {
+    test('it calls monosetup.monorepo.run with ExecuteLocalCommandOperation', async () => {
       const operation = new ComposeDownOperation(mockOutput);
       await operation.run({});
 
-      expect(repo.run).toHaveBeenCalledTimes(1);
+      expect(setup.monorepo.run).toHaveBeenCalledTimes(1);
     });
 
     test('it returns a Readable stream', async () => {

@@ -87,6 +87,9 @@ jobs:
         env:
           DOCKER_TAG: test
 
+      - name: Run secrets integration tests
+        run: npm run test:integration:secrets
+
   website:
     name: Website
     runs-on: ubuntu-latest

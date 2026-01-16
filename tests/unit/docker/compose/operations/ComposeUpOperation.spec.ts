@@ -1,58 +1,32 @@
-import { setContext } from '@';
-import { mkdir, mkdtemp, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { createTestSetup, TestSetup } from 'tests/setup/set.context.js';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
-import { ComposeUpOperation, DockerComposeClient } from '@/docker';
-import { createKubernetesClient } from '@/kubernetes/client.js';
-import { Monorepo } from '@/monorepo';
+import { ComposeUpOperation } from '@/docker';
 
 describe('Docker / Compose / Operations / ComposeUpOperation', () => {
-  let tempDir: string;
-  let repo: Monorepo;
+  let setup: TestSetup;
 
   beforeEach(async () => {
-    tempDir = await mkdtemp(join(tmpdir(), 'embComposeUpTest'));
-    await mkdir(join(tempDir, '.emb'), { recursive: true });
-
-    repo = new Monorepo(
-      {
-        project: { name: 'test-compose' },
-        plugins: [],
-        components: {},
-      },
-      tempDir,
-    );
-
-    await repo.init();
+    setup = await createTestSetup({ tempDirPrefix: 'embComposeUpTest' });
 
     // Mock setTaskRenderer to silent to avoid output issues
-    vi.spyOn(repo, 'setTaskRenderer');
+    vi.spyOn(setup.monorepo, 'setTaskRenderer');
 
     // Mock the run method to capture what command is being executed
-    vi.spyOn(repo, 'run').mockImplementation(() => Promise.resolve());
+    vi.spyOn(setup.monorepo, 'run').mockImplementation(() => Promise.resolve());
 
     // Mock taskManager to track tasks being added
     const mockManager = {
       add: vi.fn(),
       runAll: vi.fn().mockImplementation(() => Promise.resolve()),
     };
-    vi.spyOn(repo, 'taskManager').mockReturnValue(mockManager as never);
-
-    const compose = new DockerComposeClient(repo);
-    vi.spyOn(compose, 'isService').mockResolvedValue(false);
-
-    setContext({
-      docker: vi.mockObject({} as never),
-      kubernetes: vi.mockObject(createKubernetesClient()),
-      monorepo: repo,
-      compose,
-    });
+    vi.spyOn(setup.monorepo, 'taskManager').mockReturnValue(
+      mockManager as never,
+    );
   });
 
   afterEach(async () => {
-    await rm(tempDir, { recursive: true, force: true });
+    await setup.cleanup();
   });
 
   describe('instantiation', () => {
@@ -67,7 +41,7 @@ describe('Docker / Compose / Operations / ComposeUpOperation', () => {
       const operation = new ComposeUpOperation();
       await operation.run({});
 
-      const manager = repo.taskManager();
+      const manager = setup.monorepo.taskManager();
       expect(manager.add).toHaveBeenCalledTimes(1);
       expect(manager.runAll).toHaveBeenCalledTimes(1);
     });
@@ -76,7 +50,7 @@ describe('Docker / Compose / Operations / ComposeUpOperation', () => {
       const operation = new ComposeUpOperation();
       await operation.run({});
 
-      const manager = repo.taskManager();
+      const manager = setup.monorepo.taskManager();
       const addCall = (manager.add as ReturnType<typeof vi.fn>).mock.calls[0];
       const tasks = addCall[0];
       expect(tasks).toHaveLength(1);
@@ -87,7 +61,7 @@ describe('Docker / Compose / Operations / ComposeUpOperation', () => {
       const operation = new ComposeUpOperation();
       await operation.run({ components: ['api', 'web'] });
 
-      const manager = repo.taskManager();
+      const manager = setup.monorepo.taskManager();
       expect(manager.add).toHaveBeenCalledTimes(1);
     });
 
@@ -95,7 +69,7 @@ describe('Docker / Compose / Operations / ComposeUpOperation', () => {
       const operation = new ComposeUpOperation();
       await operation.run({ forceRecreate: true });
 
-      const manager = repo.taskManager();
+      const manager = setup.monorepo.taskManager();
       expect(manager.add).toHaveBeenCalledTimes(1);
     });
   });

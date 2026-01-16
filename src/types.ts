@@ -3,6 +3,7 @@ import type Docker from 'dockerode';
 import { AppsV1Api, CoreV1Api, KubeConfig } from '@kubernetes/client-node';
 
 import { Monorepo } from '@/monorepo';
+import { SecretManager } from '@/secrets';
 
 import { DockerComposeClient } from './docker/index.js';
 
@@ -22,4 +23,5 @@ export interface EmbContext {
     core: CoreV1Api;
   };
   monorepo: Monorepo;
+  secrets: SecretManager;
 }

@@ -1,16 +1,10 @@
-import { setContext } from '@';
-import { mkdir, mkdtemp, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { createTestSetup, TestSetup } from 'tests/setup/set.context.js';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
-import { DockerComposeClient } from '@/docker';
 import { PodsRestartOperation } from '@/kubernetes/operations/RestartPodsOperation.js';
-import { Monorepo } from '@/monorepo';
 
 describe('Kubernetes / Operations / PodsRestartOperation', () => {
-  let tempDir: string;
-  let repo: Monorepo;
+  let setup: TestSetup;
   let mockKubernetes: {
     apps: {
       listNamespacedDeployment: ReturnType<typeof vi.fn>;
@@ -19,27 +13,6 @@ describe('Kubernetes / Operations / PodsRestartOperation', () => {
   };
 
   beforeEach(async () => {
-    tempDir = await mkdtemp(join(tmpdir(), 'embK8sRestartTest'));
-    await mkdir(join(tempDir, '.emb'), { recursive: true });
-
-    repo = new Monorepo(
-      {
-        project: { name: 'test-k8s' },
-        plugins: [],
-        components: {},
-      },
-      tempDir,
-    );
-
-    await repo.init();
-
-    // Mock taskManager
-    const mockManager = {
-      add: vi.fn(),
-      runAll: vi.fn().mockImplementation(() => Promise.resolve()),
-    };
-    vi.spyOn(repo, 'taskManager').mockReturnValue(mockManager as never);
-
     mockKubernetes = {
       apps: {
         listNamespacedDeployment: vi.fn().mockResolvedValue({ items: [] }),
@@ -47,19 +20,24 @@ describe('Kubernetes / Operations / PodsRestartOperation', () => {
       },
     };
 
-    const compose = new DockerComposeClient(repo);
-    vi.spyOn(compose, 'isService').mockResolvedValue(false);
-
-    setContext({
-      docker: vi.mockObject({} as never),
-      kubernetes: mockKubernetes as never,
-      monorepo: repo,
-      compose,
+    setup = await createTestSetup({
+      tempDirPrefix: 'embK8sRestartTest',
+      embfile: { project: { name: 'test-k8s' }, plugins: [], components: {} },
+      context: { kubernetes: mockKubernetes as never },
     });
+
+    // Mock taskManager
+    const mockManager = {
+      add: vi.fn(),
+      runAll: vi.fn().mockImplementation(() => Promise.resolve()),
+    };
+    vi.spyOn(setup.monorepo, 'taskManager').mockReturnValue(
+      mockManager as never,
+    );
   });
 
   afterEach(async () => {
-    await rm(tempDir, { recursive: true, force: true });
+    await setup.cleanup();
   });
 
   describe('instantiation', () => {
@@ -98,7 +76,7 @@ describe('Kubernetes / Operations / PodsRestartOperation', () => {
         deployments: ['api', 'web'],
       });
 
-      const manager = repo.taskManager();
+      const manager = setup.monorepo.taskManager();
       expect(manager.add).toHaveBeenCalledTimes(1);
       const addCall = (manager.add as ReturnType<typeof vi.fn>).mock.calls[0];
       const tasks = addCall[0];
@@ -122,7 +100,7 @@ describe('Kubernetes / Operations / PodsRestartOperation', () => {
         { namespace: 'default' },
       );
 
-      const manager = repo.taskManager();
+      const manager = setup.monorepo.taskManager();
       const addCall = (manager.add as ReturnType<typeof vi.fn>).mock.calls[0];
       const tasks = addCall[0];
       expect(tasks).toHaveLength(2);
@@ -132,7 +110,7 @@ describe('Kubernetes / Operations / PodsRestartOperation', () => {
       const operation = new PodsRestartOperation();
       await operation.run({ namespace: 'default', deployments: ['api'] });
 
-      const manager = repo.taskManager();
+      const manager = setup.monorepo.taskManager();
       expect(manager.runAll).toHaveBeenCalled();
     });
   });
