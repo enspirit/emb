@@ -14,7 +14,7 @@ $ npm install -g @enspirit/emb
 $ emb COMMAND
 running command...
 $ emb (--version)
-@enspirit/emb/0.15.0 darwin-arm64 node-v22.21.1
+@enspirit/emb/0.16.0 darwin-arm64 node-v22.21.1
 $ emb --help [COMMAND]
 USAGE
   $ emb COMMAND
@@ -47,6 +47,9 @@ USAGE
 * [`emb resources build [COMPONENT]`](#emb-resources-build-component)
 * [`emb restart [COMPONENT]`](#emb-restart-component)
 * [`emb run TASK`](#emb-run-task)
+* [`emb secrets`](#emb-secrets)
+* [`emb secrets providers`](#emb-secrets-providers)
+* [`emb secrets validate`](#emb-secrets-validate)
 * [`emb shell COMPONENT`](#emb-shell-component)
 * [`emb start [COMPONENT]`](#emb-start-component)
 * [`emb stop`](#emb-stop)
@@ -621,6 +624,79 @@ ALIASES
 
 EXAMPLES
   $ emb run
+```
+
+## `emb secrets`
+
+List all secret references in the configuration.
+
+```
+USAGE
+  $ emb secrets [--json] [--verbose] [--flavor <value>]
+
+FLAGS
+  --flavor=<value>  Specify the flavor to use.
+  --[no-]verbose
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  List all secret references in the configuration.
+
+EXAMPLES
+  $ emb secrets
+
+  $ emb secrets --json
+```
+
+## `emb secrets providers`
+
+Show configured secret providers and their status.
+
+```
+USAGE
+  $ emb secrets providers [--json] [--verbose] [--flavor <value>]
+
+FLAGS
+  --flavor=<value>  Specify the flavor to use.
+  --[no-]verbose
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Show configured secret providers and their status.
+
+EXAMPLES
+  $ emb secrets providers
+```
+
+## `emb secrets validate`
+
+Validate that all secret references can be resolved (without showing values).
+
+```
+USAGE
+  $ emb secrets validate [--json] [--verbose] [--flavor <value>] [--fail-fast]
+
+FLAGS
+  --fail-fast       Stop on first validation error
+  --flavor=<value>  Specify the flavor to use.
+  --[no-]verbose
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Validate that all secret references can be resolved (without showing values).
+
+EXAMPLES
+  $ emb secrets validate
+
+  $ emb secrets validate --fail-fast
+
+  $ emb secrets validate --json
 ```
 
 ## `emb shell COMPONENT`
