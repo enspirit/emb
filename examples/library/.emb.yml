@@ -1,0 +1,28 @@
+project:
+  name: library
+
+components:
+  library:
+    rootDir: "."
+    description: A simple library with no subdirectories
+
+    resources:
+      image:
+        type: docker/image
+
+    tasks:
+      test:
+        description: Run library tests
+        script: npm test
+        executors: [local]
+
+      lint:
+        description: Run linter
+        script: npm run lint
+        executors: [local]
+
+      build:
+        description: Build the library
+        pre: [lint]
+        script: npm run build
+        executors: [local]
