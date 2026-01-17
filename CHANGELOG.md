@@ -1,3 +1,36 @@
+## 0.17.0
+
+* Extend `emb logs` to support multiple components and all containers
+  - `emb logs` without args shows interlaced logs of all containers
+  - `emb logs api web` shows logs for multiple services
+  - Uses `docker compose logs` for better performance and native interlacing
+
+## 0.16.0 - 2026-01-17
+
+* Restructure documentation with multi-tutorial approach
+  - Hello World tutorial for beginners
+  - Fullstack App tutorial for docker-compose workflows
+  - Microservices tutorial for complex dependencies
+  - Production Ready tutorial for flavors and multi-stage builds
+* Add example monorepos in `examples/` directory
+* Migrate integration tests to use example monorepos
+* Add `emb secrets` commands for dry-run validation
+  - `emb secrets` - List secret references in configuration
+  - `emb secrets validate` - Validate secrets can be resolved
+  - `emb secrets providers` - Show configured providers
+* Add encryption for cached Vault tokens
+
+## 0.15.0 - 2026-01-15
+
+* Add secrets management with HashiCorp Vault integration
+  - Support for token, AppRole, Kubernetes, JWT, and OIDC authentication
+  - Automatic token caching to avoid repeated browser authentication
+  - Secret references in configuration: `${secret:path/to/secret:key}`
+* Add task name autocompletion for bash and zsh
+* Add documentation website with Astro Starlight
+* Add migration guide from makefile-for-monorepos
+* Improve test coverage across all modules
+
 ## 0.14.0 - 2025-11-26
 
 * Add support for interactive commands
