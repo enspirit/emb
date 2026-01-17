@@ -1,0 +1,35 @@
+description: Production-ready API with multi-stage builds
+
+resources:
+  image:
+    type: docker/image
+    params:
+      target: development
+
+tasks:
+  test:
+    description: Run tests
+    pre:
+      - lint
+    script: npm test
+
+  lint:
+    description: Run linter
+    script: npm run lint
+
+  deploy:
+    description: Deploy API to environment
+    confirm:
+      message: "Deploy API to ${NODE_ENV}?"
+    script: |
+      echo "Deploying to ${NODE_ENV}..."
+      echo "Image tag: ${DOCKER_TAG}"
+    executors:
+      - local
+
+flavors:
+  production:
+    patches:
+      - op: replace
+        path: /resources/image/params/target
+        value: production

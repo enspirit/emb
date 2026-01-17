@@ -1,0 +1,24 @@
+project:
+  name: microservices
+
+plugins:
+  - name: autodocker
+  - name: dotenv
+    config:
+      - .env
+  - name: embfiles
+
+# Environment variables available throughout the configuration.
+# The syntax ${env:VAR:-default} reads from the environment with a fallback.
+# These can be referenced in tasks, docker builds, and other config sections.
+env:
+  DOCKER_TAG: ${env:DOCKER_TAG:-latest}
+  NODE_ENV: ${env:NODE_ENV:-development}
+
+# Default settings applied to all resources of a given type.
+# Here we set the default Docker image tag for all components, ensuring
+# consistent versioning across the monorepo (e.g., all images tagged as 'latest'
+# or 'v1.2.3' when DOCKER_TAG is set).
+defaults:
+  docker:
+    tag: ${env:DOCKER_TAG}

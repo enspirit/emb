@@ -79,16 +79,14 @@ jobs:
       - name: Run unit tests
         run: npm run test:unit
 
-      - name: Run mocked integration tests
-        run: npm run test:integration:mocked
-
-      - name: Run Docker integration tests
-        run: npm run test:integration:docker
-        env:
-          DOCKER_TAG: test
+      - name: Run features integration tests
+        run: npm run test:integration:features
 
       - name: Run secrets integration tests
         run: npm run test:integration:secrets
+
+      - name: Run Docker integration tests
+        run: npm run test:integration:docker
 
   website:
     name: Website

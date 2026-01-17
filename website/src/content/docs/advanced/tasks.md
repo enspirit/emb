@@ -1,119 +1,13 @@
 ---
-title: Tasks
-description: Define and run tasks in your monorepo
+title: Advanced Task Patterns
+description: Executors, interactive tasks, and confirmation prompts
 ---
 
-Tasks are scripts that can be executed within the context of your monorepo. They can run locally or inside containers, have dependencies on other tasks, and use variables.
-
-## Listing Tasks
-
-View all available tasks in your project:
-
-```shell exec cwd="../examples"
-emb tasks
-```
-
-```output
- NAME       COMPONENT  DESCRIPTION              ID
----------------------------------------------------------------
- dependent                                      dependent
- greet                                          greet
- prereq                                         prereq
- test       buildargs                           buildargs:test
- test       dependent                           dependent:test
- fail       frontend   A task that will fail    frontend:fail
- test       frontend   A simple unit test task  frontend:test
- confirm    simple                              simple:confirm
- inspect    simple                              simple:inspect
- sudo       simple                              simple:sudo
- release    utils                               utils:release
-```
-
-Tasks can be defined at the project level or within components.
-
-## Defining Tasks
-
-### Simple Task
-
-The simplest task is just a script:
-
-```yaml
-# In .emb.yml or component's .emb.yml
-tasks:
-  greet:
-    script: |
-      echo "Hello world!"
-```
-
-### Task with Description
-
-Add a description to help others understand what the task does:
-
-```yaml
-tasks:
-  test:
-    description: Run the test suite
-    script: |
-      npm run test
-```
-
-### Task with Variables
-
-Tasks can use variables with defaults:
-
-```yaml
-tasks:
-  greet:
-    vars:
-      USER: ${env:USER:-world}
-    script: |
-      echo "Hello $USER!"
-```
-
-The `${env:USER:-world}` syntax means: use the `USER` environment variable, or default to `world`.
-
-## Running Tasks
-
-Run a task by its ID:
-
-```shell skip
-emb run greet
-```
-
-For component tasks, use the full ID:
-
-```shell skip
-emb run frontend:test
-```
-
-Or specify the component:
-
-```shell skip
-emb run test --component frontend
-```
-
-## Task Dependencies
-
-Tasks can depend on other tasks using `pre`:
-
-```yaml
-tasks:
-  prereq:
-    script: |
-      echo "I run first"
-
-  dependent:
-    pre:
-      - prereq
-    script: |
-      echo "I run after prereq"
-```
-
-When you run `dependent`, EMB automatically runs `prereq` first.
+This guide covers advanced task patterns. For task basics (defining, running, variables, prerequisites), see the [Tasks tutorial](/emb/tutorial/fullstack-app/03-tasks/).
 
 ## Executors
 
-By default, component tasks run inside the component's container. You can change this:
+By default, component tasks run inside the component's container. You can change this with the `executors` option:
 
 ```yaml
 tasks:
@@ -128,9 +22,25 @@ Available executors:
 - `local` - Run on your local machine
 - `container` - Run inside the component's Docker container (default for component tasks)
 
+### When to Use Local Executors
+
+Use `local` when your task needs to:
+- Access files outside the container
+- Run commands not available in the container
+- Interact with the host system (e.g., opening browsers)
+
+```yaml
+tasks:
+  open-docs:
+    executors:
+      - local
+    script: |
+      open http://localhost:3000/docs
+```
+
 ## Interactive Tasks
 
-For tasks that need user input (like `sudo`), mark them as interactive:
+For tasks that need user input (like `sudo` or interactive CLIs), mark them as interactive:
 
 ```yaml
 tasks:
@@ -142,42 +52,93 @@ tasks:
       sudo ls -la
 ```
 
-## Confirmation
+The `interactive: true` flag ensures:
+- stdin is connected to the terminal
+- The task can receive keyboard input
+- TTY-dependent commands work correctly
 
-Require user confirmation before running:
+### Common Use Cases
 
 ```yaml
 tasks:
-  confirm:
-    vars:
-      NAME: ${env:NAME:-world}
-    confirm:
-      message: "Are you sure?"
-      expect: ${NAME}
+  # Database shell
+  db-shell:
+    interactive: true
     script: |
-      echo "Confirmed! Hello ${NAME}"
+      psql $DATABASE_URL
+
+  # Interactive rebase
+  rebase:
+    interactive: true
+    executors:
+      - local
+    script: |
+      git rebase -i main
 ```
 
-The user must type the expected value to proceed.
+## Confirmation Prompts
 
-## Project vs Component Tasks
-
-**Project tasks** are defined at the root level and run in the project context:
+Require user confirmation before running potentially dangerous tasks:
 
 ```yaml
-# .emb.yml
 tasks:
-  greet:
-    script: echo "Hello from project"
+  deploy:
+    vars:
+      ENV: ${env:DEPLOY_ENV:-staging}
+    confirm:
+      message: "Deploy to $ENV?"
+      expect: ${ENV}
+    script: |
+      echo "Deploying to $ENV..."
 ```
 
-**Component tasks** are defined within a component and can run in that component's container:
+The user must type the expected value to proceed:
+
+```
+Deploy to production?
+Type 'production' to confirm: production
+Deploying to production...
+```
+
+### Confirmation Options
+
+- `message` - The prompt shown to the user
+- `expect` - The exact text the user must type (supports variable expansion)
+
+This is useful for:
+- Production deployments
+- Destructive operations (e.g., database resets)
+- Operations that incur costs
 
 ```yaml
-# api/.emb.yml
 tasks:
-  test:
-    script: npm run test
+  reset-db:
+    confirm:
+      message: "This will DELETE ALL DATA. Are you sure?"
+      expect: "yes-delete-everything"
+    script: |
+      dropdb myapp && createdb myapp
 ```
 
-Component tasks are prefixed with the component name: `api:test`.
+## Combining Patterns
+
+You can combine these patterns:
+
+```yaml
+tasks:
+  production-shell:
+    description: Open a shell on production (dangerous!)
+    interactive: true
+    executors:
+      - local
+    confirm:
+      message: "Connect to PRODUCTION database?"
+      expect: "production"
+    script: |
+      heroku pg:psql --app myapp-production
+```
+
+This task:
+1. Requires typing "production" to confirm
+2. Runs locally (not in container)
+3. Connects stdin for the interactive psql session

@@ -1,0 +1,21 @@
+description: Production-ready web frontend
+
+resources:
+  image:
+    type: docker/image
+    params:
+      target: development
+
+tasks:
+  test:
+    description: Run frontend tests
+    script: echo 'Running frontend tests...'
+    executors:
+      - local
+
+flavors:
+  production:
+    patches:
+      - op: replace
+        path: /resources/image/params/target
+        value: production

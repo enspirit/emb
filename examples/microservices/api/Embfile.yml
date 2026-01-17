@@ -1,0 +1,18 @@
+description: REST API service
+
+resources:
+  image:
+    type: docker/image
+    dependencies:
+      - base:image
+
+tasks:
+  test:
+    description: Run API tests
+    pre:
+      - lint
+    script: npm test
+
+  lint:
+    description: Run linter
+    script: npm run lint

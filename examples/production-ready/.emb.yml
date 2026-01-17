@@ -1,0 +1,56 @@
+project:
+  name: production-ready
+
+plugins:
+  - name: autodocker
+  # Load environment variables from .env files into the configuration.
+  # Files are loaded in order; later files override earlier ones.
+  # - .env: Base environment variables (committed to git)
+  # - .env.local: Local overrides (gitignored, for developer-specific settings)
+  - name: dotenv
+    config:
+      - .env
+      - .env.local
+  - name: embfiles
+
+env:
+  DOCKER_TAG: ${env:DOCKER_TAG:-latest}
+  NODE_ENV: ${env:NODE_ENV:-development}
+  LOG_LEVEL: ${env:LOG_LEVEL:-debug}
+
+defaults:
+  docker:
+    tag: ${env:DOCKER_TAG}
+    target: development
+
+# Flavors allow environment-specific configuration variants.
+# Use --flavor <name> to activate a flavor: emb resources build --flavor production
+#
+# Each flavor defines patches using JSON Patch (RFC 6902) operations:
+# - op: The operation (replace, add, remove)
+# - path: JSON Pointer to the value to modify
+# - value: The new value
+#
+# Patches are applied to the base configuration, allowing you to override
+# env vars, docker settings, or any other config for different environments.
+flavors:
+  staging:
+    patches:
+      - op: replace
+        path: /env/NODE_ENV
+        value: staging
+      - op: replace
+        path: /env/LOG_LEVEL
+        value: info
+
+  production:
+    patches:
+      - op: replace
+        path: /env/NODE_ENV
+        value: production
+      - op: replace
+        path: /env/LOG_LEVEL
+        value: warn
+      - op: replace
+        path: /defaults/docker/target
+        value: production

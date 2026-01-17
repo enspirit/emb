@@ -45,4 +45,4 @@ This will display instructions for your shell (bash, zsh, or fish).
 
 ## Next Steps
 
-Now that EMB is installed, let's [create your first monorepo](/emb/getting-started/first-monorepo).
+Now that EMB is installed, head to the [Tutorials](/emb/tutorial/) to learn EMB step by step.

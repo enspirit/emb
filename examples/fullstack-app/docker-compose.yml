@@ -1,0 +1,14 @@
+services:
+  api:
+    image: fullstack-app/api:${DOCKER_TAG:-latest}
+    ports:
+      - "${API_PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+
+  web:
+    image: fullstack-app/web:${DOCKER_TAG:-latest}
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    depends_on:
+      - api

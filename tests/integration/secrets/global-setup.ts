@@ -158,6 +158,8 @@ async function startKeycloak(): Promise<void> {
   }
 
   // Start Keycloak in dev mode on the shared network
+  // Note: KC_HOSTNAME_STRICT=false and KC_HOSTNAME_STRICT_HTTPS=false are required
+  // for Keycloak 24+ to allow HTTP connections in dev mode
   try {
     await execa(
       'docker',
@@ -174,6 +176,12 @@ async function startKeycloak(): Promise<void> {
         `KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN_USER}`,
         '-e',
         `KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}`,
+        '-e',
+        'KC_HOSTNAME_STRICT=false',
+        '-e',
+        'KC_HOSTNAME_STRICT_HTTPS=false',
+        '-e',
+        'KC_HTTP_ENABLED=true',
         'quay.io/keycloak/keycloak:latest',
         'start-dev',
       ],

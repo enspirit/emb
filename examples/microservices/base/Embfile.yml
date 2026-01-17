@@ -1,0 +1,14 @@
+description: Shared base image with common dependencies
+
+tasks:
+  info:
+    description: Show base image info
+    script: echo "Base image provides shared Node.js utilities"
+    # Restrict this task to run only on the local machine (not inside a container).
+    # By default, tasks can run on multiple executors (local, container).
+    # Setting 'executors: [local]' means:
+    # - The task runs on your host machine only
+    # - Attempting to run with --executor=container will fail
+    # - Useful for tasks that need host-level access or don't make sense in a container
+    executors:
+      - local
