@@ -1,0 +1,20 @@
+services:
+  api:
+    image: production-ready/api:${DOCKER_TAG:-latest}
+    ports:
+      - "${API_PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - LOG_LEVEL=${LOG_LEVEL:-debug}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  web:
+    image: production-ready/web:${DOCKER_TAG:-latest}
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    depends_on:
+      - api

@@ -1,0 +1,10 @@
+{
+  "name": "microservices-worker",
+  "version": "1.0.0",
+  "main": "worker.js",
+  "scripts": {
+    "start": "node worker.js",
+    "test": "echo 'Running worker tests...' && exit 0"
+  },
+  "dependencies": {}
+}

@@ -1,0 +1,18 @@
+description: Background job worker
+
+resources:
+  image:
+    type: docker/image
+    dependencies:
+      - base:image
+
+tasks:
+  test:
+    description: Run worker tests
+    script: npm test
+
+  scale:
+    description: Show scaling info
+    script: echo "Worker concurrency is controlled by WORKER_CONCURRENCY env var"
+    executors:
+      - local

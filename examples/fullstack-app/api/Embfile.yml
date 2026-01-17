@@ -1,0 +1,14 @@
+description: REST API backend service
+
+tasks:
+  test:
+    description: Run API tests
+    script: npm test
+
+  lint:
+    description: Run linter on API code
+    script: npm run lint
+
+  fail:
+    description: A task that will fail
+    script: exit 1

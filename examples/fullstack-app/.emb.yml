@@ -1,0 +1,44 @@
+project:
+  name: fullstack-app
+
+plugins:
+  - name: autodocker
+  - name: dotenv
+    config:
+      - .env
+  - name: embfiles
+
+env:
+  DOCKER_TAG: ${env:DOCKER_TAG:-latest}
+  NODE_ENV: ${env:NODE_ENV:-development}
+
+# Project-level tasks demonstrate EMB's task system at the monorepo level.
+# These tasks apply to the entire project, not individual components.
+tasks:
+  # Showcases: task variables with environment fallback
+  # The 'vars' block defines variables available in the script.
+  # Variables can reference environment variables with defaults: ${env:VAR:-default}
+  setup:
+    description: Set up the development environment
+    vars:
+      ENV: ${env:NODE_ENV:-development}
+    script: |
+      echo "Setting up $ENV environment"
+
+  # Showcases: simple task with description
+  # This task will be used as a prerequisite for 'build'
+  deps:
+    description: Install project dependencies
+    script: |
+      echo "Installing dependencies..."
+      echo "deps installed" > /tmp/fullstack-tasks.txt
+
+  # Showcases: task prerequisites (pre)
+  # The 'pre' array lists tasks that must run before this one.
+  # EMB automatically runs 'deps' before 'build' when you run 'emb run build'
+  build:
+    description: Build the entire project
+    pre: ['deps']
+    script: |
+      echo "Building project..."
+      grep 'deps' /tmp/fullstack-tasks.txt || (echo "Dependencies not installed" && exit 1)

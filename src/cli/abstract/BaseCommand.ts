@@ -1,4 +1,11 @@
-import { DockerComposeClient, EmbContext, getContext, setContext } from '@';
+import {
+  DockerComposeClient,
+  EmbContext,
+  getContext,
+  isContextStale,
+  resetContext,
+  setContext,
+} from '@';
 import { Command, Flags } from '@oclif/core';
 import Dockerode from 'dockerode';
 
@@ -16,6 +23,13 @@ export abstract class BaseCommand extends Command {
       name: 'verbose',
       allowNo: true,
     }),
+    root: Flags.string({
+      char: 'C',
+      description:
+        'Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.',
+      name: 'root',
+      required: false,
+    }),
   };
 
   public async init(): Promise<void> {
@@ -23,13 +37,18 @@ export abstract class BaseCommand extends Command {
 
     await super.init();
 
+    // Reset context if EMB_ROOT changed (e.g., in tests switching between examples)
+    if (isContextStale()) {
+      resetContext();
+    }
+
     if (getContext()) {
       return;
     }
 
     try {
       const { rootDir, config } = await withMarker('emb:config', 'load', () =>
-        loadConfig(),
+        loadConfig({ root: flags.root as string | undefined }),
       );
 
       // Create SecretManager early so plugins can register providers during init

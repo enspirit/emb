@@ -1,0 +1,13 @@
+{
+  "name": "microservices-api",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo 'Running API tests...' && exit 0",
+    "lint": "echo 'Running API linter...' && exit 0"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

@@ -1,0 +1,6 @@
+description: Web frontend served by nginx
+
+tasks:
+  test:
+    description: Run frontend tests
+    script: echo 'Running frontend tests...' && exit 0

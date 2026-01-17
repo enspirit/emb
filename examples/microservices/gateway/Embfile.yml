@@ -1,0 +1,25 @@
+description: API Gateway / reverse proxy
+
+tasks:
+  deploy:
+    description: Deploy gateway to production
+    # Require user confirmation before running this task.
+    # EMB will prompt "Are you sure you want to deploy the gateway?" and
+    # wait for confirmation. Useful for destructive or production operations.
+    # The task only runs if the user confirms (y/yes).
+    confirm:
+      message: "Are you sure you want to deploy the gateway?"
+    script: echo "Deploying gateway..."
+    executors:
+      - local
+
+  shell:
+    description: Open a shell in the gateway container
+    # Interactive tasks need a TTY for user input/output.
+    # Setting 'interactive: true' ensures stdin is connected and the
+    # terminal is properly configured. Required for:
+    # - Shell sessions (sh, bash)
+    # - REPLs (node, python)
+    # - Commands with prompts or real-time input
+    script: sh
+    interactive: true

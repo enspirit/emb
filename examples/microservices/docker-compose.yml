@@ -1,0 +1,20 @@
+services:
+  gateway:
+    image: microservices/gateway:${DOCKER_TAG:-latest}
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+
+  api:
+    image: microservices/api:${DOCKER_TAG:-latest}
+    ports:
+      - "${API_PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+
+  worker:
+    image: microservices/worker:${DOCKER_TAG:-latest}
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - CONCURRENCY=${WORKER_CONCURRENCY:-4}
