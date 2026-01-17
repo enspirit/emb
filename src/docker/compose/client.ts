@@ -1,5 +1,7 @@
 import { Monorepo } from '@';
-import { execa } from 'execa';
+import { execa, ExecaError } from 'execa';
+
+import { CliError } from '@/errors.js';
 
 export type ComposeContainer = {
   Name: string;
@@ -71,9 +73,34 @@ export class DockerComposeClient {
       return;
     }
 
-    const { stdout: servicesOutput } = await execa({
-      cwd: this.monorepo.rootDir,
-    })`docker compose config --services`;
+    let servicesOutput: string;
+    try {
+      const result = await execa({
+        cwd: this.monorepo.rootDir,
+      })`docker compose config --services`;
+      servicesOutput = result.stdout;
+    } catch (error) {
+      if (error instanceof ExecaError) {
+        const stderr =
+          (error as ExecaError & { stderr?: string }).stderr?.trim() || '';
+        if (stderr.includes('no configuration file provided')) {
+          throw new CliError(
+            'NO_COMPOSE_FILE',
+            'No docker-compose.yml file found',
+            [
+              'Create a docker-compose.yml file in your project root',
+              'Or use task commands instead: emb run <task>',
+            ],
+          );
+        }
+
+        throw new CliError('COMPOSE_CONFIG_ERR', stderr || error.shortMessage, [
+          'Check that Docker is running and docker-compose is installed',
+        ]);
+      }
+
+      throw error;
+    }
 
     const services = servicesOutput
       .split('\n')
@@ -83,9 +110,23 @@ export class DockerComposeClient {
         return services;
       }, new Map());
 
-    const { stdout } = await execa({
-      cwd: this.monorepo.rootDir,
-    })`docker compose ps -a --format json`;
+    let stdout: string;
+    try {
+      const result = await execa({
+        cwd: this.monorepo.rootDir,
+      })`docker compose ps -a --format json`;
+      stdout = result.stdout;
+    } catch (error) {
+      if (error instanceof ExecaError) {
+        const stderr =
+          (error as ExecaError & { stderr?: string }).stderr?.trim() || '';
+        throw new CliError('COMPOSE_PS_ERR', stderr || error.shortMessage, [
+          'Check that Docker is running',
+        ]);
+      }
+
+      throw error;
+    }
 
     if (!stdout.trim()) {
       this.services = services;

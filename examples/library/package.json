@@ -1,0 +1,14 @@
+{
+  "name": "@example/library",
+  "version": "1.0.0",
+  "description": "A simple library example",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "echo 'Building library...'",
+    "test": "echo 'Running tests...'",
+    "lint": "echo 'Running linter...'"
+  },
+  "keywords": [],
+  "license": "MIT"
+}

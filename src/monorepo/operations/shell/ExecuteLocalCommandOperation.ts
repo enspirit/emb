@@ -1,7 +1,8 @@
-import { execa } from 'execa';
+import { execa, ExecaError } from 'execa';
 import { Readable, Writable } from 'node:stream';
 import * as z from 'zod';
 
+import { CliError, CommandExecError } from '@/errors.js';
 import { AbstractOperation } from '@/operations';
 
 /**
@@ -50,6 +51,35 @@ export class ExecuteLocalCommandOperation extends AbstractOperation<
         });
 
     proc.all?.pipe(this.out || process.stdout);
+
+    try {
+      await proc;
+    } catch (error) {
+      if (error instanceof ExecaError) {
+        const { stderr } = error as ExecaError & { stderr?: string };
+        const message = stderr?.trim() || error.shortMessage;
+
+        // Provide helpful error messages for common docker compose errors
+        if (message.includes('no configuration file provided')) {
+          throw new CliError(
+            'NO_COMPOSE_FILE',
+            'No docker-compose.yml file found',
+            [
+              'Create a docker-compose.yml file in your project root',
+              'Or use task commands instead: emb run <task>',
+            ],
+          );
+        }
+
+        throw new CommandExecError(
+          message,
+          error.exitCode ?? 1,
+          error.signal as NodeJS.Signals | null,
+        );
+      }
+
+      throw error;
+    }
 
     return proc.all || proc.stdout;
   }
