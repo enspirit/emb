@@ -55,4 +55,4 @@ emb run api:test   # Run the test task in api
 
 Note: `emb up` automatically builds all required resources (Docker images, files) before starting services, regardless of which flavor is being used.
 
-Ready to get started? [Install EMB](/emb/getting-started/installation) or jump to [Your First Monorepo](/emb/getting-started/first-monorepo).
+Ready to get started? [Install EMB](/emb/getting-started/installation) then head to the [Tutorials](/emb/tutorial/).

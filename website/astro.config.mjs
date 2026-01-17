@@ -16,29 +16,8 @@ export default defineConfig({
 					label: 'Getting Started',
 					items: [
 						{ label: 'Introduction', slug: 'getting-started/introduction' },
+						{ label: 'Concepts', slug: 'getting-started/concepts' },
 						{ label: 'Installation', slug: 'getting-started/installation' },
-						{ label: 'Your First Monorepo', slug: 'getting-started/first-monorepo' },
-						{ label: 'Migrating from Makefile', slug: 'getting-started/migrating-from-makefile' },
-					],
-				},
-				{
-					label: 'Tutorial',
-					items: [
-						{ label: 'Overview', slug: 'tutorial' },
-						{ label: '1. Project Setup', slug: 'tutorial/01-project-setup' },
-						{ label: '2. Components', slug: 'tutorial/02-components' },
-						{ label: '3. Tasks', slug: 'tutorial/03-tasks' },
-						{ label: '4. Building', slug: 'tutorial/04-building' },
-						{ label: '5. Running', slug: 'tutorial/05-running' },
-						{ label: '6. Flavors', slug: 'tutorial/06-flavors' },
-					],
-				},
-				{
-					label: 'Day to Day',
-					items: [
-						{ label: 'Building Resources', slug: 'day-to-day/building-resources' },
-						{ label: 'Running Services', slug: 'day-to-day/running-services' },
-						{ label: 'Managing Components', slug: 'day-to-day/managing-components' },
 					],
 				},
 				{
@@ -46,8 +25,59 @@ export default defineConfig({
 					autogenerate: { directory: 'advanced' },
 				},
 				{
+					label: 'Tutorials',
+					collapsed: true,
+					items: [
+						{ label: 'Overview', slug: 'tutorial' },
+						{
+							label: 'Hello World',
+							items: [
+								{ label: 'Introduction', slug: 'tutorial/hello-world' },
+								{ label: '1. Installation', slug: 'tutorial/hello-world/01-installation' },
+								{ label: '2. Minimal Config', slug: 'tutorial/hello-world/02-minimal-config' },
+								{ label: '3. Auto-Discovery', slug: 'tutorial/hello-world/03-auto-discovery' },
+								{ label: '4. First Commands', slug: 'tutorial/hello-world/04-first-commands' },
+							],
+						},
+						{
+							label: 'Fullstack App',
+							items: [
+								{ label: 'Introduction', slug: 'tutorial/fullstack-app' },
+								{ label: '1. Project Structure', slug: 'tutorial/fullstack-app/01-project-structure' },
+								{ label: '2. Environment', slug: 'tutorial/fullstack-app/02-environment' },
+								{ label: '3. Tasks', slug: 'tutorial/fullstack-app/03-tasks' },
+								{ label: '4. Docker Compose', slug: 'tutorial/fullstack-app/04-docker-compose' },
+								{ label: '5. Building', slug: 'tutorial/fullstack-app/05-building' },
+							],
+						},
+						{
+							label: 'Microservices',
+							items: [
+								{ label: 'Introduction', slug: 'tutorial/microservices' },
+								{ label: '1. Base Images', slug: 'tutorial/microservices/01-base-images' },
+								{ label: '2. Dependencies', slug: 'tutorial/microservices/02-dependencies' },
+								{ label: '3. Build Ordering', slug: 'tutorial/microservices/03-build-ordering' },
+							],
+						},
+						{
+							label: 'Production Ready',
+							items: [
+								{ label: 'Introduction', slug: 'tutorial/production-ready' },
+								{ label: '1. Multi-Stage Builds', slug: 'tutorial/production-ready/01-multi-stage' },
+								{ label: '2. Flavors Intro', slug: 'tutorial/production-ready/02-flavors-intro' },
+								{ label: '3. JSON Patch', slug: 'tutorial/production-ready/03-json-patch' },
+								{ label: '4. Using Flavors', slug: 'tutorial/production-ready/04-using-flavors' },
+							],
+						},
+					],
+				},
+				{
 					label: 'Reference',
 					autogenerate: { directory: 'reference' },
+				},
+				{
+					label: 'Resources',
+					autogenerate: { directory: 'resources' },
 				},
 			],
 		}),
