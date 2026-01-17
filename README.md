@@ -14,7 +14,7 @@ $ npm install -g @enspirit/emb
 $ emb COMMAND
 running command...
 $ emb (--version)
-@enspirit/emb/0.16.0 darwin-arm64 node-v22.21.1
+@enspirit/emb/0.17.0 darwin-arm64 node-v22.21.1
 $ emb --help [COMMAND]
 USAGE
   $ emb COMMAND
@@ -26,7 +26,7 @@ USAGE
 * [`emb autocomplete [SHELL]`](#emb-autocomplete-shell)
 * [`emb clean`](#emb-clean)
 * [`emb components`](#emb-components)
-* [`emb components logs COMPONENT`](#emb-components-logs-component)
+* [`emb components logs [COMPONENT]`](#emb-components-logs-component)
 * [`emb components shell COMPONENT`](#emb-components-shell-component)
 * [`emb config print`](#emb-config-print)
 * [`emb containers`](#emb-containers)
@@ -41,7 +41,7 @@ USAGE
 * [`emb kubernetes ps`](#emb-kubernetes-ps)
 * [`emb kubernetes restart [DEPLOYMENT]`](#emb-kubernetes-restart-deployment)
 * [`emb kubernetes shell COMPONENT`](#emb-kubernetes-shell-component)
-* [`emb logs COMPONENT`](#emb-logs-component)
+* [`emb logs [COMPONENT]`](#emb-logs-component)
 * [`emb ps`](#emb-ps)
 * [`emb resources`](#emb-resources)
 * [`emb resources build [COMPONENT]`](#emb-resources-build-component)
@@ -95,9 +95,10 @@ Clean the project.
 
 ```
 USAGE
-  $ emb clean [--json] [--verbose] [-f]
+  $ emb clean [--json] [--verbose] [-C <value>] [-f]
 
 FLAGS
+  -C, --root=<value>  Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   -f, --force         Force the deletion of containers & images
   --[no-]verbose
 
@@ -117,10 +118,11 @@ List components.
 
 ```
 USAGE
-  $ emb components [--json] [--verbose] [--flavor <value>]
+  $ emb components [--json] [--verbose] [-C <value>] [--flavor <value>]
 
 FLAGS
-  --flavor=<value>  Specify the flavor to use.
+  -C, --root=<value>    Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
+      --flavor=<value>  Specify the flavor to use.
   --[no-]verbose
 
 GLOBAL FLAGS
@@ -133,18 +135,19 @@ EXAMPLES
   $ emb components
 ```
 
-## `emb components logs COMPONENT`
+## `emb components logs [COMPONENT]`
 
 Get components logs.
 
 ```
 USAGE
-  $ emb components logs COMPONENT [--verbose] [-f]
+  $ emb components logs [COMPONENT...] [--verbose] [-C <value>] [-f]
 
 ARGUMENTS
-  COMPONENT  The component you want to see the logs of
+  [COMPONENT...]  The component(s) you want to see the logs of (all if omitted)
 
 FLAGS
+  -C, --root=<value>  Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   -f, --[no-]follow   Follow log output
   --[no-]verbose
 
@@ -156,6 +159,12 @@ ALIASES
 
 EXAMPLES
   $ emb components logs
+
+  $ emb components logs backend
+
+  $ emb components logs backend frontend
+
+  $ emb components logs --no-follow backend
 ```
 
 ## `emb components shell COMPONENT`
@@ -164,12 +173,13 @@ Get a shell on a running component.
 
 ```
 USAGE
-  $ emb components shell COMPONENT [--verbose] [-s <value>]
+  $ emb components shell COMPONENT [--verbose] [-C <value>] [-s <value>]
 
 ARGUMENTS
   COMPONENT  The component you want to get a shell on
 
 FLAGS
+  -C, --root=<value>   Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   -s, --shell=<value>  [default: bash] The shell to run
   --[no-]verbose
 
@@ -189,10 +199,11 @@ Print the current config.
 
 ```
 USAGE
-  $ emb config print [--json] [--verbose] [--flavor <value>]
+  $ emb config print [--json] [--verbose] [-C <value>] [--flavor <value>]
 
 FLAGS
-  --flavor=<value>  Specify the flavor to use.
+  -C, --root=<value>    Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
+      --flavor=<value>  Specify the flavor to use.
   --[no-]verbose
 
 GLOBAL FLAGS
@@ -211,9 +222,10 @@ List docker containers.
 
 ```
 USAGE
-  $ emb containers [--json] [--verbose] [-a]
+  $ emb containers [--json] [--verbose] [-C <value>] [-a]
 
 FLAGS
+  -C, --root=<value>  Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   -a, --all           Retun all containers. By default, only running containers are shown
   --[no-]verbose
 
@@ -233,9 +245,10 @@ Prune containers.
 
 ```
 USAGE
-  $ emb containers prune [--json] [--verbose]
+  $ emb containers prune [--json] [--verbose] [-C <value>]
 
 FLAGS
+  -C, --root=<value>  Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   --[no-]verbose
 
 GLOBAL FLAGS
@@ -254,10 +267,11 @@ Stop the whole project.
 
 ```
 USAGE
-  $ emb down [--json] [--verbose] [--flavor <value>]
+  $ emb down [--json] [--verbose] [-C <value>] [--flavor <value>]
 
 FLAGS
-  --flavor=<value>  Specify the flavor to use.
+  -C, --root=<value>    Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
+      --flavor=<value>  Specify the flavor to use.
   --[no-]verbose
 
 GLOBAL FLAGS
@@ -296,9 +310,10 @@ List docker images.
 
 ```
 USAGE
-  $ emb images [--json] [--verbose] [--flavor <value>] [-a]
+  $ emb images [--json] [--verbose] [-C <value>] [--flavor <value>] [-a]
 
 FLAGS
+  -C, --root=<value>    Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   -a, --all             Show all images. Only images from a final layer (no children) are shown by default.
       --flavor=<value>  Specify the flavor to use.
   --[no-]verbose
@@ -319,9 +334,10 @@ Delete project images.
 
 ```
 USAGE
-  $ emb images delete [--json] [--verbose] [-f]
+  $ emb images delete [--json] [--verbose] [-C <value>] [-f]
 
 FLAGS
+  -C, --root=<value>  Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   -f, --force         Remove the image even if it is being used by stopped containers or has other tags
   --[no-]verbose
 
@@ -341,9 +357,10 @@ Prune project images.
 
 ```
 USAGE
-  $ emb images prune [--json] [--verbose] [-a]
+  $ emb images prune [--json] [--verbose] [-C <value>] [-a]
 
 FLAGS
+  -C, --root=<value>  Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   -a, --all           Prune all images. When set to true all images will be pruned, not only dangling ones
   --[no-]verbose
 
@@ -363,12 +380,13 @@ Push docker images.
 
 ```
 USAGE
-  $ emb images push [--json] [--verbose] [--flavor <value>] [--registry <value>] [--retag <value>]
+  $ emb images push [--json] [--verbose] [-C <value>] [--flavor <value>] [--registry <value>] [--retag <value>]
 
 FLAGS
-  --flavor=<value>    Specify the flavor to use.
-  --registry=<value>  Override the registry to push to
-  --retag=<value>     Override the original tag to push to a new tag
+  -C, --root=<value>      Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
+      --flavor=<value>    Specify the flavor to use.
+      --registry=<value>  Override the registry to push to
+      --retag=<value>     Override the original tag to push to a new tag
   --[no-]verbose
 
 GLOBAL FLAGS
@@ -389,12 +407,13 @@ Follow kubernetes logs.
 
 ```
 USAGE
-  $ emb kubernetes logs COMPONENT -n <value> [--verbose] [-f]
+  $ emb kubernetes logs COMPONENT -n <value> [--verbose] [-C <value>] [-f]
 
 ARGUMENTS
   COMPONENT  The component you want to see the logs of
 
 FLAGS
+  -C, --root=<value>       Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   -f, --[no-]follow        Follow log output
   -n, --namespace=<value>  (required) [env: K8S_NAMESPACE] The Kubernetes namespace to target
   --[no-]verbose
@@ -415,9 +434,10 @@ Show running pods.
 
 ```
 USAGE
-  $ emb kubernetes ps -n <value> [--verbose] [--watch]
+  $ emb kubernetes ps -n <value> [--verbose] [-C <value>] [--watch]
 
 FLAGS
+  -C, --root=<value>       Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   -n, --namespace=<value>  (required) [env: K8S_NAMESPACE] The Kubernetes namespace to target
   --[no-]verbose
   --[no-]watch
@@ -435,12 +455,13 @@ Restart pods of an instance.
 
 ```
 USAGE
-  $ emb kubernetes restart [DEPLOYMENT...] -n <value> [--verbose]
+  $ emb kubernetes restart [DEPLOYMENT...] -n <value> [--verbose] [-C <value>]
 
 ARGUMENTS
   [DEPLOYMENT...]  The deployment(s) to restart
 
 FLAGS
+  -C, --root=<value>       Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   -n, --namespace=<value>  (required) [env: K8S_NAMESPACE] The Kubernetes namespace to target
   --[no-]verbose
 
@@ -457,12 +478,13 @@ Get a shell on a deployed component.
 
 ```
 USAGE
-  $ emb kubernetes shell COMPONENT -n <value> [--verbose] [-s <value>]
+  $ emb kubernetes shell COMPONENT -n <value> [--verbose] [-C <value>] [-s <value>]
 
 ARGUMENTS
   COMPONENT  The component you want to get a shell on
 
 FLAGS
+  -C, --root=<value>       Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   -n, --namespace=<value>  (required) [env: K8S_NAMESPACE] The Kubernetes namespace to target
   -s, --shell=<value>      [default: bash] The shell to run
   --[no-]verbose
@@ -477,18 +499,19 @@ EXAMPLES
   $ emb kubernetes shell
 ```
 
-## `emb logs COMPONENT`
+## `emb logs [COMPONENT]`
 
 Get components logs.
 
 ```
 USAGE
-  $ emb logs COMPONENT [--verbose] [-f]
+  $ emb logs [COMPONENT...] [--verbose] [-C <value>] [-f]
 
 ARGUMENTS
-  COMPONENT  The component you want to see the logs of
+  [COMPONENT...]  The component(s) you want to see the logs of (all if omitted)
 
 FLAGS
+  -C, --root=<value>  Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   -f, --[no-]follow   Follow log output
   --[no-]verbose
 
@@ -500,6 +523,12 @@ ALIASES
 
 EXAMPLES
   $ emb logs
+
+  $ emb logs backend
+
+  $ emb logs backend frontend
+
+  $ emb logs --no-follow backend
 ```
 
 ## `emb ps`
@@ -508,9 +537,10 @@ Lists the containers running in the project.
 
 ```
 USAGE
-  $ emb ps [--verbose] [--flavor <value>] [-a]
+  $ emb ps [--verbose] [-C <value>] [--flavor <value>] [-a]
 
 FLAGS
+  -C, --root=<value>    Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   -a, --all             Show all stopped containers
       --flavor=<value>  Specify the flavor to use.
   --[no-]verbose
@@ -528,10 +558,11 @@ List resources.
 
 ```
 USAGE
-  $ emb resources [--json] [--verbose] [--flavor <value>]
+  $ emb resources [--json] [--verbose] [-C <value>] [--flavor <value>]
 
 FLAGS
-  --flavor=<value>  Specify the flavor to use.
+  -C, --root=<value>    Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
+      --flavor=<value>  Specify the flavor to use.
   --[no-]verbose
 
 GLOBAL FLAGS
@@ -550,12 +581,13 @@ Build the resources of the monorepo
 
 ```
 USAGE
-  $ emb resources build [COMPONENT...] [--json] [--verbose] [--flavor <value>] [--dry-run] [-f]
+  $ emb resources build [COMPONENT...] [--json] [--verbose] [-C <value>] [--flavor <value>] [--dry-run] [-f]
 
 ARGUMENTS
   [COMPONENT...]  List of resources to build (defaults to all)
 
 FLAGS
+  -C, --root=<value>    Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   -f, --force           Bypass the cache and force the build
       --dry-run         Do not build the resources but only produce build meta information
       --flavor=<value>  Specify the flavor to use.
@@ -577,12 +609,13 @@ Restart the whole project.
 
 ```
 USAGE
-  $ emb restart [COMPONENT...] [--json] [--verbose] [-f]
+  $ emb restart [COMPONENT...] [--json] [--verbose] [-C <value>] [-f]
 
 ARGUMENTS
   [COMPONENT...]  The component(s) to restart
 
 FLAGS
+  -C, --root=<value>  Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   -f, --no-deps       Don't restart depdendent components
   --[no-]verbose
 
@@ -602,12 +635,13 @@ Run tasks.
 
 ```
 USAGE
-  $ emb run TASK... [--json] [--verbose] [-x container|local] [-a]
+  $ emb run TASK... [--json] [--verbose] [-C <value>] [-x container|local] [-a]
 
 ARGUMENTS
   TASK...  List of tasks to run. You can provide either ids or names (eg: component:task or task)
 
 FLAGS
+  -C, --root=<value>       Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   -a, --all-matching       Run all tasks matching (when multiple matches)
   -x, --executor=<option>  Where to run the task. (experimental!)
                            <options: container|local>
@@ -632,10 +666,11 @@ List all secret references in the configuration.
 
 ```
 USAGE
-  $ emb secrets [--json] [--verbose] [--flavor <value>]
+  $ emb secrets [--json] [--verbose] [-C <value>] [--flavor <value>]
 
 FLAGS
-  --flavor=<value>  Specify the flavor to use.
+  -C, --root=<value>    Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
+      --flavor=<value>  Specify the flavor to use.
   --[no-]verbose
 
 GLOBAL FLAGS
@@ -656,10 +691,11 @@ Show configured secret providers and their status.
 
 ```
 USAGE
-  $ emb secrets providers [--json] [--verbose] [--flavor <value>]
+  $ emb secrets providers [--json] [--verbose] [-C <value>] [--flavor <value>]
 
 FLAGS
-  --flavor=<value>  Specify the flavor to use.
+  -C, --root=<value>    Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
+      --flavor=<value>  Specify the flavor to use.
   --[no-]verbose
 
 GLOBAL FLAGS
@@ -678,11 +714,12 @@ Validate that all secret references can be resolved (without showing values).
 
 ```
 USAGE
-  $ emb secrets validate [--json] [--verbose] [--flavor <value>] [--fail-fast]
+  $ emb secrets validate [--json] [--verbose] [-C <value>] [--flavor <value>] [--fail-fast]
 
 FLAGS
-  --fail-fast       Stop on first validation error
-  --flavor=<value>  Specify the flavor to use.
+  -C, --root=<value>    Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
+      --fail-fast       Stop on first validation error
+      --flavor=<value>  Specify the flavor to use.
   --[no-]verbose
 
 GLOBAL FLAGS
@@ -705,12 +742,13 @@ Get a shell on a running component.
 
 ```
 USAGE
-  $ emb shell COMPONENT [--verbose] [-s <value>]
+  $ emb shell COMPONENT [--verbose] [-C <value>] [-s <value>]
 
 ARGUMENTS
   COMPONENT  The component you want to get a shell on
 
 FLAGS
+  -C, --root=<value>   Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   -s, --shell=<value>  [default: bash] The shell to run
   --[no-]verbose
 
@@ -730,12 +768,13 @@ Starts the whole project.
 
 ```
 USAGE
-  $ emb start [COMPONENT...] [--json] [--verbose]
+  $ emb start [COMPONENT...] [--json] [--verbose] [-C <value>]
 
 ARGUMENTS
   [COMPONENT...]  The component(s) to start
 
 FLAGS
+  -C, --root=<value>  Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   --[no-]verbose
 
 GLOBAL FLAGS
@@ -754,10 +793,11 @@ Stop the whole project.
 
 ```
 USAGE
-  $ emb stop [--json] [--verbose] [--flavor <value>]
+  $ emb stop [--json] [--verbose] [-C <value>] [--flavor <value>]
 
 FLAGS
-  --flavor=<value>  Specify the flavor to use.
+  -C, --root=<value>    Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
+      --flavor=<value>  Specify the flavor to use.
   --[no-]verbose
 
 GLOBAL FLAGS
@@ -776,9 +816,10 @@ List tasks.
 
 ```
 USAGE
-  $ emb tasks [--json] [--verbose]
+  $ emb tasks [--json] [--verbose] [-C <value>]
 
 FLAGS
+  -C, --root=<value>  Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   --[no-]verbose
 
 GLOBAL FLAGS
@@ -797,12 +838,13 @@ Run tasks.
 
 ```
 USAGE
-  $ emb tasks run TASK... [--json] [--verbose] [-x container|local] [-a]
+  $ emb tasks run TASK... [--json] [--verbose] [-C <value>] [-x container|local] [-a]
 
 ARGUMENTS
   TASK...  List of tasks to run. You can provide either ids or names (eg: component:task or task)
 
 FLAGS
+  -C, --root=<value>       Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   -a, --all-matching       Run all tasks matching (when multiple matches)
   -x, --executor=<option>  Where to run the task. (experimental!)
                            <options: container|local>
@@ -827,12 +869,13 @@ Start the whole project.
 
 ```
 USAGE
-  $ emb up [COMPONENT...] [--json] [--verbose] [--flavor <value>] [-f]
+  $ emb up [COMPONENT...] [--json] [--verbose] [-C <value>] [--flavor <value>] [-f]
 
 ARGUMENTS
   [COMPONENT...]  The component(s) to build and start
 
 FLAGS
+  -C, --root=<value>    Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   -f, --force           Bypass caches, force the recreation of containers, etc
       --flavor=<value>  Specify the flavor to use.
   --[no-]verbose

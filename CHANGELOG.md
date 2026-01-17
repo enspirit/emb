@@ -1,4 +1,4 @@
-## 0.17.0
+## 0.17.0 - 2026-01-17
 
 * Extend `emb logs` to support multiple components and all containers
   - `emb logs` without args shows interlaced logs of all containers
