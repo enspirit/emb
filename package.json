@@ -14,7 +14,11 @@
   "author": "Louis Lambeau <louis.lambeau@enspirit.be>",
   "license": "ISC",
   "description": "A replacement for our Makefile-for-monorepos",
-  "bin": {
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/enspirit/emb"
+  },
+   "bin": {
     "emb": "./bin/run.js"
   },
   "scripts": {
