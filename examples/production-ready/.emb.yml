@@ -17,6 +17,11 @@ env:
   DOCKER_TAG: ${env:DOCKER_TAG:-latest}
   NODE_ENV: ${env:NODE_ENV:-development}
   LOG_LEVEL: ${env:LOG_LEVEL:-debug}
+  # PostgreSQL configuration (external service, not an EMB component)
+  POSTGRES_USER: ${env:POSTGRES_USER:-app}
+  POSTGRES_PASSWORD: ${env:POSTGRES_PASSWORD:-secret}
+  POSTGRES_DB: ${env:POSTGRES_DB:-production_ready}
+  POSTGRES_PORT: ${env:POSTGRES_PORT:-5432}
 
 defaults:
   docker:

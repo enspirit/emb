@@ -1,4 +1,23 @@
 services:
+  # PostgreSQL database - an external service (not an EMB component)
+  # This showcases how to include pre-built images in your docker-compose
+  # alongside EMB-managed components
+  db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-app}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-secret}
+      - POSTGRES_DB=${POSTGRES_DB:-production_ready}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-app} -d ${POSTGRES_DB:-production_ready}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   api:
     image: production-ready/api:${DOCKER_TAG:-latest}
     ports:
@@ -6,6 +25,10 @@ services:
     environment:
       - NODE_ENV=${NODE_ENV:-development}
       - LOG_LEVEL=${LOG_LEVEL:-debug}
+      - DATABASE_URL=postgres://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-secret}@db:5432/${POSTGRES_DB:-production_ready}
+    depends_on:
+      db:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
       interval: 30s
@@ -18,3 +41,6 @@ services:
       - "${WEB_PORT:-8080}:80"
     depends_on:
       - api
+
+volumes:
+  postgres_data:
