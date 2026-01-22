@@ -5,6 +5,10 @@ on:
     tags:
       - '*'  # Trigger on any tag
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   # Run tests first to ensure the release is valid
   test:
