@@ -14,7 +14,7 @@ $ npm install -g @enspirit/emb
 $ emb COMMAND
 running command...
 $ emb (--version)
-@enspirit/emb/0.17.4 darwin-arm64 node-v22.21.1
+@enspirit/emb/0.17.5 darwin-arm64 node-v22.21.1
 $ emb --help [COMMAND]
 USAGE
   $ emb COMMAND
@@ -112,7 +112,7 @@ EXAMPLES
   $ emb clean
 ```
 
-_See code: [src/commands/clean.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/clean.ts)_
+_See code: [src/commands/clean.ts](https://github.com/enspirit/emb/blob/v0.17.5/src/commands/clean.ts)_
 
 ## `emb components`
 
@@ -137,7 +137,7 @@ EXAMPLES
   $ emb components
 ```
 
-_See code: [src/commands/components/index.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/components/index.ts)_
+_See code: [src/commands/components/index.ts](https://github.com/enspirit/emb/blob/v0.17.5/src/commands/components/index.ts)_
 
 ## `emb components logs [COMPONENT]`
 
@@ -171,7 +171,7 @@ EXAMPLES
   $ emb components logs --no-follow backend
 ```
 
-_See code: [src/commands/components/logs.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/components/logs.ts)_
+_See code: [src/commands/components/logs.ts](https://github.com/enspirit/emb/blob/v0.17.5/src/commands/components/logs.ts)_
 
 ## `emb components shell COMPONENT`
 
@@ -199,7 +199,7 @@ EXAMPLES
   $ emb components shell
 ```
 
-_See code: [src/commands/components/shell.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/components/shell.ts)_
+_See code: [src/commands/components/shell.ts](https://github.com/enspirit/emb/blob/v0.17.5/src/commands/components/shell.ts)_
 
 ## `emb config print`
 
@@ -224,7 +224,7 @@ EXAMPLES
   $ emb config print
 ```
 
-_See code: [src/commands/config/print.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/config/print.ts)_
+_See code: [src/commands/config/print.ts](https://github.com/enspirit/emb/blob/v0.17.5/src/commands/config/print.ts)_
 
 ## `emb containers`
 
@@ -249,7 +249,7 @@ EXAMPLES
   $ emb containers
 ```
 
-_See code: [src/commands/containers/index.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/containers/index.ts)_
+_See code: [src/commands/containers/index.ts](https://github.com/enspirit/emb/blob/v0.17.5/src/commands/containers/index.ts)_
 
 ## `emb containers prune`
 
@@ -273,7 +273,7 @@ EXAMPLES
   $ emb containers prune
 ```
 
-_See code: [src/commands/containers/prune.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/containers/prune.ts)_
+_See code: [src/commands/containers/prune.ts](https://github.com/enspirit/emb/blob/v0.17.5/src/commands/containers/prune.ts)_
 
 ## `emb down`
 
@@ -298,7 +298,7 @@ EXAMPLES
   $ emb down
 ```
 
-_See code: [src/commands/down.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/down.ts)_
+_See code: [src/commands/down.ts](https://github.com/enspirit/emb/blob/v0.17.5/src/commands/down.ts)_
 
 ## `emb help [COMMAND]`
 
@@ -344,7 +344,7 @@ EXAMPLES
   $ emb images
 ```
 
-_See code: [src/commands/images/index.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/images/index.ts)_
+_See code: [src/commands/images/index.ts](https://github.com/enspirit/emb/blob/v0.17.5/src/commands/images/index.ts)_
 
 ## `emb images delete`
 
@@ -369,7 +369,7 @@ EXAMPLES
   $ emb images delete
 ```
 
-_See code: [src/commands/images/delete.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/images/delete.ts)_
+_See code: [src/commands/images/delete.ts](https://github.com/enspirit/emb/blob/v0.17.5/src/commands/images/delete.ts)_
 
 ## `emb images prune`
 
@@ -394,7 +394,7 @@ EXAMPLES
   $ emb images prune
 ```
 
-_See code: [src/commands/images/prune.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/images/prune.ts)_
+_See code: [src/commands/images/prune.ts](https://github.com/enspirit/emb/blob/v0.17.5/src/commands/images/prune.ts)_
 
 ## `emb images push`
 
@@ -423,7 +423,7 @@ EXAMPLES
   $ emb images push --registry my.registry.io --retag newtag
 ```
 
-_See code: [src/commands/images/push.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/images/push.ts)_
+_See code: [src/commands/images/push.ts](https://github.com/enspirit/emb/blob/v0.17.5/src/commands/images/push.ts)_
 
 ## `emb kubernetes logs COMPONENT`
 
@@ -452,7 +452,7 @@ EXAMPLES
   $ emb kubernetes logs
 ```
 
-_See code: [src/commands/kubernetes/logs.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/kubernetes/logs.ts)_
+_See code: [src/commands/kubernetes/logs.ts](https://github.com/enspirit/emb/blob/v0.17.5/src/commands/kubernetes/logs.ts)_
 
 ## `emb kubernetes ps`
 
@@ -475,7 +475,7 @@ EXAMPLES
   $ emb kubernetes ps
 ```
 
-_See code: [src/commands/kubernetes/ps.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/kubernetes/ps.ts)_
+_See code: [src/commands/kubernetes/ps.ts](https://github.com/enspirit/emb/blob/v0.17.5/src/commands/kubernetes/ps.ts)_
 
 ## `emb kubernetes restart [DEPLOYMENT]`
 
@@ -500,7 +500,7 @@ EXAMPLES
   $ emb kubernetes restart
 ```
 
-_See code: [src/commands/kubernetes/restart.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/kubernetes/restart.ts)_
+_See code: [src/commands/kubernetes/restart.ts](https://github.com/enspirit/emb/blob/v0.17.5/src/commands/kubernetes/restart.ts)_
 
 ## `emb kubernetes shell COMPONENT`
 
@@ -529,7 +529,7 @@ EXAMPLES
   $ emb kubernetes shell
 ```
 
-_See code: [src/commands/kubernetes/shell.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/kubernetes/shell.ts)_
+_See code: [src/commands/kubernetes/shell.ts](https://github.com/enspirit/emb/blob/v0.17.5/src/commands/kubernetes/shell.ts)_
 
 ## `emb logs [COMPONENT]`
 
@@ -584,7 +584,7 @@ EXAMPLES
   $ emb ps
 ```
 
-_See code: [src/commands/ps.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/ps.ts)_
+_See code: [src/commands/ps.ts](https://github.com/enspirit/emb/blob/v0.17.5/src/commands/ps.ts)_
 
 ## `emb resources`
 
@@ -609,7 +609,7 @@ EXAMPLES
   $ emb resources
 ```
 
-_See code: [src/commands/resources/index.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/resources/index.ts)_
+_See code: [src/commands/resources/index.ts](https://github.com/enspirit/emb/blob/v0.17.5/src/commands/resources/index.ts)_
 
 ## `emb resources build [COMPONENT]`
 
@@ -639,7 +639,7 @@ EXAMPLES
   $ emb resources build build --flavor development
 ```
 
-_See code: [src/commands/resources/build.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/resources/build.ts)_
+_See code: [src/commands/resources/build.ts](https://github.com/enspirit/emb/blob/v0.17.5/src/commands/resources/build.ts)_
 
 ## `emb restart [COMPONENT]`
 
@@ -667,7 +667,7 @@ EXAMPLES
   $ emb restart
 ```
 
-_See code: [src/commands/restart.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/restart.ts)_
+_See code: [src/commands/restart.ts](https://github.com/enspirit/emb/blob/v0.17.5/src/commands/restart.ts)_
 
 ## `emb run TASK`
 
@@ -725,7 +725,7 @@ EXAMPLES
   $ emb secrets --json
 ```
 
-_See code: [src/commands/secrets/index.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/secrets/index.ts)_
+_See code: [src/commands/secrets/index.ts](https://github.com/enspirit/emb/blob/v0.17.5/src/commands/secrets/index.ts)_
 
 ## `emb secrets providers`
 
@@ -750,7 +750,7 @@ EXAMPLES
   $ emb secrets providers
 ```
 
-_See code: [src/commands/secrets/providers.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/secrets/providers.ts)_
+_See code: [src/commands/secrets/providers.ts](https://github.com/enspirit/emb/blob/v0.17.5/src/commands/secrets/providers.ts)_
 
 ## `emb secrets validate`
 
@@ -780,7 +780,7 @@ EXAMPLES
   $ emb secrets validate --json
 ```
 
-_See code: [src/commands/secrets/validate.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/secrets/validate.ts)_
+_See code: [src/commands/secrets/validate.ts](https://github.com/enspirit/emb/blob/v0.17.5/src/commands/secrets/validate.ts)_
 
 ## `emb shell COMPONENT`
 
@@ -833,7 +833,7 @@ EXAMPLES
   $ emb start
 ```
 
-_See code: [src/commands/start.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/start.ts)_
+_See code: [src/commands/start.ts](https://github.com/enspirit/emb/blob/v0.17.5/src/commands/start.ts)_
 
 ## `emb stop`
 
@@ -858,7 +858,7 @@ EXAMPLES
   $ emb stop
 ```
 
-_See code: [src/commands/stop.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/stop.ts)_
+_See code: [src/commands/stop.ts](https://github.com/enspirit/emb/blob/v0.17.5/src/commands/stop.ts)_
 
 ## `emb tasks`
 
@@ -882,7 +882,7 @@ EXAMPLES
   $ emb tasks
 ```
 
-_See code: [src/commands/tasks/index.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/tasks/index.ts)_
+_See code: [src/commands/tasks/index.ts](https://github.com/enspirit/emb/blob/v0.17.5/src/commands/tasks/index.ts)_
 
 ## `emb tasks run TASK`
 
@@ -915,7 +915,7 @@ EXAMPLES
   $ emb tasks run
 ```
 
-_See code: [src/commands/tasks/run.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/tasks/run.ts)_
+_See code: [src/commands/tasks/run.ts](https://github.com/enspirit/emb/blob/v0.17.5/src/commands/tasks/run.ts)_
 
 ## `emb up [COMPONENT]`
 
@@ -944,7 +944,7 @@ EXAMPLES
   $ emb up
 ```
 
-_See code: [src/commands/up.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/up.ts)_
+_See code: [src/commands/up.ts](https://github.com/enspirit/emb/blob/v0.17.5/src/commands/up.ts)_
 
 ## `emb update [CHANNEL]`
 
