@@ -14,7 +14,7 @@ $ npm install -g @enspirit/emb
 $ emb COMMAND
 running command...
 $ emb (--version)
-@enspirit/emb/0.17.3 darwin-arm64 node-v22.21.1
+@enspirit/emb/0.17.4 darwin-arm64 node-v22.21.1
 $ emb --help [COMMAND]
 USAGE
   $ emb COMMAND
@@ -87,7 +87,7 @@ EXAMPLES
   $ emb autocomplete --refresh-cache
 ```
 
-_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v3.2.39/src/commands/autocomplete/index.ts)_
+_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v3.2.40/src/commands/autocomplete/index.ts)_
 
 ## `emb clean`
 
@@ -112,6 +112,8 @@ EXAMPLES
   $ emb clean
 ```
 
+_See code: [src/commands/clean.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/clean.ts)_
+
 ## `emb components`
 
 List components.
@@ -134,6 +136,8 @@ DESCRIPTION
 EXAMPLES
   $ emb components
 ```
+
+_See code: [src/commands/components/index.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/components/index.ts)_
 
 ## `emb components logs [COMPONENT]`
 
@@ -167,6 +171,8 @@ EXAMPLES
   $ emb components logs --no-follow backend
 ```
 
+_See code: [src/commands/components/logs.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/components/logs.ts)_
+
 ## `emb components shell COMPONENT`
 
 Get a shell on a running component.
@@ -193,6 +199,8 @@ EXAMPLES
   $ emb components shell
 ```
 
+_See code: [src/commands/components/shell.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/components/shell.ts)_
+
 ## `emb config print`
 
 Print the current config.
@@ -215,6 +223,8 @@ DESCRIPTION
 EXAMPLES
   $ emb config print
 ```
+
+_See code: [src/commands/config/print.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/config/print.ts)_
 
 ## `emb containers`
 
@@ -239,6 +249,8 @@ EXAMPLES
   $ emb containers
 ```
 
+_See code: [src/commands/containers/index.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/containers/index.ts)_
+
 ## `emb containers prune`
 
 Prune containers.
@@ -260,6 +272,8 @@ DESCRIPTION
 EXAMPLES
   $ emb containers prune
 ```
+
+_See code: [src/commands/containers/prune.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/containers/prune.ts)_
 
 ## `emb down`
 
@@ -284,6 +298,8 @@ EXAMPLES
   $ emb down
 ```
 
+_See code: [src/commands/down.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/down.ts)_
+
 ## `emb help [COMMAND]`
 
 Display help for emb.
@@ -302,7 +318,7 @@ DESCRIPTION
   Display help for emb.
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.2.36/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.2.37/src/commands/help.ts)_
 
 ## `emb images`
 
@@ -328,6 +344,8 @@ EXAMPLES
   $ emb images
 ```
 
+_See code: [src/commands/images/index.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/images/index.ts)_
+
 ## `emb images delete`
 
 Delete project images.
@@ -351,6 +369,8 @@ EXAMPLES
   $ emb images delete
 ```
 
+_See code: [src/commands/images/delete.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/images/delete.ts)_
+
 ## `emb images prune`
 
 Prune project images.
@@ -373,6 +393,8 @@ DESCRIPTION
 EXAMPLES
   $ emb images prune
 ```
+
+_See code: [src/commands/images/prune.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/images/prune.ts)_
 
 ## `emb images push`
 
@@ -401,6 +423,8 @@ EXAMPLES
   $ emb images push --registry my.registry.io --retag newtag
 ```
 
+_See code: [src/commands/images/push.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/images/push.ts)_
+
 ## `emb kubernetes logs COMPONENT`
 
 Follow kubernetes logs.
@@ -428,6 +452,8 @@ EXAMPLES
   $ emb kubernetes logs
 ```
 
+_See code: [src/commands/kubernetes/logs.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/kubernetes/logs.ts)_
+
 ## `emb kubernetes ps`
 
 Show running pods.
@@ -448,6 +474,8 @@ DESCRIPTION
 EXAMPLES
   $ emb kubernetes ps
 ```
+
+_See code: [src/commands/kubernetes/ps.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/kubernetes/ps.ts)_
 
 ## `emb kubernetes restart [DEPLOYMENT]`
 
@@ -471,6 +499,8 @@ DESCRIPTION
 EXAMPLES
   $ emb kubernetes restart
 ```
+
+_See code: [src/commands/kubernetes/restart.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/kubernetes/restart.ts)_
 
 ## `emb kubernetes shell COMPONENT`
 
@@ -498,6 +528,8 @@ ALIASES
 EXAMPLES
   $ emb kubernetes shell
 ```
+
+_See code: [src/commands/kubernetes/shell.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/kubernetes/shell.ts)_
 
 ## `emb logs [COMPONENT]`
 
@@ -552,6 +584,8 @@ EXAMPLES
   $ emb ps
 ```
 
+_See code: [src/commands/ps.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/ps.ts)_
+
 ## `emb resources`
 
 List resources.
@@ -574,6 +608,8 @@ DESCRIPTION
 EXAMPLES
   $ emb resources
 ```
+
+_See code: [src/commands/resources/index.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/resources/index.ts)_
 
 ## `emb resources build [COMPONENT]`
 
@@ -603,6 +639,8 @@ EXAMPLES
   $ emb resources build build --flavor development
 ```
 
+_See code: [src/commands/resources/build.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/resources/build.ts)_
+
 ## `emb restart [COMPONENT]`
 
 Restart the whole project.
@@ -628,6 +666,8 @@ DESCRIPTION
 EXAMPLES
   $ emb restart
 ```
+
+_See code: [src/commands/restart.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/restart.ts)_
 
 ## `emb run TASK`
 
@@ -685,6 +725,8 @@ EXAMPLES
   $ emb secrets --json
 ```
 
+_See code: [src/commands/secrets/index.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/secrets/index.ts)_
+
 ## `emb secrets providers`
 
 Show configured secret providers and their status.
@@ -707,6 +749,8 @@ DESCRIPTION
 EXAMPLES
   $ emb secrets providers
 ```
+
+_See code: [src/commands/secrets/providers.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/secrets/providers.ts)_
 
 ## `emb secrets validate`
 
@@ -735,6 +779,8 @@ EXAMPLES
 
   $ emb secrets validate --json
 ```
+
+_See code: [src/commands/secrets/validate.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/secrets/validate.ts)_
 
 ## `emb shell COMPONENT`
 
@@ -787,6 +833,8 @@ EXAMPLES
   $ emb start
 ```
 
+_See code: [src/commands/start.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/start.ts)_
+
 ## `emb stop`
 
 Stop the whole project.
@@ -810,6 +858,8 @@ EXAMPLES
   $ emb stop
 ```
 
+_See code: [src/commands/stop.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/stop.ts)_
+
 ## `emb tasks`
 
 List tasks.
@@ -831,6 +881,8 @@ DESCRIPTION
 EXAMPLES
   $ emb tasks
 ```
+
+_See code: [src/commands/tasks/index.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/tasks/index.ts)_
 
 ## `emb tasks run TASK`
 
@@ -863,6 +915,8 @@ EXAMPLES
   $ emb tasks run
 ```
 
+_See code: [src/commands/tasks/run.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/tasks/run.ts)_
+
 ## `emb up [COMPONENT]`
 
 Start the whole project.
@@ -889,6 +943,8 @@ DESCRIPTION
 EXAMPLES
   $ emb up
 ```
+
+_See code: [src/commands/up.ts](https://github.com/enspirit/emb/blob/v0.17.4/src/commands/up.ts)_
 
 ## `emb update [CHANNEL]`
 
@@ -926,5 +982,5 @@ EXAMPLES
     $ emb update --available
 ```
 
-_See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v4.7.16/src/commands/update.ts)_
+_See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v4.7.17/src/commands/update.ts)_
 <!-- commandsstop -->

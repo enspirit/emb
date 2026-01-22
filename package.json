@@ -1,7 +1,7 @@
 {
   "name": "@enspirit/emb",
   "type": "module",
-  "version": "0.17.3",
+  "version": "0.17.4",
   "keywords": [
     "monorepo",
     "docker",
@@ -18,7 +18,7 @@
     "type": "git",
     "url": "https://github.com/enspirit/emb"
   },
-   "bin": {
+  "bin": {
     "emb": "./bin/run.js"
   },
   "scripts": {
