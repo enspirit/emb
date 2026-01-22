@@ -1,4 +1,9 @@
-import { AmbiguousReferenceError, getContext, UnkownReferenceError } from '@';
+import {
+  AmbiguousReferenceError,
+  CommandExecError,
+  getContext,
+  UnkownReferenceError,
+} from '@';
 import { Args, Flags } from '@oclif/core';
 
 import { BaseCommand } from '@/cli/index.js';
@@ -54,6 +59,12 @@ export default class RunTask extends BaseCommand {
       if (error instanceof UnkownReferenceError) {
         throw error.toCliError([
           `Check the list of tasks available by running: \`emb tasks\``,
+        ]);
+      }
+
+      if (error instanceof CommandExecError) {
+        throw error.toCliError([
+          `Task command exited with code ${error.exitCode}`,
         ]);
       }
 
