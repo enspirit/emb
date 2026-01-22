@@ -4,7 +4,7 @@ import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { CompleteExample } from 'tests/fixtures/complete-example.js';
-import { beforeEach, vi } from 'vitest';
+import { vi } from 'vitest';
 
 import { EMBConfig } from '@/config';
 import { createKubernetesClient } from '@/kubernetes/client.js';
@@ -85,9 +85,6 @@ export interface TestSetupOptions {
   tempDirPrefix?: string;
 }
 
-// Track temp directories for automatic cleanup
-const tempDirs: string[] = [];
-
 /**
  * Creates a complete test setup with temp directory, monorepo, and context.
  * The temp directory is automatically cleaned up after each test.
@@ -119,7 +116,6 @@ export async function createTestSetup(
   // Create temp directory
   const tempDir = await mkdtemp(join(tmpdir(), tempDirPrefix));
   await mkdir(join(tempDir, '.emb'), { recursive: true });
-  tempDirs.push(tempDir);
 
   // Create monorepo
   const monorepo = new Monorepo(embfile, tempDir);
@@ -149,10 +145,3 @@ export async function createTestSetup(
 
   return { ctx, monorepo, compose, secrets, tempDir, cleanup };
 }
-
-// Default beforeEach hook that sets up a standard context
-// Tests that need custom contexts can call createTestContext() directly
-// eslint-disable-next-line mocha/no-top-level-hooks
-beforeEach(async () => {
-  await createTestContext();
-});

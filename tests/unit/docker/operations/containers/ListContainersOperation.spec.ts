@@ -2,13 +2,15 @@ import { EmbContext, getContext } from '@';
 import { beforeEach, describe, expect, Mock, test } from 'vitest';
 
 import { ListContainersOperation } from '@/docker';
+import { createTestContext } from 'tests/setup/set.context.js';
 
 describe('Docker / ListContainersOperation', () => {
   let context: EmbContext;
   let listContainers: Mock;
   let operation: ListContainersOperation;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    await createTestContext();
     context = getContext();
     operation = new ListContainersOperation();
     listContainers = context.docker.listContainers as Mock;

@@ -3,6 +3,7 @@ import { ContainerInfo } from 'dockerode';
 import { beforeEach, describe, expect, Mock, test } from 'vitest';
 
 import { GetComponentContainerOperation } from '../../../../../src/monorepo/operations/components/GetComponentContainerOperation.js';
+import { createTestContext } from 'tests/setup/set.context.js';
 
 describe('Monorepo / Operations / GetComponentContainerOperation', () => {
   let context: EmbContext;
@@ -28,7 +29,8 @@ describe('Monorepo / Operations / GetComponentContainerOperation', () => {
     Mounts: [],
   };
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    await createTestContext();
     context = getContext();
     operation = new GetComponentContainerOperation();
     listContainers = context.docker.listContainers as Mock;

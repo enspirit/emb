@@ -4,6 +4,7 @@ import { PassThrough } from 'node:stream';
 import { beforeEach, describe, expect, Mock, test, vi } from 'vitest';
 
 import { ContainerExecOperation } from '@/docker';
+import { createTestContext } from 'tests/setup/set.context.js';
 
 describe('Docker / ContainerExecOperation', () => {
   let context: EmbContext;
@@ -19,7 +20,8 @@ describe('Docker / ContainerExecOperation', () => {
   };
   let mockStream: EventEmitter;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    await createTestContext();
     context = getContext();
     getContainer = context.docker.getContainer as Mock;
 
