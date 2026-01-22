@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { validateUserConfig } from '@/config';
 
 describe('Config syntax - Defaults', () => {
-  let vConfig: ReturnType<typeof vi.fn>;
+  let vConfig: ReturnType<typeof vi.fn<typeof validateUserConfig>>;
 
   beforeEach(() => {
     vConfig = vi.fn(validateUserConfig);

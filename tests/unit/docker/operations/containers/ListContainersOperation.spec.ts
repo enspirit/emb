@@ -1,8 +1,8 @@
 import { EmbContext, getContext } from '@';
+import { createTestContext } from 'tests/setup/set.context.js';
 import { beforeEach, describe, expect, Mock, test } from 'vitest';
 
 import { ListContainersOperation } from '@/docker';
-import { createTestContext } from 'tests/setup/set.context.js';
 
 describe('Docker / ListContainersOperation', () => {
   let context: EmbContext;
