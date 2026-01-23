@@ -36,6 +36,10 @@ export const BuildImageOperationInputSchema = z.object({
       'Arbitrary key/value labels to set on the image, as a JSON map of string pairs.',
     ),
   target: z.string().optional().describe('Target build stage'),
+  platform: z
+    .string()
+    .optional()
+    .describe('Target platform for the build (e.g., linux/amd64, linux/arm64)'),
 });
 
 export class BuildImageOperation extends AbstractOperation<
@@ -68,6 +72,10 @@ export class BuildImageOperation extends AbstractOperation<
 
     if (input.target) {
       args.push('--target', input.target);
+    }
+
+    if (input.platform) {
+      args.push('--platform', input.platform);
     }
 
     Object.entries(input.buildArgs || []).forEach(([key, value]) => {
@@ -136,6 +144,7 @@ export class BuildImageOperation extends AbstractOperation<
         labels: input.labels,
         t: input.tag,
         target: input.target,
+        platform: input.platform,
         version: '2',
       },
     );
