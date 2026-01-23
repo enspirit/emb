@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 # Components vs Services: Supporting External Docker Services
 
 ## Problem Statement
@@ -211,3 +212,268 @@ Commands that remain component-only (require source code):
 - Docker Compose service model
 - Kubernetes distinction between Deployments and StatefulSets
 - Terraform's managed vs data resources
+=======
+# Plan
+
+We need to clarify concepts in EMB.
+
+## Components
+
+For me components are logic parts of the software, they could be libraries or running parts of the architecture.
+Building component requires building resources (typically docker images, but it could be files too)
+Components' resources can depend on each other (an api depending on a library, a component's docker image depend on a base image, etc)
+
+## Services
+
+Services are running parts of the artchitecture, they might get backed by a component or not.
+For instance the software might be running services considered external (out of the codebase) (postgresql, rabbitmq, ...)
+
+## Tasks
+
+Tasks could exist for both services or components
+
+## Refactor
+
+### commands
+
+All these commands actually deal with services and not components
+
+emb up [SERVICE...]
+emb down [SERVICE...]
+emb reset [SERVICE...]
+emb logs [SERVICE...]
+emb ps
+emb restart [SERVICE...]
+emb shell SERVICE
+emb start [SERVICE...]
+emb stop [SERVICE...]
+
+For all of these commands we should detect when docker compose has "no configuration file provided" and give a clear error message to the user
+
+Also, if there are no docker compose setup, all tasks should by default run locally, and trying to run with "-x container" should fail accordingly
+
+### New commands
+
+Additionally to the changes above we would like the following new commands:
+
+emb services -- list services (same as ps but listing all services even if not running)
+emb services start [...SERVICES] -- same as docker compose start
+emb services stop [...SERVICES] -- same as docker compose stop
+emb services restart [...SERVICES] -- same as docker compose restart
+emb services logs [...SERVICE] -- same as emb logs 
+
+### tasks
+
+When running a task that does not specify a list of executors, we default to the following logic:
+
+* Is this task belonging to a running service
+    * Yes: it should run in the container by default (except if specified otherwise)
+    * Is the container running?
+        * Yes - then run the task
+        * No - ask the user what to do with an interactive prompt: start the container and then run, or run locally
+    * No: run locally
+
+---
+
+## Analysis Notes (Claude)
+
+### Current State Assessment
+
+After exploring the codebase, here's what I found:
+
+**Current Architecture Conflation:**
+- Commands like `up`, `restart`, `shell`, `logs` accept **component names** as arguments
+- Internally they treat them as **docker-compose service names** (1:1 mapping assumed)
+- `DockerComposeClient.isService(component)` checks if a component name matches a docker-compose service
+- No concept of "external services" (postgres, rabbitmq) that aren't backed by components
+
+**Key Files Involved:**
+- `src/cli/commands/{up,down,start,stop,restart,logs,ps}.ts` - CLI commands
+- `src/cli/commands/components/shell.ts` - shell command
+- `src/docker/compose/client.ts` - DockerComposeClient
+- `src/docker/compose/operations/*.ts` - compose operations
+- `src/monorepo/operations/tasks/RunTasksOperation.ts` - task execution logic
+- `src/monorepo/component.ts` - Component class
+- `src/config/schema.ts` - configuration schema
+
+**Current Task Execution Logic** (`RunTasksOperation.ts`):
+```typescript
+private async availableExecutorsFor(task: TaskInfo): Promise<ExecutorType[]> {
+  if (task.executors) {
+    return task.executors  // Use explicit config
+  }
+  // If task belongs to a component that's a docker-compose service
+  return task.component && (await compose.isService(task.component))
+    ? [ExecutorType.container, ExecutorType.local]
+    : [ExecutorType.local]
+}
+```
+
+### Proposed Data Model
+
+#### Service Abstraction
+
+We need a new `Service` concept in the configuration:
+
+```yaml
+# .emb.yml
+services:
+  # Service backed by a component
+  api:
+    component: api  # references components.api
+
+  # External service (no component)
+  postgres:
+    external: true
+    # Optional: define tasks that run against this service
+    tasks:
+      psql:
+        script: psql -U postgres
+
+  # Service with explicit docker-compose service name (if different)
+  worker:
+    component: background-worker
+    compose:
+      service: worker  # docker-compose service name if different from service name
+```
+
+Alternatively, simpler approach - services are auto-discovered from docker-compose + explicit config:
+
+```yaml
+services:
+  # Override or extend auto-discovered services
+  postgres:
+    external: true  # marks as external (no build needed)
+```
+
+#### Component vs Service Relationship
+
+```
+Component                          Service
+├── name                          ├── name
+├── rootDir                       ├── component? (optional reference)
+├── tasks                         ├── external? (boolean)
+├── resources                     ├── tasks? (for external services)
+└── flavors                       └── compose.service? (docker-compose name)
+```
+
+### Implementation Strategy
+
+#### Phase 1: Service Discovery & Abstraction
+
+1. **Create Service class** (`src/monorepo/service.ts`)
+   - Properties: `name`, `component?`, `external`, `composeName`
+   - Methods: `isRunning()`, `start()`, `stop()`, `logs()`
+
+2. **Extend configuration schema**
+   - Add optional `services` section to `.emb.yml`
+   - Auto-discover services from docker-compose if not explicitly defined
+
+3. **Update Monorepo class**
+   - Add `services` getter that merges:
+     - Services from docker-compose config
+     - Services from `.emb.yml` services section
+     - Services inferred from components (backward compat)
+
+#### Phase 2: Command Refactoring
+
+1. **Create ServiceCommand base class** (already started: `src/cli/abstract/ServiceCommand.ts`)
+   - Common logic for service-targeting commands
+   - Service resolution (by name)
+   - Docker-compose availability checking
+   - Clear error messages when docker-compose missing
+
+2. **Refactor existing commands** to use ServiceCommand:
+   - `up`, `down`, `start`, `stop`, `restart` - accept SERVICE names
+   - `logs`, `shell` - accept SERVICE name
+   - `ps` - list services
+
+3. **Add new `services` topic commands:**
+   - `emb services` - list all services (running + stopped)
+   - `emb services:start [SERVICES...]`
+   - `emb services:stop [SERVICES...]`
+   - `emb services:restart [SERVICES...]`
+   - `emb services:logs [SERVICES...]`
+
+#### Phase 3: Task Execution Improvements
+
+1. **Update task executor selection**:
+   ```typescript
+   async selectExecutor(task: TaskInfo): Promise<ExecutorType> {
+     // Explicit executor specified
+     if (task.executors?.length === 1) return task.executors[0]
+
+     // Task belongs to a service?
+     const service = task.component && this.monorepo.serviceForComponent(task.component)
+     if (!service) return ExecutorType.local
+
+     // Service running?
+     if (await service.isRunning()) {
+       return ExecutorType.container
+     }
+
+     // Prompt user
+     return await this.promptExecutorChoice(task, service)
+   }
+   ```
+
+2. **Add interactive prompt** when container not running:
+   - Option 1: Start container, then run in container
+   - Option 2: Run locally
+   - Option 3: Cancel
+
+3. **Better error handling** when no docker-compose:
+   - `-x container` should fail with clear message
+   - Default to local execution
+
+#### Phase 4: Migration & Backward Compatibility
+
+1. **Deprecation warnings** for old patterns:
+   - `emb up COMPONENT` → suggest `emb up SERVICE`
+   - Keep working for components that map 1:1 to services
+
+2. **Auto-migration** where possible:
+   - Infer services from components with docker-compose presence
+
+### Breaking Changes Considerations
+
+| Change | Impact | Mitigation |
+|--------|--------|------------|
+| Command args change from COMPONENT to SERVICE | Low - same names in most cases | Deprecation warnings, keep backward compat |
+| New `services` config section | None - optional | Auto-discovery from docker-compose |
+| Task execution prompts | Medium - CI might break | Add `--no-interactive` flag, env var |
+
+### Open Questions
+
+1. **Should services be defined in docker-compose or .emb.yml?**
+   - Option A: Auto-discover from docker-compose, override in .emb.yml
+   - Option B: Explicitly define all services in .emb.yml
+   - **Recommendation**: Option A (less config, backward compat)
+
+2. **How to handle service-to-component name mismatches?**
+   - Current: assumes 1:1 name match
+   - Proposed: explicit `compose.service` override or naming convention
+
+3. **Should external services support tasks?**
+   - Use case: `emb run postgres:psql` to connect to postgres
+   - Would need explicit task definitions for external services
+
+4. **What about Kubernetes services?**
+   - Current codebase has k8s support
+   - Should the service abstraction also cover k8s deployments?
+
+### Suggested Implementation Order
+
+1. [ ] Create `Service` class and basic abstraction
+2. [ ] Add `services` getter to Monorepo (auto-discovery from docker-compose)
+3. [ ] Create `ServiceCommand` base class with docker-compose checks
+4. [ ] Implement `emb services` command (list all services)
+5. [ ] Refactor `ps` to use new service abstraction
+6. [ ] Add `services:start`, `services:stop`, `services:restart`, `services:logs`
+7. [ ] Refactor `up`, `down`, `start`, `stop`, `restart` to use ServiceCommand
+8. [ ] Update task executor selection with new logic
+9. [ ] Add interactive prompts for task execution
+10. [ ] Add deprecation warnings for component-as-service patterns
+11. [ ] Update documentation
+12. [ ] Write migration guide
+>>>>>>> Stashed changes
