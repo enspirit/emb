@@ -17,13 +17,13 @@ FROM base AS builder
 COPY package.json ./
 RUN npm install --production=false
 COPY . ./
-RUN npm run build 2>/dev/null || true
+RUN npm run build
 
 # Production stage - minimal image
 FROM base AS production
 COPY package.json ./
 RUN npm install --production && npm cache clean --force
-COPY --from=builder /app/dist ./dist 2>/dev/null || true
+COPY --from=builder /app/dist ./dist
 COPY server.js ./
 ENV NODE_ENV=production
 EXPOSE 3000

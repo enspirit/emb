@@ -95,6 +95,7 @@ class DockerImageResourceBuilder extends SentinelFileBasedBuilder<
         'emb/flavor': this.monorepo.currentFlavor,
       }),
       target: this.config?.target,
+      platform: this.config?.platform || this.monorepo.defaults.docker?.platform,
     };
 
     return {

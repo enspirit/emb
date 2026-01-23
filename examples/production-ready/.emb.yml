@@ -54,3 +54,7 @@ flavors:
       - op: replace
         path: /defaults/docker/target
         value: production
+      # Platform can be overridden via DOCKER_PLATFORM env var for CI/testing
+      - op: add
+        path: /defaults/docker/platform
+        value: ${env:DOCKER_PLATFORM:-linux/amd64}
