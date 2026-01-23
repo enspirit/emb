@@ -92,15 +92,16 @@ npm test               # Same as validate-docs
 ### Structure
 
 - `src/content/docs/` - Markdown documentation files
-- `tutorial/` - Self-contained example monorepo used by tutorial docs
 - `scripts/validate-docs.ts` - Validates executable code blocks in docs
+
+Tutorials use the example monorepos from `examples/` (hello-world, fullstack-app, microservices, production-ready).
 
 ### Executable Documentation
 
 Documentation code blocks can be marked for execution and validation:
 
 ```markdown
-```shell exec cwd="tutorial"
+```shell exec cwd="examples/hello-world"
 emb tasks
 ```
 

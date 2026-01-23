@@ -3,7 +3,7 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand, getContext } from '@/cli';
 import { ComposeLogsOperation } from '@/docker';
 
-export default class ComponentsLogs extends BaseCommand {
+export default class Logs extends BaseCommand {
   static description = 'Get components logs.';
   static enableJsonFlag = false;
   static examples = [
@@ -32,7 +32,7 @@ export default class ComponentsLogs extends BaseCommand {
   };
 
   public async run(): Promise<void> {
-    const { flags, argv } = await this.parse(ComponentsLogs);
+    const { flags, argv } = await this.parse(Logs);
     const { monorepo } = await getContext();
 
     const componentNames = argv as string[];

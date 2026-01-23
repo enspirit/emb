@@ -6,7 +6,6 @@ import { KubernetesCommand } from '@/cli';
 import { GetDeploymentPodsOperation } from '@/kubernetes/operations/GetDeploymentPodsOperation.js';
 
 export default class KubernetesLogs extends KubernetesCommand {
-  static aliases: string[] = ['logs'];
   static description = 'Follow kubernetes logs.';
   static enableJsonFlag = false;
   static examples = ['<%= config.bin %> <%= command.id %>'];
