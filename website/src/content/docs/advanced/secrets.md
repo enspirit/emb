@@ -1,13 +1,18 @@
 ---
 title: Secrets Management
-description: Securely inject secrets from external providers like HashiCorp Vault
+description: Securely inject secrets from external providers like HashiCorp Vault and 1Password
 ---
 
 EMB can fetch secrets from external providers and inject them into your configuration. This allows you to avoid storing sensitive data in configuration files or environment variables.
 
 ## Supported Providers
 
-### HashiCorp Vault
+- [HashiCorp Vault](#hashicorp-vault) - Enterprise-grade secrets management
+- [1Password CLI](#1password-cli) - Developer-friendly password manager
+
+---
+
+## HashiCorp Vault
 
 EMB integrates with [HashiCorp Vault](https://www.vaultproject.io/) to fetch secrets at runtime. Vault provides:
 
@@ -16,9 +21,9 @@ EMB integrates with [HashiCorp Vault](https://www.vaultproject.io/) to fetch sec
 - Secret rotation and versioning
 - Multiple authentication methods
 
-## Configuration
+### Configuration
 
-### Adding the Vault Plugin
+#### Adding the Vault Plugin
 
 Add the `vault` plugin to your `.emb.yml`:
 
@@ -149,9 +154,9 @@ plugins:
         token: ${env:VAULT_TOKEN}
 ```
 
-## Using Secrets
+### Using Vault Secrets
 
-### Secret Reference Syntax
+#### Secret Reference Syntax
 
 Reference secrets in your configuration using the `${vault:path#key}` syntax:
 
@@ -166,7 +171,7 @@ The syntax is:
 - `path` - Path to the secret in Vault (e.g., `secret/myapp/database`)
 - `#key` - The key within the secret to retrieve
 
-### KV Version 2 Secrets Engine
+#### KV Version 2 Secrets Engine
 
 EMB automatically handles Vault's KV v2 path format. You can use either:
 
@@ -178,7 +183,7 @@ DATABASE_URL: ${vault:secret/myapp/database#url}
 DATABASE_URL: ${vault:secret/data/myapp/database#url}
 ```
 
-### Secret Versioning
+#### Secret Versioning
 
 To fetch a specific version of a secret, add the version to the path:
 
@@ -202,9 +207,9 @@ emb secrets
 
 Example output:
 ```
-  PROVIDER   PATH                    KEY        COMPONENT   USAGECOUNT
-  vault      secret/myapp/database   url        api         2
-  vault      secret/myapp/api        key        -           1
+  PROVIDER   PATH                       KEY        COMPONENT   USAGECOUNT
+  vault      secret/myapp/database      url        api         2
+  op         Production/db-credentials  password   api         1
 ```
 
 Use `--json` for machine-readable output.
@@ -219,15 +224,15 @@ emb secrets validate
 
 Example output:
 ```
-  STATUS   PROVIDER   PATH                    KEY
-  ✔        vault      secret/myapp/database   url
-  ✔        vault      secret/myapp/api        key
-  ✖        vault      secret/missing          password
+  STATUS   PROVIDER   PATH                       KEY
+  ✔        vault      secret/myapp/database      url
+  ✔        op         Production/db-credentials  password
+  ✖        op         Production/missing-item    secret
 
 Validation: 2 passed, 1 failed
 
 Error details:
-  - vault:secret/missing#password: Secret not found
+  - op:Production/missing-item#secret: Item 'missing-item' not found in vault 'Production'
 ```
 
 Options:
@@ -246,9 +251,10 @@ Example output:
 ```
   NAME    TYPE    STATUS
   vault   vault   connected
+  op      op      connected
 ```
 
-## Environment Variables Reference
+### Vault Environment Variables
 
 EMB automatically detects these environment variables for Vault configuration:
 
@@ -264,9 +270,9 @@ EMB automatically detects these environment variables for Vault configuration:
 | `VAULT_OIDC_ROLE` | Role name for OIDC auth |
 | `VAULT_K8S_ROLE` | Role name for Kubernetes auth |
 
-## Examples
+### Vault Examples
 
-### Development Setup with OIDC
+#### Development Setup with OIDC
 
 For local development with SSO:
 
@@ -285,7 +291,7 @@ env:
   REDIS_URL: ${vault:secret/dev/redis#url}
 ```
 
-### CI/CD Pipeline with JWT
+#### CI/CD Pipeline with JWT
 
 For GitLab CI or GitHub Actions:
 
@@ -305,7 +311,7 @@ env:
   REGISTRY_PASSWORD: ${vault:secret/ci/registry#password}
 ```
 
-### Production with AppRole
+#### Production with AppRole
 
 For production deployments:
 
@@ -326,7 +332,7 @@ env:
   API_SECRET: ${vault:secret/prod/api#secret}
 ```
 
-## Vault Server Setup
+### Vault Server Setup
 
 EMB expects Vault to be configured with the KV v2 secrets engine. Here's a minimal setup:
 
@@ -344,7 +350,7 @@ vault kv put secret/myapp/database \
 vault kv get secret/myapp/database
 ```
 
-### OIDC Configuration
+#### OIDC Configuration
 
 To use OIDC authentication, configure Vault's OIDC auth backend:
 
@@ -367,7 +373,7 @@ vault write auth/oidc/role/developer \
   policies="developer"
 ```
 
-### JWT Configuration
+#### JWT Configuration
 
 For CI/CD JWT authentication:
 
@@ -388,30 +394,229 @@ vault write auth/jwt/role/ci-runner \
   ttl="1h"
 ```
 
-## Troubleshooting
+### Vault Troubleshooting
 
-### "Vault authentication not configured"
+#### "Vault authentication not configured"
 
 EMB couldn't determine how to authenticate. Either:
 - Add explicit `auth` config in the vault plugin
 - Set the appropriate environment variables (`VAULT_TOKEN`, etc.)
 
-### "Failed to get OIDC auth URL"
+#### "Failed to get OIDC auth URL"
 
 The OIDC auth backend may not be enabled or configured in Vault. Check:
 - OIDC auth is enabled: `vault auth list`
 - Discovery URL is accessible from Vault
 - Client ID and secret are correct
 
-### "Permission denied"
+#### "Permission denied"
 
 Your token doesn't have access to the requested secret path. Check:
 - Token policies allow reading the path
 - Namespace is correct (if using Vault Enterprise)
 
-### Secrets Not Resolving
+#### Secrets Not Resolving
 
 If `${vault:...}` syntax isn't being replaced:
 - Verify the vault plugin is loaded (check for errors on startup)
 - Ensure the secret path and key are correct
 - Check Vault connectivity: `vault status`
+
+---
+
+## 1Password CLI
+
+EMB integrates with [1Password CLI](https://developer.1password.com/docs/cli/) (`op`) to fetch secrets from your 1Password vaults. This is ideal for:
+
+- Developer workstations with 1Password already installed
+- CI/CD pipelines using 1Password service accounts
+- Teams already using 1Password for credential management
+
+### Prerequisites
+
+Install the 1Password CLI from https://1password.com/downloads/command-line/
+
+### Configuration
+
+#### Adding the 1Password Plugin
+
+Add the `op` plugin to your `.emb.yml`:
+
+```yaml
+plugins:
+  - name: op
+```
+
+That's it! If you're already signed in to `op` or have a service account token configured, EMB will use it automatically.
+
+#### Optional: Specify Account
+
+If you have multiple 1Password accounts, specify which one to use:
+
+```yaml
+plugins:
+  - name: op
+    config:
+      account: my-team  # Account shorthand or UUID
+```
+
+Or use the `OP_ACCOUNT` environment variable.
+
+### Authentication Methods
+
+#### Interactive (Developer Workstations)
+
+Sign in to 1Password CLI before using EMB:
+
+```bash
+# Sign in (opens browser or prompts for credentials)
+op signin
+
+# Then run EMB commands
+emb up
+```
+
+#### Service Account (CI/CD)
+
+For automated environments, use a [1Password Service Account](https://developer.1password.com/docs/service-accounts/):
+
+```bash
+# Set the service account token
+export OP_SERVICE_ACCOUNT_TOKEN="ops_..."
+
+# EMB will automatically use it
+emb up
+```
+
+The `op` CLI automatically detects and uses the service account token.
+
+### Using Secrets
+
+#### Secret Reference Syntax
+
+Reference secrets using the `${op:vault/item#field}` syntax:
+
+```yaml
+env:
+  DATABASE_PASSWORD: ${op:Production/database-credentials#password}
+  API_KEY: ${op:Development/api-keys#secret-key}
+```
+
+The syntax is:
+- `op:` - The secret source prefix
+- `vault` - Name of the 1Password vault
+- `item` - Name of the item within the vault
+- `#field` - The field label to retrieve
+
+#### Finding Vault and Item Names
+
+Use the 1Password CLI to list your vaults and items:
+
+```bash
+# List vaults
+op vault list
+
+# List items in a vault
+op item list --vault Production
+
+# Get item details (shows all fields)
+op item get database-credentials --vault Production
+```
+
+### Environment Variables Reference
+
+| Variable | Description |
+|----------|-------------|
+| `OP_SERVICE_ACCOUNT_TOKEN` | Service account token for CI/CD |
+| `OP_ACCOUNT` | Account shorthand or UUID (optional) |
+
+### Examples
+
+#### Development Setup
+
+For local development with 1Password Desktop app:
+
+```yaml
+# .emb.yml
+plugins:
+  - name: op
+
+env:
+  DATABASE_URL: ${op:Development/postgres#connection-string}
+  REDIS_URL: ${op:Development/redis#url}
+  JWT_SECRET: ${op:Development/app-secrets#jwt-key}
+```
+
+#### CI/CD with Service Account
+
+For GitHub Actions or GitLab CI:
+
+```yaml
+# .emb.yml
+plugins:
+  - name: op
+
+env:
+  DEPLOY_KEY: ${op:CI-CD/deploy-keys#ssh-private-key}
+  REGISTRY_PASSWORD: ${op:CI-CD/docker-registry#password}
+  AWS_SECRET_KEY: ${op:CI-CD/aws-credentials#secret-access-key}
+```
+
+In your CI pipeline, set the `OP_SERVICE_ACCOUNT_TOKEN` secret.
+
+#### Multiple Environments with Flavors
+
+Combine 1Password secrets with EMB flavors:
+
+```yaml
+# .emb.yml
+plugins:
+  - name: op
+
+env:
+  DATABASE_URL: ${op:Development/database#url}
+
+flavors:
+  staging:
+    - op: replace
+      path: /env/DATABASE_URL
+      value: ${op:Staging/database#url}
+
+  production:
+    - op: replace
+      path: /env/DATABASE_URL
+      value: ${op:Production/database#url}
+```
+
+### Troubleshooting
+
+#### "1Password CLI (op) not found"
+
+The `op` CLI is not installed or not in your PATH. Install it from:
+https://1password.com/downloads/command-line/
+
+#### "Not signed in to 1Password"
+
+You need to authenticate first:
+- **Interactive:** Run `op signin`
+- **CI/CD:** Set `OP_SERVICE_ACCOUNT_TOKEN` environment variable
+
+#### "Vault 'X' not found"
+
+The vault name doesn't match any vault in your account. Check:
+- Vault name spelling (case-sensitive)
+- You have access to the vault
+- Correct account is selected (if multiple accounts)
+
+#### "Item 'X' not found in vault 'Y'"
+
+The item doesn't exist in the specified vault. Check:
+- Item name spelling (case-sensitive)
+- Item exists in the correct vault: `op item list --vault Y`
+
+#### "Key 'X' not found in secret"
+
+The field doesn't exist in the item. Check available fields:
+```bash
+op item get <item> --vault <vault>
+```

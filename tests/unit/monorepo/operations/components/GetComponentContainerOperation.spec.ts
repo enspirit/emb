@@ -1,9 +1,9 @@
 import { EmbContext, getContext } from '@';
 import { ContainerInfo } from 'dockerode';
+import { createTestContext } from 'tests/setup/set.context.js';
 import { beforeEach, describe, expect, Mock, test } from 'vitest';
 
 import { GetComponentContainerOperation } from '../../../../../src/monorepo/operations/components/GetComponentContainerOperation.js';
-import { createTestContext } from 'tests/setup/set.context.js';
 
 describe('Monorepo / Operations / GetComponentContainerOperation', () => {
   let context: EmbContext;
