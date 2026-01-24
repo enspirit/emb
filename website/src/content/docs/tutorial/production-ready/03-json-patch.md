@@ -141,6 +141,18 @@ flavors:
   value: production
 ```
 
+### Set Target Platform
+
+Build for a specific architecture (useful for CI/CD targeting production servers):
+
+```yaml
+- op: add
+  path: /defaults/docker/platform
+  value: linux/amd64
+```
+
+Common platform values: `linux/amd64`, `linux/arm64`, `linux/arm/v7`.
+
 ### Add Build Arguments
 
 ```yaml

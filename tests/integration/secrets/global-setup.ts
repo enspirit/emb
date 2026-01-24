@@ -87,15 +87,20 @@ async function createNetwork(): Promise<void> {
     // Network might not exist, that's fine
   }
 
-  // Create the network
+  // Create the network (ignore if already exists)
   try {
     await execa('docker', ['network', 'create', DOCKER_NETWORK_NAME], {
       stdio: 'pipe',
     });
     console.log('[Network Setup] Docker network created');
   } catch (error) {
-    console.error('[Network Setup] Failed to create network:', error);
-    throw error;
+    // Network already exists is fine - just reuse it
+    if (error instanceof Error && error.message.includes('already exists')) {
+      console.log('[Network Setup] Docker network already exists, reusing');
+    } else {
+      console.error('[Network Setup] Failed to create network:', error);
+      throw error;
+    }
   }
 }
 
@@ -190,6 +195,40 @@ async function startKeycloak(): Promise<void> {
 
     // Wait for Keycloak to be ready
     await waitForKeycloak();
+
+    // Disable SSL requirement for master realm (required for Keycloak 26+)
+    await execa(
+      'docker',
+      [
+        'exec',
+        KEYCLOAK_CONTAINER_NAME,
+        '/opt/keycloak/bin/kcadm.sh',
+        'config',
+        'credentials',
+        '--server',
+        'http://localhost:8080',
+        '--realm',
+        'master',
+        '--user',
+        KEYCLOAK_ADMIN_USER,
+        '--password',
+        KEYCLOAK_ADMIN_PASSWORD,
+      ],
+      { stdio: 'pipe' },
+    );
+    await execa(
+      'docker',
+      [
+        'exec',
+        KEYCLOAK_CONTAINER_NAME,
+        '/opt/keycloak/bin/kcadm.sh',
+        'update',
+        'realms/master',
+        '-s',
+        'sslRequired=NONE',
+      ],
+      { stdio: 'pipe' },
+    );
 
     console.log('[Keycloak Setup] Keycloak server is ready');
   } catch (error) {

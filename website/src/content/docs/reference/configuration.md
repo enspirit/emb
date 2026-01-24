@@ -75,6 +75,7 @@ defaults:
   docker:
     tag: ${env:DOCKER_TAG}      # Default image tag
     target: development          # Default build target
+    platform: linux/amd64        # Target platform (e.g., linux/amd64, linux/arm64)
     buildArgs:                   # Default build arguments
       NODE_ENV: development
     labels:                      # Default labels
@@ -171,6 +172,7 @@ Builds a Docker image.
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `target` | string | Build stage to target |
+| `platform` | string | Target platform (e.g., `linux/amd64`, `linux/arm64`) |
 | `buildArgs` | object | Build arguments |
 | `labels` | object | Image labels |
 | `context` | string | Build context path |

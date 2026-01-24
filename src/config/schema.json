@@ -86,6 +86,10 @@
             "target": {
               "$ref": "#/definitions/Identifier"
             },
+            "platform": {
+              "type": "string",
+              "description": "Target platform for the build (e.g., linux/amd64, linux/arm64)"
+            },
             "buildArgs": {
               "type": "object",
               "additionalProperties": {
@@ -213,6 +217,10 @@
         "target": {
           "type": "string",
           "description": "The stage to target for the build"
+        },
+        "platform": {
+          "type": "string",
+          "description": "Target platform for the build (e.g., linux/amd64, linux/arm64)"
         },
         "labels": {
           "type": "object",
