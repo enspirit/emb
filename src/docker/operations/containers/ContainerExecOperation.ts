@@ -62,10 +62,25 @@ export class ContainerExecOperation extends AbstractOperation<
 
     const stream = await exec.start({ hijack: true, stdin: true });
 
-    // Handle stdin for interactive commands
+    // Store resize handler for cleanup
+    let resizeHandler: (() => void) | undefined;
+
+    // Handle stdin and terminal resize for interactive commands
     if (isInteractive && !this.out && process.stdin.isTTY) {
       process.stdin.setRawMode?.(true);
       process.stdin.pipe(stream);
+
+      // Resize exec session to match terminal dimensions
+      resizeHandler = () => {
+        const { rows, columns } = process.stdout;
+        if (rows && columns) {
+          exec.resize({ h: rows, w: columns }).catch(() => {});
+        }
+      };
+
+      // Initial resize and listen for terminal resize events
+      resizeHandler();
+      process.stdout.on('resize', resizeHandler);
     }
 
     const out = input.interactive ? process.stdout : this.out;
@@ -76,9 +91,12 @@ export class ContainerExecOperation extends AbstractOperation<
     await new Promise<void>((resolve, reject) => {
       const onError = (err: unknown) => reject(err);
       const onEnd = async () => {
-        // Restore stdin raw mode if it was set
+        // Restore stdin raw mode and remove resize handler if they were set
         if (isInteractive && !this.out && process.stdin.isTTY) {
           process.stdin.setRawMode?.(false);
+          if (resizeHandler) {
+            process.stdout.off('resize', resizeHandler);
+          }
         }
 
         exec.inspect((error, res) => {
