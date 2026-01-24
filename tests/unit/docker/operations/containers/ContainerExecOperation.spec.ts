@@ -1,10 +1,10 @@
 import { EmbContext, getContext } from '@';
 import { EventEmitter } from 'node:events';
 import { PassThrough } from 'node:stream';
+import { createTestContext } from 'tests/setup/set.context.js';
 import { beforeEach, describe, expect, Mock, test, vi } from 'vitest';
 
 import { ContainerExecOperation } from '@/docker';
-import { createTestContext } from 'tests/setup/set.context.js';
 
 describe('Docker / ContainerExecOperation', () => {
   let context: EmbContext;
