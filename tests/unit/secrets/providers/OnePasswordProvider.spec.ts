@@ -22,6 +22,29 @@ describe('Secrets / Providers / OnePasswordProvider', () => {
   });
 
   describe('#connect()', () => {
+    test('is lazy - does not check op CLI until called', async () => {
+      // Creating a provider should not trigger any op CLI calls
+      const newProvider = new OnePasswordProvider({});
+      const newMock = vi.spyOn(newProvider as never, 'execOp');
+
+      // No calls yet
+      expect(newMock).not.toHaveBeenCalled();
+    });
+
+    test('only connects once when called multiple times', async () => {
+      mockExecOp.mockResolvedValue({
+        stdout: JSON.stringify({ email: 'user@example.com' }),
+        stderr: '',
+      });
+
+      await provider.connect();
+      await provider.connect();
+      await provider.connect();
+
+      // Should only have called whoami once
+      expect(mockExecOp).toHaveBeenCalledTimes(1);
+    });
+
     test('succeeds when op whoami succeeds', async () => {
       mockExecOp.mockResolvedValueOnce({
         stdout: JSON.stringify({ email: 'user@example.com' }),
@@ -87,7 +110,7 @@ describe('Secrets / Providers / OnePasswordProvider', () => {
   });
 
   describe('#disconnect()', () => {
-    test('clears the cache', async () => {
+    test('clears the cache and resets connection', async () => {
       // First connect
       mockExecOp.mockResolvedValueOnce({
         stdout: JSON.stringify({ email: 'user@example.com' }),
@@ -110,15 +133,19 @@ describe('Secrets / Providers / OnePasswordProvider', () => {
 
       await provider.disconnect();
 
-      // Fetch again should call execOp again (cache was cleared)
+      // Fetch again should reconnect (whoami) and fetch again (cache was cleared)
+      mockExecOp.mockResolvedValueOnce({
+        stdout: JSON.stringify({ email: 'user@example.com' }),
+        stderr: '',
+      });
       mockExecOp.mockResolvedValueOnce({
         stdout: JSON.stringify(itemResponse),
         stderr: '',
       });
       await provider.get({ path: 'TestVault/test-item' });
 
-      // Should have been called: whoami, get item, get item again
-      expect(mockExecOp).toHaveBeenCalledTimes(3);
+      // Should have been called: whoami, get item, whoami (reconnect), get item again
+      expect(mockExecOp).toHaveBeenCalledTimes(4);
     });
   });
 
@@ -129,6 +156,38 @@ describe('Secrets / Providers / OnePasswordProvider', () => {
         stderr: '',
       });
       await provider.connect();
+    });
+
+    test('auto-connects when not yet connected', async () => {
+      // Create a fresh provider that hasn't connected yet
+      const newProvider = new OnePasswordProvider({});
+      const newMock = vi.spyOn(newProvider as never, 'execOp');
+
+      const itemResponse = {
+        id: 'item-id',
+        title: 'db-creds',
+        vault: { id: 'vault-id', name: 'Production' },
+        fields: [{ id: 'password', label: 'password', value: 'secret123' }],
+      };
+
+      // Mock both whoami (for connect) and item get (for fetch)
+      newMock.mockResolvedValueOnce({
+        stdout: JSON.stringify({ email: 'user@example.com' }),
+        stderr: '',
+      });
+      newMock.mockResolvedValueOnce({
+        stdout: JSON.stringify(itemResponse),
+        stderr: '',
+      });
+
+      // Calling fetchSecret without explicit connect should work
+      const result = await newProvider.fetchSecret({
+        path: 'Production/db-creds',
+      });
+
+      expect(result).to.deep.equal({ password: 'secret123' });
+      expect(newMock).toHaveBeenCalledTimes(2);
+      expect(newMock).toHaveBeenNthCalledWith(1, ['whoami']);
     });
 
     test('parses vault/item path correctly', async () => {

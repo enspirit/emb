@@ -40,6 +40,8 @@ interface OpItemResponse {
  * 2. Service account token (CI/CD) - Via `OP_SERVICE_ACCOUNT_TOKEN` env var
  */
 export class OnePasswordProvider extends AbstractSecretProvider<OnePasswordProviderConfig> {
+  private connected = false;
+
   /**
    * Execute the `op` CLI command.
    * Protected to allow mocking in tests.
@@ -52,6 +54,10 @@ export class OnePasswordProvider extends AbstractSecretProvider<OnePasswordProvi
   }
 
   async connect(): Promise<void> {
+    if (this.connected) {
+      return;
+    }
+
     try {
       const args = ['whoami'];
       if (this.config.account) {
@@ -59,6 +65,7 @@ export class OnePasswordProvider extends AbstractSecretProvider<OnePasswordProvi
       }
 
       await this.execOp(args);
+      this.connected = true;
     } catch (error) {
       const err = error as NodeJS.ErrnoException & { stderr?: string };
 
@@ -92,10 +99,14 @@ export class OnePasswordProvider extends AbstractSecretProvider<OnePasswordProvi
   }
 
   async disconnect(): Promise<void> {
+    this.connected = false;
     this.clearCache();
   }
 
   async fetchSecret(ref: SecretReference): Promise<Record<string, unknown>> {
+    // Ensure we're connected before fetching (lazy initialization)
+    await this.connect();
+
     // Parse path as vault/item
     const slashIndex = ref.path.indexOf('/');
     if (slashIndex === -1) {

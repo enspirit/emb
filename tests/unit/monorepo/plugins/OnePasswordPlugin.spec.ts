@@ -20,7 +20,7 @@ describe('Monorepo / Plugins / OnePasswordPlugin', () => {
   });
 
   describe('#init()', () => {
-    test('connects to 1Password and registers provider', async () => {
+    test('registers provider without checking op CLI (lazy connection)', async () => {
       const config: OnePasswordPluginConfig = {};
 
       // Mock the execOp method on the prototype
@@ -34,8 +34,10 @@ describe('Monorepo / Plugins / OnePasswordPlugin', () => {
       const plugin = new OnePasswordPlugin(config, setup.monorepo);
       await plugin.init();
 
+      // Provider should be registered
       expect(setup.secrets.has('op')).to.equal(true);
-      expect(mockExecOp).toHaveBeenCalledWith(['whoami']);
+      // But op CLI should NOT have been called yet (lazy connection)
+      expect(mockExecOp).not.toHaveBeenCalled();
     });
 
     test('works when config is undefined', async () => {
@@ -54,25 +56,46 @@ describe('Monorepo / Plugins / OnePasswordPlugin', () => {
       );
       await plugin.init();
 
+      // Provider should be registered
       expect(setup.secrets.has('op')).to.equal(true);
-      expect(mockExecOp).toHaveBeenCalledWith(['whoami']);
+      // But op CLI should NOT have been called yet (lazy connection)
+      expect(mockExecOp).not.toHaveBeenCalled();
     });
 
-    test('uses account from config', async () => {
+    test('op CLI check is deferred until secret is fetched', async () => {
       const config: OnePasswordPluginConfig = {
         account: 'my-team',
       };
 
+      const itemResponse = {
+        id: 'item-id',
+        title: 'db-creds',
+        vault: { id: 'vault-id', name: 'Production' },
+        fields: [{ id: 'password', label: 'password', value: 'secret123' }],
+      };
+
       const mockExecOp = vi
         .spyOn(OnePasswordProvider.prototype as never, 'execOp')
-        .mockResolvedValue({
+        .mockResolvedValueOnce({
           stdout: JSON.stringify({ email: 'user@example.com' }),
+          stderr: '',
+        })
+        .mockResolvedValueOnce({
+          stdout: JSON.stringify(itemResponse),
           stderr: '',
         });
 
       const plugin = new OnePasswordPlugin(config, setup.monorepo);
       await plugin.init();
 
+      // No calls yet during init
+      expect(mockExecOp).not.toHaveBeenCalled();
+
+      // Now fetch a secret - this triggers the connection
+      const provider = setup.secrets.get('op');
+      await provider!.get({ path: 'Production/db-creds', key: 'password' });
+
+      // Now whoami should have been called with account
       expect(mockExecOp).toHaveBeenCalledWith([
         'whoami',
         '--account',
@@ -86,15 +109,30 @@ describe('Monorepo / Plugins / OnePasswordPlugin', () => {
 
       const config: OnePasswordPluginConfig = {};
 
+      const itemResponse = {
+        id: 'item-id',
+        title: 'db-creds',
+        vault: { id: 'vault-id', name: 'Production' },
+        fields: [{ id: 'password', label: 'password', value: 'secret123' }],
+      };
+
       const mockExecOp = vi
         .spyOn(OnePasswordProvider.prototype as never, 'execOp')
-        .mockResolvedValue({
+        .mockResolvedValueOnce({
           stdout: JSON.stringify({ email: 'user@example.com' }),
+          stderr: '',
+        })
+        .mockResolvedValueOnce({
+          stdout: JSON.stringify(itemResponse),
           stderr: '',
         });
 
       const plugin = new OnePasswordPlugin(config, setup.monorepo);
       await plugin.init();
+
+      // Fetch a secret to trigger connection
+      const provider = setup.secrets.get('op');
+      await provider!.get({ path: 'Production/db-creds', key: 'password' });
 
       expect(mockExecOp).toHaveBeenCalledWith([
         'whoami',
@@ -105,7 +143,7 @@ describe('Monorepo / Plugins / OnePasswordPlugin', () => {
       process.env.OP_ACCOUNT = originalEnv;
     });
 
-    test('throws error when op CLI not found', async () => {
+    test('error when op CLI not found is deferred until secret is fetched', async () => {
       const config: OnePasswordPluginConfig = {};
 
       const error = new Error('spawn op ENOENT') as NodeJS.ErrnoException;
@@ -116,12 +154,17 @@ describe('Monorepo / Plugins / OnePasswordPlugin', () => {
       ).mockRejectedValue(error);
 
       const plugin = new OnePasswordPlugin(config, setup.monorepo);
-      await expect(plugin.init()).rejects.toThrow(
-        '1Password CLI (op) not found',
-      );
+      // init() should succeed - no op CLI check yet
+      await plugin.init();
+
+      // But fetching a secret should fail
+      const provider = setup.secrets.get('op');
+      await expect(
+        provider!.get({ path: 'Production/db-creds' }),
+      ).rejects.toThrow('1Password CLI (op) not found');
     });
 
-    test('throws error when not signed in', async () => {
+    test('error when not signed in is deferred until secret is fetched', async () => {
       const config: OnePasswordPluginConfig = {};
 
       const error = new Error('Not signed in') as NodeJS.ErrnoException & {
@@ -135,7 +178,14 @@ describe('Monorepo / Plugins / OnePasswordPlugin', () => {
       ).mockRejectedValue(error);
 
       const plugin = new OnePasswordPlugin(config, setup.monorepo);
-      await expect(plugin.init()).rejects.toThrow('Not signed in to 1Password');
+      // init() should succeed - no op CLI check yet
+      await plugin.init();
+
+      // But fetching a secret should fail
+      const provider = setup.secrets.get('op');
+      await expect(
+        provider!.get({ path: 'Production/db-creds' }),
+      ).rejects.toThrow('Not signed in to 1Password');
     });
   });
 });

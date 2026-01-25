@@ -44,9 +44,8 @@ export class OnePasswordPlugin extends AbstractPlugin<OnePasswordPluginConfig> {
     const resolvedConfig = this.resolveConfig();
     this.provider = new OnePasswordProvider(resolvedConfig);
 
-    await this.provider.connect();
-
     // Register the provider with the global SecretManager
+    // Connection is lazy - op CLI is only checked when secrets are actually fetched
     const context = getContext();
     if (context?.secrets) {
       context.secrets.register('op', this.provider);
