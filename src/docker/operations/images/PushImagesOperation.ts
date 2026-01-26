@@ -69,7 +69,7 @@ export class PushImagesOperation extends AbstractOperation<
 
     return manager.run([
       {
-        title: 'Push imags',
+        title: 'Push images',
         async task(ctx, task) {
           return task.newListr(tasks, {
             rendererOptions: {
