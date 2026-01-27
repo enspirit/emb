@@ -306,6 +306,10 @@
                   },
                   "script": {
                     "type": "string"
+                  },
+                  "content": {
+                    "type": "string",
+                    "description": "Content to write to the file, supports template expansion for secrets"
                   }
                 }
               }
