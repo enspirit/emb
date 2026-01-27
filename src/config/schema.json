@@ -207,6 +207,14 @@
     "DockerImageConfig": {
       "type": "object",
       "properties": {
+        "image": {
+          "type": "string",
+          "description": "Image name (without project prefix or tag). Defaults to component name."
+        },
+        "tag": {
+          "type": "string",
+          "description": "Image tag. Defaults to defaults.docker.tag or 'latest'."
+        },
         "buildArgs": {
           "type": "object",
           "properties": {},

@@ -14,15 +14,26 @@ import {
 } from '../../monorepo/resources/ResourceFactory.js';
 import { BuildImageOperation } from '../operations/index.js';
 
+/**
+ * Configuration for a docker/image resource.
+ * Extends build operation input with image naming options.
+ */
+type DockerImageResourceConfig = Partial<OpInput<BuildImageOperation>> & {
+  /** Image name (without project prefix or tag). Defaults to component name. */
+  image?: string;
+  /** Image tag. Defaults to defaults.docker.tag or 'latest'. */
+  tag?: string;
+};
+
 class DockerImageResourceBuilder extends SentinelFileBasedBuilder<
-  OpInput<BuildImageOperation>,
+  DockerImageResourceConfig,
   OpOutput<BuildImageOperation>,
   { mtime: number }
 > {
   protected dockerContext: string;
 
   constructor(
-    protected buildContext: ResourceBuildContext<OpInput<BuildImageOperation>>,
+    protected buildContext: ResourceBuildContext<DockerImageResourceConfig>,
   ) {
     super(buildContext);
 
@@ -34,24 +45,12 @@ class DockerImageResourceBuilder extends SentinelFileBasedBuilder<
   }
 
   async getReference(): Promise<string> {
-    const configTag = this.config?.tag;
-    let imageNamePart: string;
-    let tagPart: string;
+    const imageName = this.config?.image || this.component.name;
+    const tag =
+      this.config?.tag || this.monorepo.defaults.docker?.tag || 'latest';
 
-    if (configTag && configTag.includes(':')) {
-      // config.tag contains both image name and tag (e.g., "myimage:v1.0.0")
-      const colonIndex = configTag.lastIndexOf(':');
-      imageNamePart = configTag.slice(0, colonIndex);
-      tagPart = configTag.slice(colonIndex + 1);
-    } else {
-      // config.tag is just an image name or undefined
-      imageNamePart = configTag || this.component.name;
-      tagPart = this.monorepo.defaults.docker?.tag || 'latest';
-    }
-
-    const imageName = [this.monorepo.name, imageNamePart].join('/');
-
-    return this.monorepo.expand(`${imageName}:${tagPart}`);
+    const fullImageName = [this.monorepo.name, imageName].join('/');
+    return this.monorepo.expand(`${fullImageName}:${tag}`);
   }
 
   get monorepo() {
@@ -67,7 +66,7 @@ class DockerImageResourceBuilder extends SentinelFileBasedBuilder<
   }
 
   async _build(
-    _resource: ResourceInfo<OpInput<BuildImageOperation>>,
+    _resource: ResourceInfo<DockerImageResourceConfig>,
     out: Writable,
   ) {
     // Ensure the folder exists
@@ -79,7 +78,9 @@ class DockerImageResourceBuilder extends SentinelFileBasedBuilder<
       .crawl(this.dockerContext)
       .withPromise();
 
-    const buildParams: OpInput<BuildImageOperation> = {
+    // Build operation input - note that 'image' from config is only used for
+    // getReference(), it's not passed to the build operation
+    const buildParams = {
       context: this.dockerContext,
       dockerfile: this.config?.dockerfile || 'Dockerfile',
       src: sources,
@@ -100,7 +101,7 @@ class DockerImageResourceBuilder extends SentinelFileBasedBuilder<
     };
 
     return {
-      input: buildParams,
+      input: buildParams as DockerImageResourceConfig,
       operation: new BuildImageOperation(out),
     };
   }
