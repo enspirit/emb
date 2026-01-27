@@ -171,6 +171,8 @@ Builds a Docker image.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
+| `image` | string | Image name (without project prefix or tag). Defaults to component name. |
+| `tag` | string | Image tag. Defaults to `defaults.docker.tag` or `latest`. |
 | `target` | string | Build stage to target |
 | `platform` | string | Target platform (e.g., `linux/amd64`, `linux/arm64`) |
 | `buildArgs` | object | Build arguments |

@@ -15,6 +15,15 @@ import {
 // Import to register the resource type
 import '../../../../src/docker/resources/DockerImageResource.js';
 
+/**
+ * Configuration type for docker/image resource params.
+ * Matches the type defined in DockerImageResource.ts
+ */
+type DockerImageResourceConfig = Partial<OpInput<BuildImageOperation>> & {
+  image?: string;
+  tag?: string;
+};
+
 describe('Docker / DockerImageResource', () => {
   let rootDir: string;
   let componentDir: string;
@@ -67,18 +76,16 @@ describe('Docker / DockerImageResource', () => {
     await rimraf(rootDir);
   });
 
-  const createBuilder = (
-    params: Partial<OpInput<BuildImageOperation>> = {},
-  ) => {
-    const config: ResourceInfo<OpInput<BuildImageOperation>> = {
+  const createBuilder = (params: DockerImageResourceConfig = {}) => {
+    const config: ResourceInfo<DockerImageResourceConfig> = {
       id: 'mycomponent:docker-image',
       name: 'docker-image',
       component: 'mycomponent',
       type: 'docker/image',
-      params: params as OpInput<BuildImageOperation>,
+      params,
     };
 
-    const context: ResourceBuildContext<OpInput<BuildImageOperation>> = {
+    const context: ResourceBuildContext<DockerImageResourceConfig> = {
       config,
       component: mockComponent,
       monorepo: mockMonorepo,
@@ -104,24 +111,31 @@ describe('Docker / DockerImageResource', () => {
       expect(reference).toBe('test-project/mycomponent:latest');
     });
 
-    test('it uses custom image name and tag when provided in config', async () => {
-      const builder = createBuilder({ tag: 'myimage:v1.0.0' } as Partial<
-        OpInput<BuildImageOperation>
-      >);
+    test('it uses explicit image parameter', async () => {
+      const builder = createBuilder({ image: 'api-backend' });
 
       const reference = await builder.getReference();
 
-      expect(reference).toBe('test-project/myimage:v1.0.0');
+      expect(reference).toBe('test-project/api-backend:latest');
     });
 
-    test('it uses custom image name with default tag when no tag suffix', async () => {
-      const builder = createBuilder({ tag: 'myimage' } as Partial<
-        OpInput<BuildImageOperation>
-      >);
+    test('it uses explicit tag parameter', async () => {
+      const builder = createBuilder({ tag: 'v1.0.0' });
 
       const reference = await builder.getReference();
 
-      expect(reference).toBe('test-project/myimage:latest');
+      expect(reference).toBe('test-project/mycomponent:v1.0.0');
+    });
+
+    test('it uses both explicit image and tag parameters', async () => {
+      const builder = createBuilder({
+        image: 'api-worker',
+        tag: 'v2.0.0',
+      });
+
+      const reference = await builder.getReference();
+
+      expect(reference).toBe('test-project/api-worker:v2.0.0');
     });
 
     test('it uses monorepo default tag when no tag in config', async () => {
@@ -132,6 +146,15 @@ describe('Docker / DockerImageResource', () => {
 
       expect(reference).toBe('test-project/mycomponent:dev');
     });
+
+    test('it uses explicit tag over monorepo default', async () => {
+      (mockMonorepo.defaults.docker as { tag: string }).tag = 'dev';
+      const builder = createBuilder({ tag: 'production' });
+
+      const reference = await builder.getReference();
+
+      expect(reference).toBe('test-project/mycomponent:production');
+    });
   });
 
   describe('#build()', () => {
@@ -140,12 +163,12 @@ describe('Docker / DockerImageResource', () => {
       await writeFile(join(componentDir, 'index.ts'), 'console.log("hello")');
 
       const builder = createBuilder();
-      const resource: ResourceInfo<OpInput<BuildImageOperation>> = {
+      const resource: ResourceInfo<DockerImageResourceConfig> = {
         id: 'mycomponent:docker-image',
         name: 'docker-image',
         component: 'mycomponent',
         type: 'docker/image',
-        params: {} as OpInput<BuildImageOperation>,
+        params: {},
       };
 
       const result = await builder.build(resource);
@@ -162,15 +185,13 @@ describe('Docker / DockerImageResource', () => {
         'FROM alpine\n',
       );
 
-      const builder = createBuilder({ context: 'docker' } as Partial<
-        OpInput<BuildImageOperation>
-      >);
-      const resource: ResourceInfo<OpInput<BuildImageOperation>> = {
+      const builder = createBuilder({ context: 'docker' });
+      const resource: ResourceInfo<DockerImageResourceConfig> = {
         id: 'mycomponent:docker-image',
         name: 'docker-image',
         component: 'mycomponent',
         type: 'docker/image',
-        params: { context: 'docker' } as OpInput<BuildImageOperation>,
+        params: { context: 'docker' },
       };
 
       const result = await builder.build(resource);
@@ -183,15 +204,13 @@ describe('Docker / DockerImageResource', () => {
       await mkdir(absContext, { recursive: true });
       await writeFile(join(absContext, 'Dockerfile'), 'FROM ubuntu\n');
 
-      const builder = createBuilder({ context: '/shared-docker' } as Partial<
-        OpInput<BuildImageOperation>
-      >);
-      const resource: ResourceInfo<OpInput<BuildImageOperation>> = {
+      const builder = createBuilder({ context: '/shared-docker' });
+      const resource: ResourceInfo<DockerImageResourceConfig> = {
         id: 'mycomponent:docker-image',
         name: 'docker-image',
         component: 'mycomponent',
         type: 'docker/image',
-        params: { context: '/shared-docker' } as OpInput<BuildImageOperation>,
+        params: { context: '/shared-docker' },
       };
 
       const result = await builder.build(resource);
@@ -201,12 +220,12 @@ describe('Docker / DockerImageResource', () => {
 
     test('it sets labels including emb metadata', async () => {
       const builder = createBuilder();
-      const resource: ResourceInfo<OpInput<BuildImageOperation>> = {
+      const resource: ResourceInfo<DockerImageResourceConfig> = {
         id: 'mycomponent:docker-image',
         name: 'docker-image',
         component: 'mycomponent',
         type: 'docker/image',
-        params: {} as OpInput<BuildImageOperation>,
+        params: {},
       };
 
       const result = await builder.build(resource);
@@ -221,15 +240,15 @@ describe('Docker / DockerImageResource', () => {
     test('it merges custom labels with emb labels', async () => {
       const builder = createBuilder({
         labels: { version: '1.0.0', maintainer: 'dev@example.com' },
-      } as Partial<OpInput<BuildImageOperation>>);
-      const resource: ResourceInfo<OpInput<BuildImageOperation>> = {
+      });
+      const resource: ResourceInfo<DockerImageResourceConfig> = {
         id: 'mycomponent:docker-image',
         name: 'docker-image',
         component: 'mycomponent',
         type: 'docker/image',
         params: {
           labels: { version: '1.0.0', maintainer: 'dev@example.com' },
-        } as unknown as OpInput<BuildImageOperation>,
+        },
       };
 
       const result = await builder.build(resource);
@@ -251,15 +270,15 @@ describe('Docker / DockerImageResource', () => {
 
       const builder = createBuilder({
         dockerfile: 'Dockerfile.prod',
-      } as Partial<OpInput<BuildImageOperation>>);
-      const resource: ResourceInfo<OpInput<BuildImageOperation>> = {
+      });
+      const resource: ResourceInfo<DockerImageResourceConfig> = {
         id: 'mycomponent:docker-image',
         name: 'docker-image',
         component: 'mycomponent',
         type: 'docker/image',
         params: {
           dockerfile: 'Dockerfile.prod',
-        } as OpInput<BuildImageOperation>,
+        },
       };
 
       const result = await builder.build(resource);
@@ -270,15 +289,15 @@ describe('Docker / DockerImageResource', () => {
     test('it passes build args from config', async () => {
       const builder = createBuilder({
         buildArgs: { NODE_ENV: 'production' },
-      } as Partial<OpInput<BuildImageOperation>>);
-      const resource: ResourceInfo<OpInput<BuildImageOperation>> = {
+      });
+      const resource: ResourceInfo<DockerImageResourceConfig> = {
         id: 'mycomponent:docker-image',
         name: 'docker-image',
         component: 'mycomponent',
         type: 'docker/image',
         params: {
           buildArgs: { NODE_ENV: 'production' },
-        } as unknown as OpInput<BuildImageOperation>,
+        },
       };
 
       const result = await builder.build(resource);
@@ -287,15 +306,13 @@ describe('Docker / DockerImageResource', () => {
     });
 
     test('it passes target stage when provided', async () => {
-      const builder = createBuilder({ target: 'runtime' } as Partial<
-        OpInput<BuildImageOperation>
-      >);
-      const resource: ResourceInfo<OpInput<BuildImageOperation>> = {
+      const builder = createBuilder({ target: 'runtime' });
+      const resource: ResourceInfo<DockerImageResourceConfig> = {
         id: 'mycomponent:docker-image',
         name: 'docker-image',
         component: 'mycomponent',
         type: 'docker/image',
-        params: { target: 'runtime' } as OpInput<BuildImageOperation>,
+        params: { target: 'runtime' },
       };
 
       const result = await builder.build(resource);
