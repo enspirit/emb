@@ -4,7 +4,12 @@ import { join } from 'node:path';
 import { rimraf } from 'rimraf';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
-import { Component, CreateFileOperation, ResourceInfo } from '@/monorepo';
+import {
+  Component,
+  CreateFileOperation,
+  Monorepo,
+  ResourceInfo,
+} from '@/monorepo';
 import { OpInput } from '@/operations/index.js';
 
 import { FileResourceBuilder } from '../../../../src/monorepo/resources/FileResourceBuilder.js';
@@ -15,6 +20,7 @@ type FileResourceParams = Partial<OpInput<CreateFileOperation>>;
 
 describe('Monorepo / Resources / FileResourceBuilder', () => {
   let mockComponent: Component;
+  let mockMonorepo: Monorepo;
   let rootDir: string;
 
   beforeEach(async () => {
@@ -27,11 +33,16 @@ describe('Monorepo / Resources / FileResourceBuilder', () => {
       join: vi.fn((path: string) => join(rootDir, 'mycomponent', path)),
       relative: vi.fn((path: string) => join('mycomponent', path)),
     } as unknown as Component;
+
+    mockMonorepo = {
+      expand: vi.fn((str: string) => Promise.resolve(str)),
+    } as unknown as Monorepo;
   });
 
   const createBuilder = (
     params: FileResourceParams = {},
     name = 'test-file.txt',
+    monorepo: Monorepo = mockMonorepo,
   ) => {
     const config: ResourceInfo<FileResourceParams> = {
       id: 'mycomponent:test-file',
@@ -44,7 +55,7 @@ describe('Monorepo / Resources / FileResourceBuilder', () => {
     const context = {
       config,
       component: mockComponent,
-      monorepo: {} as never,
+      monorepo,
     } as ResourceBuildContext<OpInput<CreateFileOperation>>;
 
     return new FileResourceBuilder(context);
@@ -147,6 +158,73 @@ describe('Monorepo / Resources / FileResourceBuilder', () => {
       const result = await builder.build(resource);
 
       expect(result.input.script).toBeUndefined();
+    });
+
+    test('it passes content to operation input', async () => {
+      const builder = createBuilder({ content: 'file content' }, 'output.txt');
+
+      const resource = {
+        id: 'mycomponent:test-file',
+        name: 'output.txt',
+        component: 'mycomponent',
+        type: 'file',
+        params: { content: 'file content' },
+      } as ResourceInfo<OpInput<CreateFileOperation>>;
+
+      const result = await builder.build(resource);
+
+      expect(result.input.content).toBe('file content');
+    });
+
+    test('it expands content using monorepo.expand', async () => {
+      // eslint-disable-next-line no-template-curly-in-string
+      const templateContent = 'SECRET=${op:test}';
+      const expandMock = vi.fn((str: string) =>
+        Promise.resolve(str.replace(templateContent, 'SECRET=expanded-secret')),
+      );
+      const monorepo = { expand: expandMock } as unknown as Monorepo;
+
+      const builder = createBuilder(
+        { content: templateContent },
+        'output.txt',
+        monorepo,
+      );
+
+      const resource = {
+        id: 'mycomponent:test-file',
+        name: 'output.txt',
+        component: 'mycomponent',
+        type: 'file',
+        params: { content: templateContent },
+      } as ResourceInfo<OpInput<CreateFileOperation>>;
+
+      const result = await builder.build(resource);
+
+      expect(expandMock).toHaveBeenCalledWith(templateContent);
+      expect(result.input.content).toBe('SECRET=expanded-secret');
+    });
+
+    test('it does not call expand when content is undefined', async () => {
+      const expandMock = vi.fn();
+      const monorepo = { expand: expandMock } as unknown as Monorepo;
+
+      const builder = createBuilder(
+        { script: 'echo test' },
+        'output.txt',
+        monorepo,
+      );
+
+      const resource = {
+        id: 'mycomponent:test-file',
+        name: 'output.txt',
+        component: 'mycomponent',
+        type: 'file',
+        params: { script: 'echo test' },
+      } as ResourceInfo<OpInput<CreateFileOperation>>;
+
+      await builder.build(resource);
+
+      expect(expandMock).not.toHaveBeenCalled();
     });
   });
 
