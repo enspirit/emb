@@ -43,8 +43,16 @@ export class FileResourceBuilder implements IResourceBuilder<
     resource: ResourceInfo<OpInput<CreateFileOperation>>,
     out?: Writable,
   ) {
+    let content = resource.params?.content;
+
+    // Expand content with secrets if provided
+    if (content !== undefined) {
+      content = await this.context.monorepo.expand(content);
+    }
+
     const input: OpInput<CreateFileOperation> = {
       path: await this.getPath(),
+      content,
       script: resource.params?.script,
       cwd: this.context.component.join('./'),
     };

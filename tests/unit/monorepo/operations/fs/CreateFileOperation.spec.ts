@@ -1,4 +1,11 @@
-import { mkdir, mkdtemp, rm, stat, writeFile } from 'node:fs/promises';
+import {
+  mkdir,
+  mkdtemp,
+  readFile,
+  rm,
+  stat,
+  writeFile,
+} from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
@@ -92,6 +99,44 @@ describe('Monorepo / Operations / FS / CreateFileOperation', () => {
       const fileStat = await stat(filePath);
       expect(fileStat.isFile()).toBe(true);
       expect(fileStat.size).toBe(0);
+    });
+
+    test('it writes content directly to file when content is provided', async () => {
+      const filePath = join(tempDir, 'contentfile.txt');
+      const content = 'DATABASE_URL=postgres://localhost\nAPI_KEY=secret123';
+
+      await operation.run({ path: filePath, content });
+
+      const fileStat = await stat(filePath);
+      expect(fileStat.isFile()).toBe(true);
+
+      const fileContent = await readFile(filePath, 'utf8');
+      expect(fileContent).toBe(content);
+    });
+
+    test('it writes empty content when content is empty string', async () => {
+      const filePath = join(tempDir, 'emptycontent.txt');
+
+      await operation.run({ path: filePath, content: '' });
+
+      const fileStat = await stat(filePath);
+      expect(fileStat.isFile()).toBe(true);
+      expect(fileStat.size).toBe(0);
+    });
+
+    test('content takes precedence over script', async () => {
+      const filePath = join(tempDir, 'precedence.txt');
+      const content = 'content wins';
+
+      await operation.run({
+        path: filePath,
+        content,
+        script: `echo "script content" > ${filePath}`,
+        cwd: tempDir,
+      });
+
+      const fileContent = await readFile(filePath, 'utf8');
+      expect(fileContent).toBe(content);
     });
   });
 });

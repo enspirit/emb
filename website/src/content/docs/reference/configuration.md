@@ -184,15 +184,35 @@ Builds a Docker image.
 
 Generates a file.
 
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `path` | string | Output file path (defaults to resource name) |
+| `content` | string | Content to write to the file (supports template expansion with secrets) |
+| `script` | string | Script to generate the file |
+
+**Example with content and secrets:**
+```yaml
+resources:
+  .env:
+    type: file
+    params:
+      content: |
+        DATABASE_URL=${op:Private/db-credentials#connection_string}
+        API_KEY=${op:Private/api-keys#production}
+```
+
+**Example with script:**
 ```yaml
 resources:
   config.json:
     type: file
     params:
-      path: config.json       # Optional: output path
-      script: |               # Script to generate file
+      path: config.json
+      script: |
         echo '{"key": "value"}' > config.json
 ```
+
+Note: If both `content` and `script` are provided, `content` takes precedence.
 
 ### tasks
 

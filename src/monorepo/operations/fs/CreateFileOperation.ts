@@ -1,5 +1,5 @@
 import { execa } from 'execa';
-import { open, statfs, utimes } from 'node:fs/promises';
+import { open, statfs, utimes, writeFile } from 'node:fs/promises';
 import { Writable } from 'node:stream';
 import * as z from 'zod';
 
@@ -8,6 +8,7 @@ import { AbstractOperation } from '@/operations';
 const schema = z.object({
   //
   path: z.string().describe('Path to the file to create'),
+  content: z.string().optional().describe('Content to write to the file'),
   script: z.string().optional().describe('The script to generate the file'),
   cwd: z.string().optional().describe('Working directory to execute scripts'),
   force: z
@@ -32,6 +33,8 @@ export class CreateFileOperation extends AbstractOperation<
       if (input.force) {
         await utimes(input.path, Date.now(), Date.now());
       }
+
+      return;
     } catch (error) {
       // Ignore ENOENT error (file does not exist)
       if ((error as { code: string })?.code !== 'ENOENT') {
@@ -39,7 +42,9 @@ export class CreateFileOperation extends AbstractOperation<
       }
     }
 
-    if (input.script) {
+    if (input.content !== undefined) {
+      await writeFile(input.path, input.content);
+    } else if (input.script) {
       await execa(input.script, {
         all: true,
         cwd: input.cwd,
