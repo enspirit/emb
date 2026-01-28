@@ -14,7 +14,7 @@ $ npm install -g @enspirit/emb
 $ emb COMMAND
 running command...
 $ emb (--version)
-@enspirit/emb/0.22.1 darwin-arm64 node-v22.21.1
+@enspirit/emb/0.23.0 darwin-arm64 node-v22.21.1
 $ emb --help [COMMAND]
 USAGE
   $ emb COMMAND
@@ -26,12 +26,11 @@ USAGE
 * [`emb autocomplete [SHELL]`](#emb-autocomplete-shell)
 * [`emb clean`](#emb-clean)
 * [`emb components`](#emb-components)
-* [`emb components logs [COMPONENT]`](#emb-components-logs-component)
-* [`emb components shell COMPONENT`](#emb-components-shell-component)
+* [`emb components shell SERVICE`](#emb-components-shell-service)
 * [`emb config print`](#emb-config-print)
 * [`emb containers`](#emb-containers)
 * [`emb containers prune`](#emb-containers-prune)
-* [`emb down`](#emb-down)
+* [`emb down [SERVICE]`](#emb-down-service)
 * [`emb help [COMMAND]`](#emb-help-command)
 * [`emb images`](#emb-images)
 * [`emb images delete`](#emb-images-delete)
@@ -41,22 +40,22 @@ USAGE
 * [`emb kubernetes ps`](#emb-kubernetes-ps)
 * [`emb kubernetes restart [DEPLOYMENT]`](#emb-kubernetes-restart-deployment)
 * [`emb kubernetes shell COMPONENT`](#emb-kubernetes-shell-component)
-* [`emb logs [COMPONENT]`](#emb-logs-component)
-* [`emb logs archive [COMPONENT]`](#emb-logs-archive-component)
+* [`emb logs [SERVICE]`](#emb-logs-service)
+* [`emb logs archive [SERVICE]`](#emb-logs-archive-service)
 * [`emb ps`](#emb-ps)
 * [`emb resources`](#emb-resources)
 * [`emb resources build [COMPONENT]`](#emb-resources-build-component)
-* [`emb restart [COMPONENT]`](#emb-restart-component)
+* [`emb restart [SERVICE]`](#emb-restart-service)
 * [`emb run TASK`](#emb-run-task)
 * [`emb secrets`](#emb-secrets)
 * [`emb secrets providers`](#emb-secrets-providers)
 * [`emb secrets validate`](#emb-secrets-validate)
-* [`emb shell COMPONENT`](#emb-shell-component)
-* [`emb start [COMPONENT]`](#emb-start-component)
-* [`emb stop`](#emb-stop)
+* [`emb shell SERVICE`](#emb-shell-service)
+* [`emb start [SERVICE]`](#emb-start-service)
+* [`emb stop [SERVICE]`](#emb-stop-service)
 * [`emb tasks`](#emb-tasks)
 * [`emb tasks run TASK`](#emb-tasks-run-task)
-* [`emb up [COMPONENT]`](#emb-up-component)
+* [`emb up [SERVICE]`](#emb-up-service)
 * [`emb update [CHANNEL]`](#emb-update-channel)
 
 ## `emb autocomplete [SHELL]`
@@ -113,7 +112,7 @@ EXAMPLES
   $ emb clean
 ```
 
-_See code: [src/commands/clean.ts](https://github.com/enspirit/emb/blob/v0.22.1/src/commands/clean.ts)_
+_See code: [src/commands/clean.ts](https://github.com/enspirit/emb/blob/v0.23.0/src/commands/clean.ts)_
 
 ## `emb components`
 
@@ -138,49 +137,18 @@ EXAMPLES
   $ emb components
 ```
 
-_See code: [src/commands/components/index.ts](https://github.com/enspirit/emb/blob/v0.22.1/src/commands/components/index.ts)_
+_See code: [src/commands/components/index.ts](https://github.com/enspirit/emb/blob/v0.23.0/src/commands/components/index.ts)_
 
-## `emb components logs [COMPONENT]`
+## `emb components shell SERVICE`
 
-Get components logs.
-
-```
-USAGE
-  $ emb components logs [COMPONENT...] [--verbose] [-C <value>] [-f]
-
-ARGUMENTS
-  [COMPONENT...]  The component(s) you want to see the logs of (all if omitted)
-
-FLAGS
-  -C, --root=<value>  Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
-  -f, --[no-]follow   Follow log output
-  --[no-]verbose
-
-DESCRIPTION
-  Get components logs.
-
-EXAMPLES
-  $ emb components logs
-
-  $ emb components logs backend
-
-  $ emb components logs backend frontend
-
-  $ emb components logs --no-follow backend
-```
-
-_See code: [src/commands/components/logs.ts](https://github.com/enspirit/emb/blob/v0.22.1/src/commands/components/logs.ts)_
-
-## `emb components shell COMPONENT`
-
-Get a shell on a running component.
+Get a shell on a running service.
 
 ```
 USAGE
-  $ emb components shell COMPONENT [--verbose] [-C <value>] [-s <value>]
+  $ emb components shell SERVICE [--verbose] [-C <value>] [-s <value>]
 
 ARGUMENTS
-  COMPONENT  The component you want to get a shell on
+  SERVICE  The service you want to get a shell on
 
 FLAGS
   -C, --root=<value>   Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
@@ -188,7 +156,7 @@ FLAGS
   --[no-]verbose
 
 DESCRIPTION
-  Get a shell on a running component.
+  Get a shell on a running service.
 
 ALIASES
   $ emb shell
@@ -197,7 +165,7 @@ EXAMPLES
   $ emb components shell
 ```
 
-_See code: [src/commands/components/shell.ts](https://github.com/enspirit/emb/blob/v0.22.1/src/commands/components/shell.ts)_
+_See code: [src/commands/components/shell.ts](https://github.com/enspirit/emb/blob/v0.23.0/src/commands/components/shell.ts)_
 
 ## `emb config print`
 
@@ -222,7 +190,7 @@ EXAMPLES
   $ emb config print
 ```
 
-_See code: [src/commands/config/print.ts](https://github.com/enspirit/emb/blob/v0.22.1/src/commands/config/print.ts)_
+_See code: [src/commands/config/print.ts](https://github.com/enspirit/emb/blob/v0.23.0/src/commands/config/print.ts)_
 
 ## `emb containers`
 
@@ -247,7 +215,7 @@ EXAMPLES
   $ emb containers
 ```
 
-_See code: [src/commands/containers/index.ts](https://github.com/enspirit/emb/blob/v0.22.1/src/commands/containers/index.ts)_
+_See code: [src/commands/containers/index.ts](https://github.com/enspirit/emb/blob/v0.23.0/src/commands/containers/index.ts)_
 
 ## `emb containers prune`
 
@@ -271,15 +239,18 @@ EXAMPLES
   $ emb containers prune
 ```
 
-_See code: [src/commands/containers/prune.ts](https://github.com/enspirit/emb/blob/v0.22.1/src/commands/containers/prune.ts)_
+_See code: [src/commands/containers/prune.ts](https://github.com/enspirit/emb/blob/v0.23.0/src/commands/containers/prune.ts)_
 
-## `emb down`
+## `emb down [SERVICE]`
 
 Stop the whole project.
 
 ```
 USAGE
-  $ emb down [--json] [--verbose] [-C <value>] [--flavor <value>]
+  $ emb down [SERVICE...] [--json] [--verbose] [-C <value>] [--flavor <value>]
+
+ARGUMENTS
+  [SERVICE...]  The service(s) to stop and remove
 
 FLAGS
   -C, --root=<value>    Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
@@ -296,7 +267,7 @@ EXAMPLES
   $ emb down
 ```
 
-_See code: [src/commands/down.ts](https://github.com/enspirit/emb/blob/v0.22.1/src/commands/down.ts)_
+_See code: [src/commands/down.ts](https://github.com/enspirit/emb/blob/v0.23.0/src/commands/down.ts)_
 
 ## `emb help [COMMAND]`
 
@@ -342,7 +313,7 @@ EXAMPLES
   $ emb images
 ```
 
-_See code: [src/commands/images/index.ts](https://github.com/enspirit/emb/blob/v0.22.1/src/commands/images/index.ts)_
+_See code: [src/commands/images/index.ts](https://github.com/enspirit/emb/blob/v0.23.0/src/commands/images/index.ts)_
 
 ## `emb images delete`
 
@@ -367,7 +338,7 @@ EXAMPLES
   $ emb images delete
 ```
 
-_See code: [src/commands/images/delete.ts](https://github.com/enspirit/emb/blob/v0.22.1/src/commands/images/delete.ts)_
+_See code: [src/commands/images/delete.ts](https://github.com/enspirit/emb/blob/v0.23.0/src/commands/images/delete.ts)_
 
 ## `emb images prune`
 
@@ -392,7 +363,7 @@ EXAMPLES
   $ emb images prune
 ```
 
-_See code: [src/commands/images/prune.ts](https://github.com/enspirit/emb/blob/v0.22.1/src/commands/images/prune.ts)_
+_See code: [src/commands/images/prune.ts](https://github.com/enspirit/emb/blob/v0.23.0/src/commands/images/prune.ts)_
 
 ## `emb images push`
 
@@ -421,7 +392,7 @@ EXAMPLES
   $ emb images push --registry my.registry.io --retag newtag
 ```
 
-_See code: [src/commands/images/push.ts](https://github.com/enspirit/emb/blob/v0.22.1/src/commands/images/push.ts)_
+_See code: [src/commands/images/push.ts](https://github.com/enspirit/emb/blob/v0.23.0/src/commands/images/push.ts)_
 
 ## `emb kubernetes logs COMPONENT`
 
@@ -447,7 +418,7 @@ EXAMPLES
   $ emb kubernetes logs
 ```
 
-_See code: [src/commands/kubernetes/logs.ts](https://github.com/enspirit/emb/blob/v0.22.1/src/commands/kubernetes/logs.ts)_
+_See code: [src/commands/kubernetes/logs.ts](https://github.com/enspirit/emb/blob/v0.23.0/src/commands/kubernetes/logs.ts)_
 
 ## `emb kubernetes ps`
 
@@ -470,7 +441,7 @@ EXAMPLES
   $ emb kubernetes ps
 ```
 
-_See code: [src/commands/kubernetes/ps.ts](https://github.com/enspirit/emb/blob/v0.22.1/src/commands/kubernetes/ps.ts)_
+_See code: [src/commands/kubernetes/ps.ts](https://github.com/enspirit/emb/blob/v0.23.0/src/commands/kubernetes/ps.ts)_
 
 ## `emb kubernetes restart [DEPLOYMENT]`
 
@@ -495,7 +466,7 @@ EXAMPLES
   $ emb kubernetes restart
 ```
 
-_See code: [src/commands/kubernetes/restart.ts](https://github.com/enspirit/emb/blob/v0.22.1/src/commands/kubernetes/restart.ts)_
+_See code: [src/commands/kubernetes/restart.ts](https://github.com/enspirit/emb/blob/v0.23.0/src/commands/kubernetes/restart.ts)_
 
 ## `emb kubernetes shell COMPONENT`
 
@@ -524,18 +495,18 @@ EXAMPLES
   $ emb kubernetes shell
 ```
 
-_See code: [src/commands/kubernetes/shell.ts](https://github.com/enspirit/emb/blob/v0.22.1/src/commands/kubernetes/shell.ts)_
+_See code: [src/commands/kubernetes/shell.ts](https://github.com/enspirit/emb/blob/v0.23.0/src/commands/kubernetes/shell.ts)_
 
-## `emb logs [COMPONENT]`
+## `emb logs [SERVICE]`
 
-Get components logs.
+Get service logs.
 
 ```
 USAGE
-  $ emb logs [COMPONENT...] [--verbose] [-C <value>] [-f]
+  $ emb logs [SERVICE...] [--verbose] [-C <value>] [-f]
 
 ARGUMENTS
-  [COMPONENT...]  The component(s) you want to see the logs of (all if omitted)
+  [SERVICE...]  The service(s) you want to see the logs of (all if omitted)
 
 FLAGS
   -C, --root=<value>  Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
@@ -543,7 +514,7 @@ FLAGS
   --[no-]verbose
 
 DESCRIPTION
-  Get components logs.
+  Get service logs.
 
 EXAMPLES
   $ emb logs
@@ -555,18 +526,18 @@ EXAMPLES
   $ emb logs --no-follow backend
 ```
 
-_See code: [src/commands/logs/index.ts](https://github.com/enspirit/emb/blob/v0.22.1/src/commands/logs/index.ts)_
+_See code: [src/commands/logs/index.ts](https://github.com/enspirit/emb/blob/v0.23.0/src/commands/logs/index.ts)_
 
-## `emb logs archive [COMPONENT]`
+## `emb logs archive [SERVICE]`
 
-Archive docker compose logs to files (one file per component).
+Archive docker compose logs to files (one file per service).
 
 ```
 USAGE
-  $ emb logs archive [COMPONENT...] [--json] [--verbose] [-C <value>] [-t] [--tail <value>] [-o <value>]
+  $ emb logs archive [SERVICE...] [--json] [--verbose] [-C <value>] [-t] [--tail <value>] [-o <value>]
 
 ARGUMENTS
-  [COMPONENT...]  The component(s) to archive logs for (all if omitted)
+  [SERVICE...]  The service(s) to archive logs for (all if omitted)
 
 FLAGS
   -C, --root=<value>    Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
@@ -579,7 +550,7 @@ GLOBAL FLAGS
   --json  Format output as json.
 
 DESCRIPTION
-  Archive docker compose logs to files (one file per component).
+  Archive docker compose logs to files (one file per service).
 
 EXAMPLES
   $ emb logs archive
@@ -591,7 +562,7 @@ EXAMPLES
   $ emb logs archive --tail 1000
 ```
 
-_See code: [src/commands/logs/archive.ts](https://github.com/enspirit/emb/blob/v0.22.1/src/commands/logs/archive.ts)_
+_See code: [src/commands/logs/archive.ts](https://github.com/enspirit/emb/blob/v0.23.0/src/commands/logs/archive.ts)_
 
 ## `emb ps`
 
@@ -614,7 +585,7 @@ EXAMPLES
   $ emb ps
 ```
 
-_See code: [src/commands/ps.ts](https://github.com/enspirit/emb/blob/v0.22.1/src/commands/ps.ts)_
+_See code: [src/commands/ps.ts](https://github.com/enspirit/emb/blob/v0.23.0/src/commands/ps.ts)_
 
 ## `emb resources`
 
@@ -639,7 +610,7 @@ EXAMPLES
   $ emb resources
 ```
 
-_See code: [src/commands/resources/index.ts](https://github.com/enspirit/emb/blob/v0.22.1/src/commands/resources/index.ts)_
+_See code: [src/commands/resources/index.ts](https://github.com/enspirit/emb/blob/v0.23.0/src/commands/resources/index.ts)_
 
 ## `emb resources build [COMPONENT]`
 
@@ -669,22 +640,22 @@ EXAMPLES
   $ emb resources build build --flavor development
 ```
 
-_See code: [src/commands/resources/build.ts](https://github.com/enspirit/emb/blob/v0.22.1/src/commands/resources/build.ts)_
+_See code: [src/commands/resources/build.ts](https://github.com/enspirit/emb/blob/v0.23.0/src/commands/resources/build.ts)_
 
-## `emb restart [COMPONENT]`
+## `emb restart [SERVICE]`
 
 Restart the whole project.
 
 ```
 USAGE
-  $ emb restart [COMPONENT...] [--json] [--verbose] [-C <value>] [-f]
+  $ emb restart [SERVICE...] [--json] [--verbose] [-C <value>] [-f]
 
 ARGUMENTS
-  [COMPONENT...]  The component(s) to restart
+  [SERVICE...]  The service(s) to restart
 
 FLAGS
   -C, --root=<value>  Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
-  -f, --no-deps       Don't restart depdendent components
+  -f, --no-deps       Don't restart dependent services
   --[no-]verbose
 
 GLOBAL FLAGS
@@ -697,7 +668,7 @@ EXAMPLES
   $ emb restart
 ```
 
-_See code: [src/commands/restart.ts](https://github.com/enspirit/emb/blob/v0.22.1/src/commands/restart.ts)_
+_See code: [src/commands/restart.ts](https://github.com/enspirit/emb/blob/v0.23.0/src/commands/restart.ts)_
 
 ## `emb run TASK`
 
@@ -755,7 +726,7 @@ EXAMPLES
   $ emb secrets --json
 ```
 
-_See code: [src/commands/secrets/index.ts](https://github.com/enspirit/emb/blob/v0.22.1/src/commands/secrets/index.ts)_
+_See code: [src/commands/secrets/index.ts](https://github.com/enspirit/emb/blob/v0.23.0/src/commands/secrets/index.ts)_
 
 ## `emb secrets providers`
 
@@ -780,7 +751,7 @@ EXAMPLES
   $ emb secrets providers
 ```
 
-_See code: [src/commands/secrets/providers.ts](https://github.com/enspirit/emb/blob/v0.22.1/src/commands/secrets/providers.ts)_
+_See code: [src/commands/secrets/providers.ts](https://github.com/enspirit/emb/blob/v0.23.0/src/commands/secrets/providers.ts)_
 
 ## `emb secrets validate`
 
@@ -810,18 +781,18 @@ EXAMPLES
   $ emb secrets validate --json
 ```
 
-_See code: [src/commands/secrets/validate.ts](https://github.com/enspirit/emb/blob/v0.22.1/src/commands/secrets/validate.ts)_
+_See code: [src/commands/secrets/validate.ts](https://github.com/enspirit/emb/blob/v0.23.0/src/commands/secrets/validate.ts)_
 
-## `emb shell COMPONENT`
+## `emb shell SERVICE`
 
-Get a shell on a running component.
+Get a shell on a running service.
 
 ```
 USAGE
-  $ emb shell COMPONENT [--verbose] [-C <value>] [-s <value>]
+  $ emb shell SERVICE [--verbose] [-C <value>] [-s <value>]
 
 ARGUMENTS
-  COMPONENT  The component you want to get a shell on
+  SERVICE  The service you want to get a shell on
 
 FLAGS
   -C, --root=<value>   Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
@@ -829,7 +800,7 @@ FLAGS
   --[no-]verbose
 
 DESCRIPTION
-  Get a shell on a running component.
+  Get a shell on a running service.
 
 ALIASES
   $ emb shell
@@ -838,16 +809,16 @@ EXAMPLES
   $ emb shell
 ```
 
-## `emb start [COMPONENT]`
+## `emb start [SERVICE]`
 
 Starts the whole project.
 
 ```
 USAGE
-  $ emb start [COMPONENT...] [--json] [--verbose] [-C <value>]
+  $ emb start [SERVICE...] [--json] [--verbose] [-C <value>]
 
 ARGUMENTS
-  [COMPONENT...]  The component(s) to start
+  [SERVICE...]  The service(s) to start
 
 FLAGS
   -C, --root=<value>  Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
@@ -863,15 +834,18 @@ EXAMPLES
   $ emb start
 ```
 
-_See code: [src/commands/start.ts](https://github.com/enspirit/emb/blob/v0.22.1/src/commands/start.ts)_
+_See code: [src/commands/start.ts](https://github.com/enspirit/emb/blob/v0.23.0/src/commands/start.ts)_
 
-## `emb stop`
+## `emb stop [SERVICE]`
 
 Stop the whole project.
 
 ```
 USAGE
-  $ emb stop [--json] [--verbose] [-C <value>] [--flavor <value>]
+  $ emb stop [SERVICE...] [--json] [--verbose] [-C <value>] [--flavor <value>]
+
+ARGUMENTS
+  [SERVICE...]  The service(s) to stop
 
 FLAGS
   -C, --root=<value>    Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
@@ -888,7 +862,7 @@ EXAMPLES
   $ emb stop
 ```
 
-_See code: [src/commands/stop.ts](https://github.com/enspirit/emb/blob/v0.22.1/src/commands/stop.ts)_
+_See code: [src/commands/stop.ts](https://github.com/enspirit/emb/blob/v0.23.0/src/commands/stop.ts)_
 
 ## `emb tasks`
 
@@ -912,7 +886,7 @@ EXAMPLES
   $ emb tasks
 ```
 
-_See code: [src/commands/tasks/index.ts](https://github.com/enspirit/emb/blob/v0.22.1/src/commands/tasks/index.ts)_
+_See code: [src/commands/tasks/index.ts](https://github.com/enspirit/emb/blob/v0.23.0/src/commands/tasks/index.ts)_
 
 ## `emb tasks run TASK`
 
@@ -945,18 +919,18 @@ EXAMPLES
   $ emb tasks run
 ```
 
-_See code: [src/commands/tasks/run.ts](https://github.com/enspirit/emb/blob/v0.22.1/src/commands/tasks/run.ts)_
+_See code: [src/commands/tasks/run.ts](https://github.com/enspirit/emb/blob/v0.23.0/src/commands/tasks/run.ts)_
 
-## `emb up [COMPONENT]`
+## `emb up [SERVICE]`
 
 Start the whole project.
 
 ```
 USAGE
-  $ emb up [COMPONENT...] [--json] [--verbose] [-C <value>] [--flavor <value>] [-f]
+  $ emb up [SERVICE...] [--json] [--verbose] [-C <value>] [--flavor <value>] [-f]
 
 ARGUMENTS
-  [COMPONENT...]  The component(s) to build and start
+  [SERVICE...]  The service(s) to build and start
 
 FLAGS
   -C, --root=<value>    Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
@@ -974,7 +948,7 @@ EXAMPLES
   $ emb up
 ```
 
-_See code: [src/commands/up.ts](https://github.com/enspirit/emb/blob/v0.22.1/src/commands/up.ts)_
+_See code: [src/commands/up.ts](https://github.com/enspirit/emb/blob/v0.23.0/src/commands/up.ts)_
 
 ## `emb update [CHANNEL]`
 
