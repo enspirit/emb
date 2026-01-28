@@ -5,7 +5,7 @@ import { ComposeLogsArchiveOperation } from '@/docker';
 
 export default class LogsArchive extends BaseCommand {
   static description =
-    'Archive docker compose logs to files (one file per component).';
+    'Archive docker compose logs to files (one file per service).';
   static enableJsonFlag = true;
   static examples = [
     '<%= config.bin %> <%= command.id %>',
@@ -30,26 +30,27 @@ export default class LogsArchive extends BaseCommand {
     }),
   };
   static args = {
-    component: Args.string({
-      name: 'component',
-      description: 'The component(s) to archive logs for (all if omitted)',
+    service: Args.string({
+      name: 'service',
+      description: 'The service(s) to archive logs for (all if omitted)',
       required: false,
     }),
   };
 
   public async run(): Promise<void> {
     const { flags, argv } = await this.parse(LogsArchive);
-    const { monorepo } = await getContext();
+    const { monorepo, compose } = getContext();
 
-    const componentNames = argv as string[];
+    const serviceNames = argv as string[];
 
-    // Validate that all specified components exist
-    if (componentNames.length > 0) {
-      componentNames.forEach((name) => monorepo.component(name));
+    // Validate that all specified services exist in docker-compose.yml
+    let services: string[] | undefined;
+    if (serviceNames.length > 0) {
+      services = await compose.validateServices(serviceNames);
     }
 
     const result = await monorepo.run(new ComposeLogsArchiveOperation(), {
-      components: componentNames.length > 0 ? componentNames : undefined,
+      services,
       outputDir: flags.output,
       timestamps: flags.timestamps,
       tail: flags.tail,
@@ -60,7 +61,7 @@ export default class LogsArchive extends BaseCommand {
     } else {
       this.log('Archived logs:');
       for (const file of result) {
-        this.log(`  ${file.component}: ${file.path}`);
+        this.log(`  ${file.service}: ${file.path}`);
       }
     }
   }

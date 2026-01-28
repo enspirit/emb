@@ -2,7 +2,6 @@ import { Args } from '@oclif/core';
 
 import { FlavoredCommand, getContext } from '@/cli';
 import { ComposeStopOperation } from '@/docker';
-import { Component } from '@/monorepo/component.js';
 
 export default class StopCommand extends FlavoredCommand<typeof StopCommand> {
   static description = 'Stop the whole project.';
@@ -10,25 +9,25 @@ export default class StopCommand extends FlavoredCommand<typeof StopCommand> {
   static examples = ['<%= config.bin %> <%= command.id %>'];
   static flags = {};
   static args = {
-    component: Args.string({
-      name: 'component',
-      description: 'The component(s) to stop',
+    service: Args.string({
+      name: 'service',
+      description: 'The service(s) to stop',
     }),
   };
   static strict = false;
 
   public async run(): Promise<void> {
     const { argv } = await this.parse(StopCommand);
-    const { monorepo } = getContext();
+    const { monorepo, compose } = getContext();
 
-    let components: Array<Component> | undefined;
+    let services: string[] | undefined;
 
     if (argv.length > 0) {
-      components = (argv as string[]).map((name) => monorepo.component(name));
+      services = await compose.validateServices(argv as string[]);
     }
 
     await monorepo.run(new ComposeStopOperation(), {
-      services: components?.map((c) => c.name),
+      services,
     });
   }
 }

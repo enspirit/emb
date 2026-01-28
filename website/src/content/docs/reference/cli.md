@@ -23,11 +23,11 @@ These options are available for all commands:
 Start the project services.
 
 ```shell
-emb up [COMPONENT...] [OPTIONS]
+emb up [SERVICE...] [OPTIONS]
 ```
 
 **Arguments:**
-- `COMPONENT...` - Optional components to start (defaults to all)
+- `SERVICE...` - Optional services to start (defaults to all)
 
 **Options:**
 - `-f, --force` - Force recreation of containers
@@ -54,7 +54,7 @@ emb down
 Restart project services.
 
 ```shell
-emb restart [COMPONENT...]
+emb restart [SERVICE...]
 ```
 
 ### emb ps
@@ -70,11 +70,11 @@ emb ps
 View container logs.
 
 ```shell
-emb logs [COMPONENT...] [OPTIONS]
+emb logs [SERVICE...] [OPTIONS]
 ```
 
 **Arguments:**
-- `COMPONENT...` - Optional components to show logs for (defaults to all)
+- `SERVICE...` - Optional services to show logs for (defaults to all)
 
 **Options:**
 - `-f, --follow / --no-follow` - Follow log output (default: true)
@@ -92,7 +92,7 @@ emb logs --no-follow api  # Get log snapshot without following
 Get a shell in a running container.
 
 ```shell
-emb shell <COMPONENT>
+emb shell <SERVICE>
 ```
 
 ### emb clean
@@ -264,8 +264,8 @@ Some commands are grouped into topics with subcommands:
 
 ```shell
 emb components          # List components
-emb components logs     # View component logs
-emb components shell    # Get shell in component
+emb components logs     # View service logs (alias: emb logs)
+emb components shell    # Get shell in service (alias: emb shell)
 ```
 
 ### resources

@@ -33,9 +33,44 @@ export class DockerComposeClient {
     await this.loadContainers();
   }
 
-  async isService(component: string) {
+  async isService(serviceName: string) {
     await this.init();
-    return this.services?.has(component);
+    return this.services?.has(serviceName);
+  }
+
+  /**
+   * Validate that a service name exists in docker-compose.yml.
+   * Throws an error with helpful message if not found.
+   */
+  async validateService(serviceName: string): Promise<string> {
+    await this.init();
+    if (!this.services?.has(serviceName)) {
+      const available = Array.from(this.services?.keys() ?? []).join(', ');
+      throw new Error(
+        `Unknown service '${serviceName}'. Available services: ${available || 'none'}`,
+      );
+    }
+    return serviceName;
+  }
+
+  /**
+   * Validate multiple service names exist in docker-compose.yml.
+   * Returns the validated service names array.
+   */
+  async validateServices(serviceNames: string[]): Promise<string[]> {
+    await this.init();
+    for (const name of serviceNames) {
+      await this.validateService(name);
+    }
+    return serviceNames;
+  }
+
+  /**
+   * Get all service names defined in docker-compose.yml.
+   */
+  async getServiceNames(): Promise<string[]> {
+    await this.init();
+    return Array.from(this.services?.keys() ?? []);
   }
 
   async getContainer(

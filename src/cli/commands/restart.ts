@@ -11,30 +11,31 @@ export default class RestartComand extends BaseCommand {
     'no-deps': Flags.boolean({
       char: 'f',
       default: false,
-      description: "Don't restart depdendent components",
+      description: "Don't restart dependent services",
       name: 'no-deps',
     }),
   };
   static args = {
-    component: Args.string({
-      name: 'component',
-      description: 'The component(s) to restart',
+    service: Args.string({
+      name: 'service',
+      description: 'The service(s) to restart',
     }),
   };
   static strict = false;
 
   public async run(): Promise<void> {
     const { flags, argv } = await this.parse(RestartComand);
-    const { monorepo } = getContext();
+    const { monorepo, compose } = getContext();
 
-    const components =
-      argv.length > 0
-        ? (argv as string[]).map((name) => monorepo.component(name))
-        : undefined;
+    let services: string[] | undefined;
+
+    if (argv.length > 0) {
+      services = await compose.validateServices(argv as string[]);
+    }
 
     await monorepo.run(new ComposeRestartOperation(), {
       noDeps: flags['no-deps'],
-      services: components?.map((c) => c.name),
+      services,
     });
   }
 }

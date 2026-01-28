@@ -31,20 +31,20 @@ CMD ["npm", "run", "dev"]
 # Production build stage
 FROM base AS builder
 COPY package.json ./
-RUN npm install --production=false
-COPY . ./
-RUN npm run build 2>/dev/null || true
+RUN npm install
+COPY tsconfig.json ./
+COPY src ./src
+RUN npm run build
 
 # Production stage - minimal image
 FROM base AS production
 COPY package.json ./
-RUN npm install --production && npm cache clean --force
-COPY --from=builder /app/dist ./dist 2>/dev/null || true
-COPY server.js ./
+RUN npm install --omit=dev && npm cache clean --force
+COPY --from=builder /app/dist ./dist
 ENV NODE_ENV=production
 EXPOSE 3000
 USER node
-CMD ["node", "server.js"]
+CMD ["node", "dist/server.js"]
 ```
 
 ## Understanding the Stages
@@ -58,10 +58,10 @@ Common foundation - Node.js with curl for health checks.
 - Optimized for developer experience
 
 ### builder
-Intermediate stage that compiles/bundles code. Not used directly.
+Intermediate stage that compiles TypeScript to JavaScript. Not used directly.
 
 ### production
-- Production-only dependencies (`npm install --production`)
+- Production-only dependencies (`npm install --omit=dev`)
 - Compiled assets from builder
 - Runs as non-root user (`USER node`)
 - Minimal image size

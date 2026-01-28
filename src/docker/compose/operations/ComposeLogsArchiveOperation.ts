@@ -8,10 +8,10 @@ import { AbstractOperation } from '@/operations';
 
 export const ComposeLogsArchiveOperationInputSchema = z
   .object({
-    components: z
+    services: z
       .array(z.string())
       .optional()
-      .describe('The list of components to archive logs for (all if omitted)'),
+      .describe('The list of services to archive logs for (all if omitted)'),
     outputDir: z
       .string()
       .optional()
@@ -27,7 +27,7 @@ export const ComposeLogsArchiveOperationInputSchema = z
   .optional();
 
 export interface ArchivedLogFile {
-  component: string;
+  service: string;
   path: string;
 }
 
@@ -42,14 +42,11 @@ export class ComposeLogsArchiveOperation extends AbstractOperation<
   protected async _run(
     input: z.input<typeof ComposeLogsArchiveOperationInputSchema>,
   ): Promise<ArchivedLogFile[]> {
-    const { monorepo } = this.context;
+    const { monorepo, compose } = this.context;
 
-    // Determine which components to archive
-    const componentNames =
-      input?.components ?? monorepo.components.map((c) => c.name);
-
-    // Validate all component names
-    const components = componentNames.map((name) => monorepo.component(name));
+    // Determine which services to archive
+    // If not specified, get all services from docker-compose.yml
+    const serviceNames = input?.services ?? (await compose.getServiceNames());
 
     // Determine output directory
     const outputDir =
@@ -58,17 +55,17 @@ export class ComposeLogsArchiveOperation extends AbstractOperation<
     // Ensure output directory exists
     await mkdir(outputDir, { recursive: true });
 
-    // Archive logs for each component
-    const archivePromises = components.map(async (component) => {
-      const logPath = join(outputDir, `${component.name}.log`);
-      await this.archiveComponentLogs(component.name, logPath, input);
-      return { component: component.name, path: logPath };
+    // Archive logs for each service
+    const archivePromises = serviceNames.map(async (serviceName) => {
+      const logPath = join(outputDir, `${serviceName}.log`);
+      await this.archiveServiceLogs(serviceName, logPath, input);
+      return { service: serviceName, path: logPath };
     });
 
     return Promise.all(archivePromises);
   }
 
-  private async archiveComponentLogs(
+  private async archiveServiceLogs(
     serviceName: string,
     outputPath: string,
     input: z.input<typeof ComposeLogsArchiveOperationInputSchema>,

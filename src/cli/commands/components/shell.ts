@@ -6,7 +6,7 @@ import { ShellExitError } from '@/errors.js';
 
 export default class ComponentShellCommand extends BaseCommand {
   static aliases: string[] = ['shell'];
-  static description = 'Get a shell on a running component.';
+  static description = 'Get a shell on a running service.';
   static enableJsonFlag = false;
   static examples = ['<%= config.bin %> <%= command.id %>'];
   static flags = {
@@ -18,20 +18,23 @@ export default class ComponentShellCommand extends BaseCommand {
     }),
   };
   static args = {
-    component: Args.string({
-      name: 'component',
-      description: 'The component you want to get a shell on',
+    service: Args.string({
+      name: 'service',
+      description: 'The service you want to get a shell on',
       required: true,
     }),
   };
 
   public async run(): Promise<void> {
     const { flags, args } = await this.parse(ComponentShellCommand);
-    const { monorepo } = await getContext();
+    const { monorepo, compose } = getContext();
+
+    // Validate service exists in docker-compose.yml
+    await compose.validateService(args.service);
 
     try {
       await monorepo.run(new ComposeExecShellOperation(), {
-        service: args.component,
+        service: args.service,
         shell: flags.shell,
       });
     } catch (error) {

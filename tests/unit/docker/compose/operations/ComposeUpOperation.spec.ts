@@ -57,9 +57,9 @@ describe('Docker / Compose / Operations / ComposeUpOperation', () => {
       expect(tasks[0].title).toBe('Starting project');
     });
 
-    test('it includes component names in command when specified', async () => {
+    test('it includes service names in command when specified', async () => {
       const operation = new ComposeUpOperation();
-      await operation.run({ components: ['api', 'web'] });
+      await operation.run({ services: ['api', 'web'] });
 
       const manager = setup.monorepo.taskManager();
       expect(manager.add).toHaveBeenCalledTimes(1);
@@ -85,10 +85,10 @@ describe('Docker / Compose / Operations / ComposeUpOperation', () => {
       await expect(operation.run({})).resolves.not.toThrow();
     });
 
-    test('it accepts components array', async () => {
+    test('it accepts services array', async () => {
       const operation = new ComposeUpOperation();
       await expect(
-        operation.run({ components: ['service1'] }),
+        operation.run({ services: ['service1'] }),
       ).resolves.not.toThrow();
     });
 
