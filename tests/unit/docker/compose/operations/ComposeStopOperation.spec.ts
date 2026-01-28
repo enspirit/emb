@@ -1,4 +1,3 @@
-import { PassThrough, Readable } from 'node:stream';
 import { createTestSetup, TestSetup } from 'tests/setup/set.context.js';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
@@ -6,14 +5,21 @@ import { ComposeStopOperation } from '@/docker';
 
 describe('Docker / Compose / Operations / ComposeStopOperation', () => {
   let setup: TestSetup;
-  let mockOutput: PassThrough;
 
   beforeEach(async () => {
     setup = await createTestSetup({ tempDirPrefix: 'embComposeStopTest' });
-    mockOutput = new PassThrough();
 
-    // Mock the run method to return a Readable stream
-    vi.spyOn(setup.monorepo, 'run').mockResolvedValue(new Readable() as never);
+    // Mock the run method
+    vi.spyOn(setup.monorepo, 'run').mockImplementation(() => Promise.resolve());
+
+    // Mock taskManager
+    const mockManager = {
+      add: vi.fn(),
+      runAll: vi.fn().mockImplementation(() => Promise.resolve()),
+    };
+    vi.spyOn(setup.monorepo, 'taskManager').mockReturnValue(
+      mockManager as never,
+    );
   });
 
   afterEach(async () => {
@@ -21,42 +27,64 @@ describe('Docker / Compose / Operations / ComposeStopOperation', () => {
   });
 
   describe('instantiation', () => {
-    test('it creates an operation instance with output stream', () => {
-      const operation = new ComposeStopOperation(mockOutput);
+    test('it creates an operation instance', () => {
+      const operation = new ComposeStopOperation();
       expect(operation).toBeInstanceOf(ComposeStopOperation);
     });
   });
 
   describe('#run()', () => {
-    test('it calls monorepo.run with ExecuteLocalCommandOperation', async () => {
-      const operation = new ComposeStopOperation(mockOutput);
+    test('it adds a task to stop containers', async () => {
+      const operation = new ComposeStopOperation();
       await operation.run({});
 
-      expect(setup.monorepo.run).toHaveBeenCalledTimes(1);
+      const manager = setup.monorepo.taskManager();
+      expect(manager.add).toHaveBeenCalledTimes(1);
+      expect(manager.runAll).toHaveBeenCalledTimes(1);
     });
 
-    test('it returns a Readable stream', async () => {
-      const operation = new ComposeStopOperation(mockOutput);
-      const result = await operation.run({});
+    test('it uses "Stopping project" title when no services specified', async () => {
+      const operation = new ComposeStopOperation();
+      await operation.run({});
 
-      expect(result).toBeInstanceOf(Readable);
+      const manager = setup.monorepo.taskManager();
+      const addCall = (manager.add as ReturnType<typeof vi.fn>).mock.calls[0];
+      const tasks = addCall[0];
+      expect(tasks[0].title).toBe('Stopping project');
     });
 
-    test('it accepts empty object as input', async () => {
-      const operation = new ComposeStopOperation(mockOutput);
-      await expect(operation.run({})).resolves.not.toThrow();
+    test('it includes service names in title when services specified', async () => {
+      const operation = new ComposeStopOperation();
+      await operation.run({ services: ['api', 'web'] });
+
+      const manager = setup.monorepo.taskManager();
+      const addCall = (manager.add as ReturnType<typeof vi.fn>).mock.calls[0];
+      const tasks = addCall[0];
+      expect(tasks[0].title).toBe('Stopping api, web');
     });
   });
 
   describe('schema validation', () => {
     test('it accepts undefined input', async () => {
-      const operation = new ComposeStopOperation(mockOutput);
+      const operation = new ComposeStopOperation();
       await expect(operation.run({})).resolves.not.toThrow();
     });
 
     test('it accepts empty object', async () => {
-      const operation = new ComposeStopOperation(mockOutput);
+      const operation = new ComposeStopOperation();
       await expect(operation.run({})).resolves.not.toThrow();
+    });
+
+    test('it accepts services array', async () => {
+      const operation = new ComposeStopOperation();
+      await expect(operation.run({ services: ['api'] })).resolves.not.toThrow();
+    });
+
+    test('it accepts multiple services', async () => {
+      const operation = new ComposeStopOperation();
+      await expect(
+        operation.run({ services: ['api', 'web', 'db'] }),
+      ).resolves.not.toThrow();
     });
   });
 });
