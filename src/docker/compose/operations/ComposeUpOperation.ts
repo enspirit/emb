@@ -9,10 +9,10 @@ import { AbstractOperation } from '@/operations';
  */
 const schema = z
   .object({
-    components: z
+    services: z
       .array(z.string())
       .optional()
-      .describe('The list of service to up'),
+      .describe('The list of services to start'),
     forceRecreate: z
       .boolean()
       .optional()
@@ -33,8 +33,8 @@ export class ComposeUpOperation extends AbstractOperation<typeof schema, void> {
 
     const command = ['docker', 'compose', 'up', '-d'];
 
-    if (input?.components) {
-      command.push(...input.components);
+    if (input?.services) {
+      command.push(...input.services);
     }
 
     if (input?.forceRecreate) {

@@ -18,3 +18,13 @@ services:
       - "${WEB_PORT:-8080}:80"
     depends_on:
       - api
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

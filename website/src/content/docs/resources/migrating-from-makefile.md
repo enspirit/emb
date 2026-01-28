@@ -44,8 +44,8 @@ Here's how makefile commands map to EMB:
 | `make up` | `emb up` | Build and start services |
 | `make down` | `emb down` | Stop services |
 | `make ps` | `emb ps` | Show running services |
-| `make {component}.logs` | `emb logs {component}` | View logs (followed by default) |
-| `make {component}.bash` | `emb shell {component}` | Get a shell |
+| `make {component}.logs` | `emb logs {service}` | View logs (followed by default) |
+| `make {component}.bash` | `emb shell {service}` | Get a shell |
 | `make {component}.on` | `emb up {component}` | Start specific service |
 | `make {component}.off` | `emb down {component}` | Stop specific service |
 

@@ -4,7 +4,7 @@ import { BaseCommand, getContext } from '@/cli';
 import { ComposeLogsOperation } from '@/docker';
 
 export default class Logs extends BaseCommand {
-  static description = 'Get components logs.';
+  static description = 'Get service logs.';
   static enableJsonFlag = false;
   static examples = [
     '<%= config.bin %> <%= command.id %>',
@@ -23,28 +23,27 @@ export default class Logs extends BaseCommand {
     }),
   };
   static args = {
-    component: Args.string({
-      name: 'component',
-      description:
-        'The component(s) you want to see the logs of (all if omitted)',
+    service: Args.string({
+      name: 'service',
+      description: 'The service(s) you want to see the logs of (all if omitted)',
       required: false,
     }),
   };
 
   public async run(): Promise<void> {
     const { flags, argv } = await this.parse(Logs);
-    const { monorepo } = await getContext();
+    const { monorepo, compose } = getContext();
 
-    const componentNames = argv as string[];
+    const serviceNames = argv as string[];
 
-    // Validate that all specified components exist
-    const services = componentNames.map((name) => {
-      const component = monorepo.component(name);
-      return component.name;
-    });
+    // Validate that all specified services exist in docker-compose.yml
+    let services: string[] | undefined;
+    if (serviceNames.length > 0) {
+      services = await compose.validateServices(serviceNames);
+    }
 
     await monorepo.run(new ComposeLogsOperation(), {
-      services: services.length > 0 ? services : undefined,
+      services,
       follow: flags.follow,
     });
   }

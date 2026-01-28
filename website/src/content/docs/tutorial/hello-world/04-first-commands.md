@@ -80,7 +80,7 @@ emb --help | head -20
 A replacement for our Makefile-for-monorepos
 
 VERSION
-  @enspirit/emb/0.16.0 darwin-arm64 node-v22.21.1
+  @enspirit/emb/0.22.1 darwin-arm64 node-v22.21.1
 
 USAGE
   $ emb [COMMAND]
@@ -91,12 +91,12 @@ TOPICS
   containers  List, delete, prune docker images
   images      List, delete, prune docker containers
   kubernetes  Manage project instances on kubernetes
+  logs        Get service logs.
   resources   List, clean, build resources
   secrets     List all secret references in the configuration.
   tasks       List and run tasks
 
 COMMANDS
-  autocomplete  Display autocomplete installation instructions.
 ```
 
 For help on a specific command:

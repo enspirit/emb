@@ -40,7 +40,7 @@ When you use `--flavor production`, EMB:
 List defined flavors:
 
 ```shell exec cwd="../examples/production-ready"
-emb config print | grep -A 23 "^flavors:"
+emb config print | grep -A 22 "^flavors:"
 ```
 
 ```output
@@ -64,7 +64,6 @@ flavors:
       - op: replace
         path: /defaults/docker/target
         value: production
-      # Platform can be overridden via DOCKER_PLATFORM env var for CI/testing
       - op: add
         path: /defaults/docker/platform
         value: ${env:DOCKER_PLATFORM:-linux/amd64}
