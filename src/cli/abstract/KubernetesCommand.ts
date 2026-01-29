@@ -1,5 +1,7 @@
 import { Flags } from '@oclif/core';
 
+import { resolveNamespace } from '@/kubernetes/utils/index.js';
+
 import { BaseCommand } from './BaseCommand.js';
 
 export abstract class KubernetesCommand extends BaseCommand {
@@ -10,8 +12,17 @@ export abstract class KubernetesCommand extends BaseCommand {
       description: 'The Kubernetes namespace to target',
       aliases: ['ns'],
       char: 'n',
-      required: true,
-      env: 'K8S_NAMESPACE',
+      required: false,
     }),
   };
+
+  /**
+   * Resolves the namespace using CLI flag > K8S_NAMESPACE env > config > 'default'
+   */
+  protected resolveNamespace(cliFlag?: string): string {
+    return resolveNamespace({
+      cliFlag,
+      config: this.context.monorepo.config.defaults?.kubernetes?.namespace,
+    });
+  }
 }

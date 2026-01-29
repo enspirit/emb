@@ -1,9 +1,10 @@
-import { createTestContext } from 'tests/setup/set.context.js';
-import { beforeEach, describe, expect, test, vi } from 'vitest';
+import { createTestSetup, TestSetup } from 'tests/setup/set.context.js';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { GetDeploymentPodsOperation } from '@/kubernetes/operations/GetDeploymentPodsOperation.js';
 
 describe('Kubernetes / Operations / GetDeploymentPodsOperation', () => {
+  let setup: TestSetup;
   let mockKubernetes: {
     core: {
       listNamespacedPod: ReturnType<typeof vi.fn>;
@@ -17,7 +18,19 @@ describe('Kubernetes / Operations / GetDeploymentPodsOperation', () => {
       },
     };
 
-    await createTestContext({ kubernetes: mockKubernetes as never });
+    setup = await createTestSetup({
+      tempDirPrefix: 'embK8sGetDeploymentPodsTest',
+      embfile: {
+        project: { name: 'test-k8s' },
+        plugins: [],
+        components: {},
+      },
+      context: { kubernetes: mockKubernetes as never },
+    });
+  });
+
+  afterEach(async () => {
+    await setup.cleanup();
   });
 
   describe('instantiation', () => {
@@ -51,13 +64,13 @@ describe('Kubernetes / Operations / GetDeploymentPodsOperation', () => {
   });
 
   describe('#run()', () => {
-    test('it calls kubernetes API with correct parameters', async () => {
+    test('it uses default component label', async () => {
       const operation = new GetDeploymentPodsOperation();
       await operation.run({ namespace: 'production', deployment: 'api' });
 
       expect(mockKubernetes.core.listNamespacedPod).toHaveBeenCalledWith({
         namespace: 'production',
-        labelSelector: 'component=api',
+        labelSelector: 'app.kubernetes.io/component=api',
       });
     });
 
@@ -89,6 +102,52 @@ describe('Kubernetes / Operations / GetDeploymentPodsOperation', () => {
       });
 
       expect(result).toEqual([]);
+    });
+  });
+});
+
+describe('Kubernetes / Operations / GetDeploymentPodsOperation with custom selectorLabel', () => {
+  let setup: TestSetup;
+  let mockKubernetes: {
+    core: {
+      listNamespacedPod: ReturnType<typeof vi.fn>;
+    };
+  };
+
+  beforeEach(async () => {
+    mockKubernetes = {
+      core: {
+        listNamespacedPod: vi.fn().mockResolvedValue({ items: [] }),
+      },
+    };
+
+    setup = await createTestSetup({
+      tempDirPrefix: 'embK8sGetDeploymentPodsCustomLabelTest',
+      embfile: {
+        project: { name: 'test-k8s' },
+        plugins: [],
+        components: {},
+        defaults: {
+          kubernetes: {
+            selectorLabel: 'app',
+          },
+        },
+      },
+      context: { kubernetes: mockKubernetes as never },
+    });
+  });
+
+  afterEach(async () => {
+    await setup.cleanup();
+  });
+
+  test('it uses custom component label from config', async () => {
+    const operation = new GetDeploymentPodsOperation();
+    await operation.run({ namespace: 'production', deployment: 'api' });
+
+    expect(mockKubernetes.core.listNamespacedPod).toHaveBeenCalledWith({
+      namespace: 'production',
+      labelSelector: 'app=api',
     });
   });
 });

@@ -5,6 +5,11 @@ import { ListrTask } from 'listr2';
 import { PassThrough, Writable } from 'node:stream';
 
 import { ContainerExecOperation } from '@/docker';
+import {
+  GetComponentPodOperation,
+  PodExecOperation,
+} from '@/kubernetes/operations/index.js';
+import { resolveNamespace } from '@/kubernetes/utils/index.js';
 import { EMBCollection, findRunOrder, TaskInfo } from '@/monorepo';
 import { IOperation } from '@/operations';
 
@@ -12,6 +17,7 @@ import { ExecuteLocalCommandOperation } from '../index.js';
 
 export enum ExecutorType {
   container = 'container',
+  kubernetes = 'kubernetes',
   local = 'local',
 }
 
@@ -101,6 +107,13 @@ export class RunTasksOperation implements IOperation<
                 return this.runDocker(task as TaskWithScriptAndComponent, tee);
               }
 
+              case ExecutorType.kubernetes: {
+                return this.runKubernetes(
+                  task as TaskWithScriptAndComponent,
+                  tee,
+                );
+              }
+
               case ExecutorType.local: {
                 return this.runLocal(task as TaskWithScript, tee);
               }
@@ -148,6 +161,44 @@ export class RunTasksOperation implements IOperation<
     });
   }
 
+  protected async runKubernetes(
+    task: TaskWithScriptAndComponent,
+    out?: Writable,
+  ) {
+    const { monorepo } = getContext();
+
+    const component = monorepo.component(task.component);
+    const namespace = resolveNamespace({
+      config: monorepo.config.defaults?.kubernetes?.namespace,
+    });
+
+    // Resolve the pod and container for this component
+    const { pod, container } = await monorepo.run(
+      new GetComponentPodOperation(),
+      {
+        component,
+        namespace,
+      },
+    );
+
+    const podName = pod.metadata?.name;
+    if (!podName) {
+      throw new Error('Pod has no name');
+    }
+
+    return monorepo.run(
+      new PodExecOperation(task.interactive ? undefined : out),
+      {
+        namespace,
+        podName,
+        container,
+        script: task.script,
+        interactive: task.interactive || false,
+        env: await monorepo.expand(task.vars || {}),
+      },
+    );
+  }
+
   private async defaultExecutorFor(task: TaskInfo): Promise<ExecutorType> {
     const available = await this.availableExecutorsFor(task);
 
@@ -174,8 +225,22 @@ export class RunTasksOperation implements IOperation<
       return task.executors as Array<ExecutorType>;
     }
 
-    return task.component && (await compose.isService(task.component))
-      ? [ExecutorType.container, ExecutorType.local]
-      : [ExecutorType.local];
+    // For tasks with a component, check what executors are available
+    if (task.component) {
+      const available: Array<ExecutorType> = [ExecutorType.local];
+
+      // Container executor available if component is a docker-compose service
+      if (await compose.isService(task.component)) {
+        available.unshift(ExecutorType.container);
+      }
+
+      // Kubernetes executor is always available for component tasks
+      // (actual availability checked at runtime when --executor kubernetes is used)
+      available.push(ExecutorType.kubernetes);
+
+      return available;
+    }
+
+    return [ExecutorType.local];
   }
 }

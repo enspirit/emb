@@ -25,7 +25,8 @@ export default class Logs extends BaseCommand {
   static args = {
     service: Args.string({
       name: 'service',
-      description: 'The service(s) you want to see the logs of (all if omitted)',
+      description:
+        'The service(s) you want to see the logs of (all if omitted)',
       required: false,
     }),
   };

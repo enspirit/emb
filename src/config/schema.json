@@ -71,6 +71,40 @@
       "type": "string",
       "pattern": "^([a-zA-Z]+[\\w._-]+:)?[a-zA-Z]+[\\w._-]+$"
     },
+    "KubernetesConfig": {
+      "type": "object",
+      "description": "Kubernetes configuration for the project",
+      "properties": {
+        "namespace": {
+          "type": "string",
+          "description": "Default Kubernetes namespace to use"
+        },
+        "context": {
+          "type": "string",
+          "description": "Kubernetes context to use from kubeconfig"
+        },
+        "selectorLabel": {
+          "type": "string",
+          "description": "Label name used in pod selectors. Defaults to 'app.kubernetes.io/component'"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ComponentKubernetesConfig": {
+      "type": "object",
+      "description": "Kubernetes configuration for a component",
+      "properties": {
+        "selector": {
+          "type": "string",
+          "description": "Label selector to find pods (e.g., 'app=api,tier=backend'). Defaults to '{componentLabel}={component}'"
+        },
+        "container": {
+          "type": "string",
+          "description": "Container name for multi-container pods"
+        }
+      },
+      "additionalProperties": false
+    },
     "DefaultsConfig": {
       "type": "object",
       "description": "Default settings for build aspects",
@@ -103,6 +137,9 @@
               }
             }
           }
+        },
+        "kubernetes": {
+          "$ref": "#/definitions/KubernetesConfig"
         }
       }
     },
@@ -138,7 +175,8 @@
           "items": {
             "anyOf": [
               {"const": "local"},
-              {"const": "container"}
+              {"const": "container"},
+              {"const": "kubernetes"}
             ]
           }
         },
@@ -200,6 +238,9 @@
           "additionalProperties": {
             "$ref": "#/definitions/ComponentFlavorConfig"
           }
+        },
+        "kubernetes": {
+          "$ref": "#/definitions/ComponentKubernetesConfig"
         }
       },
       "additionalProperties": false

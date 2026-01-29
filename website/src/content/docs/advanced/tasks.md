@@ -21,6 +21,7 @@ tasks:
 Available executors:
 - `local` - Run on your local machine
 - `container` - Run inside the component's Docker container (default for component tasks)
+- `kubernetes` - Run on a pod in your Kubernetes cluster (see [Kubernetes Integration](/emb/advanced/kubernetes/))
 
 ### When to Use Local Executors
 

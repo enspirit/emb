@@ -2,7 +2,7 @@ import { Exec } from '@kubernetes/client-node';
 import { Args, Flags } from '@oclif/core';
 
 import { getContext, KubernetesCommand } from '@/cli';
-import { GetDeploymentPodsOperation } from '@/kubernetes/operations/GetDeploymentPodsOperation.js';
+import { GetComponentPodOperation } from '@/kubernetes/operations/index.js';
 import { enableRawMode } from '@/utils/streams.js';
 
 export default class PodShellCommand extends KubernetesCommand {
@@ -29,27 +29,25 @@ export default class PodShellCommand extends KubernetesCommand {
   public async run(): Promise<void> {
     const { flags, args } = await this.parse(PodShellCommand);
     const { monorepo, kubernetes } = await getContext();
+    const namespace = this.resolveNamespace(flags.namespace);
 
-    const pods = await monorepo.run(new GetDeploymentPodsOperation(), {
-      namespace: flags.namespace,
-      deployment: args.component,
-    });
-
-    if (pods.length === 0) {
-      throw new Error(`No running pod found for component ${args.component}`);
-    }
-
-    const pod = pods[0];
-    const container = pod.spec!.containers[0];
+    const component = monorepo.component(args.component);
+    const { pod, container } = await monorepo.run(
+      new GetComponentPodOperation(),
+      {
+        namespace,
+        component,
+      },
+    );
 
     const exec = new Exec(kubernetes.config);
 
     enableRawMode(process.stdin);
 
     const res = await exec.exec(
-      flags.namespace,
+      namespace,
       pod.metadata!.name!,
-      container.name!,
+      container,
       [flags.shell],
       process.stdout,
       process.stderr,

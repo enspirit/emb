@@ -38,9 +38,13 @@ describe('Docker Compose - services without components', () => {
     expect(error).toBeUndefined();
 
     // Verify redis is running
-    const { stdout } = await execa('docker', ['compose', 'ps', '--format=json'], {
-      cwd: EXAMPLES['production-ready'],
-    });
+    const { stdout } = await execa(
+      'docker',
+      ['compose', 'ps', '--format=json'],
+      {
+        cwd: EXAMPLES['production-ready'],
+      },
+    );
     expect(stdout).toContain('redis');
   });
 
@@ -91,9 +95,13 @@ describe('Docker Compose - services without components', () => {
     expect(error).toBeUndefined();
 
     // Verify both are running
-    const { stdout } = await execa('docker', ['compose', 'ps', '--format=json'], {
-      cwd: EXAMPLES['production-ready'],
-    });
+    const { stdout } = await execa(
+      'docker',
+      ['compose', 'ps', '--format=json'],
+      {
+        cwd: EXAMPLES['production-ready'],
+      },
+    );
     expect(stdout).toContain('api');
     expect(stdout).toContain('redis');
   });

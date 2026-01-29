@@ -18,9 +18,10 @@ export default class KPSCommand extends KubernetesCommand {
   public async run(): Promise<void> {
     const { flags } = await this.parse(KPSCommand);
     const { kubernetes } = getContext();
+    const namespace = this.resolveNamespace(flags.namespace);
 
     const { items } = await kubernetes.core.listNamespacedPod({
-      namespace: flags.namespace,
+      namespace,
     });
 
     const pods = items.map((i) => {
