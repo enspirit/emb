@@ -27,8 +27,8 @@ export const ComposeLogsArchiveOperationInputSchema = z
   .optional();
 
 export interface ArchivedLogFile {
-  service: string;
   path: string;
+  service: string;
 }
 
 export class ComposeLogsArchiveOperation extends AbstractOperation<

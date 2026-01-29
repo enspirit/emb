@@ -199,7 +199,7 @@ emb run <TASK...> [OPTIONS]
 - `TASK...` - Task IDs or names to run
 
 **Options:**
-- `-x, --executor <type>` - Force executor: `container` or `local`
+- `-x, --executor <type>` - Force executor: `local`, `container`, or `kubernetes`
 - `-a, --all-matching` - Run all tasks matching name
 
 **Examples:**
@@ -208,6 +208,7 @@ emb run test                    # Run task by name
 emb run api:test                # Run specific component task
 emb run test --all-matching     # Run all 'test' tasks
 emb run deploy -x local         # Force local execution
+emb run migrate -x kubernetes   # Run on Kubernetes pod
 ```
 
 ## Configuration Commands
@@ -314,8 +315,16 @@ emb secrets providers   # Show configured secret providers
 ### kubernetes
 
 ```shell
-emb kubernetes          # Kubernetes management commands
+emb kubernetes shell <COMPONENT>    # Open shell in pod
+emb kubernetes logs <COMPONENT>     # View pod logs
+emb kubernetes ps <COMPONENT>       # List pods
+emb kubernetes restart <COMPONENT>  # Restart pods
 ```
+
+**Common options:**
+- `-n, --namespace <name>` - Target namespace
+
+See [Kubernetes Integration](/emb/advanced/kubernetes/) for detailed usage.
 
 ## Exit Codes
 

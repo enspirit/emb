@@ -17,9 +17,10 @@ export default class KRestartCommand extends KubernetesCommand {
   public async run(): Promise<void> {
     const { flags, argv } = await this.parse(KRestartCommand);
     const { monorepo } = getContext();
+    const namespace = this.resolveNamespace(flags.namespace);
 
     await monorepo.run(new PodsRestartOperation(), {
-      namespace: flags.namespace,
+      namespace,
       deployments: argv.length > 0 ? (argv as Array<string>) : undefined,
     });
   }

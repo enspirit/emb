@@ -68,7 +68,7 @@ vars:
 
 ### defaults
 
-Optional. Default settings for builds.
+Optional. Default settings for builds and execution.
 
 ```yaml
 defaults:
@@ -80,7 +80,17 @@ defaults:
       NODE_ENV: development
     labels:                      # Default labels
       maintainer: team@example.com
+  kubernetes:
+    namespace: staging                           # Default namespace for K8s operations
+    selectorLabel: app.kubernetes.io/component   # Label for pod selection
 ```
+
+**Kubernetes defaults:**
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `namespace` | Default Kubernetes namespace | `default` |
+| `selectorLabel` | Label name used to find component pods | `app.kubernetes.io/component` |
 
 ### components
 
@@ -236,7 +246,7 @@ tasks:
 | `description` | string | Task description |
 | `script` | string | Shell script to execute |
 | `pre` | array | Tasks to run before this one |
-| `executors` | array | Where to run: `local` or `container` |
+| `executors` | array | Where to run: `local`, `container`, or `kubernetes` |
 | `interactive` | boolean | Requires TTY (default: false) |
 | `vars` | object | Task-specific variables |
 | `confirm` | object | Require user confirmation |
@@ -253,6 +263,21 @@ flavors:
         path: /resources/image/params/target
         value: production
 ```
+
+### kubernetes
+
+Optional. Kubernetes-specific configuration for the component.
+
+```yaml
+kubernetes:
+  selector: app=api,tier=backend   # Custom label selector for finding pods
+  container: main                   # Container name for multi-container pods
+```
+
+| Option | Description |
+|--------|-------------|
+| `selector` | Label selector to find pods (overrides default `{selectorLabel}={component}`) |
+| `container` | Container name for multi-container pods |
 
 ## Variable Expansion
 

@@ -3,7 +3,7 @@ import { Args, Flags } from '@oclif/core';
 import { PassThrough } from 'node:stream';
 
 import { KubernetesCommand } from '@/cli';
-import { GetDeploymentPodsOperation } from '@/kubernetes/operations/GetDeploymentPodsOperation.js';
+import { GetComponentPodOperation } from '@/kubernetes/operations/index.js';
 
 export default class KubernetesLogs extends KubernetesCommand {
   static description = 'Follow kubernetes logs.';
@@ -29,18 +29,16 @@ export default class KubernetesLogs extends KubernetesCommand {
   public async run(): Promise<void> {
     const { flags, args } = await this.parse(KubernetesLogs);
     const { monorepo, kubernetes } = this.context;
+    const namespace = this.resolveNamespace(flags.namespace);
 
-    // Check the component name is valid (would raise otherwise)
-    monorepo.component(args.component);
-
-    const pods = await monorepo.run(new GetDeploymentPodsOperation(), {
-      namespace: flags.namespace,
-      deployment: args.component,
-    });
-
-    if (pods.length === 0) {
-      throw new Error(`No running pod found for component ${args.component}`);
-    }
+    const component = monorepo.component(args.component);
+    const { pod, container } = await monorepo.run(
+      new GetComponentPodOperation(),
+      {
+        namespace,
+        component,
+      },
+    );
 
     const k8sLogs = new Log(kubernetes.config);
     const transform = new PassThrough();
@@ -48,20 +46,11 @@ export default class KubernetesLogs extends KubernetesCommand {
       process.stdout.write(chunk);
     });
 
-    const pod = pods[0];
-    const container = pod.spec!.containers[0];
-
-    await k8sLogs.log(
-      flags.namespace,
-      pod.metadata!.name!,
-      container.name,
-      transform,
-      {
-        follow: flags.follow,
-        tailLines: 50,
-        pretty: false,
-        timestamps: true,
-      },
-    );
+    await k8sLogs.log(namespace, pod.metadata!.name!, container, transform, {
+      follow: flags.follow,
+      tailLines: 50,
+      pretty: false,
+      timestamps: true,
+    });
   }
 }

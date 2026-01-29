@@ -45,11 +45,12 @@ export class DockerComposeClient {
   async validateService(serviceName: string): Promise<string> {
     await this.init();
     if (!this.services?.has(serviceName)) {
-      const available = Array.from(this.services?.keys() ?? []).join(', ');
+      const available = [...(this.services?.keys() ?? [])].join(', ');
       throw new Error(
         `Unknown service '${serviceName}'. Available services: ${available || 'none'}`,
       );
     }
+
     return serviceName;
   }
 
@@ -62,6 +63,7 @@ export class DockerComposeClient {
     for (const name of serviceNames) {
       await this.validateService(name);
     }
+
     return serviceNames;
   }
 
@@ -70,7 +72,7 @@ export class DockerComposeClient {
    */
   async getServiceNames(): Promise<string[]> {
     await this.init();
-    return Array.from(this.services?.keys() ?? []);
+    return [...(this.services?.keys() ?? [])];
   }
 
   async getContainer(
