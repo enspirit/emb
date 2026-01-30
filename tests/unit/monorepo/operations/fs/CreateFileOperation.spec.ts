@@ -10,6 +10,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 
+import { CommandExecError } from '../../../../../src/errors.js';
 import { CreateFileOperation } from '../../../../../src/monorepo/operations/fs/CreateFileOperation.js';
 
 describe('Monorepo / Operations / FS / CreateFileOperation', () => {
@@ -137,6 +138,62 @@ describe('Monorepo / Operations / FS / CreateFileOperation', () => {
 
       const fileContent = await readFile(filePath, 'utf8');
       expect(fileContent).toBe(content);
+    });
+
+    test('it throws CommandExecError when script exits with non-zero code', async () => {
+      const filePath = join(tempDir, 'failedscript.txt');
+
+      await expect(
+        operation.run({
+          path: filePath,
+          script: 'exit 1',
+          cwd: tempDir,
+        }),
+      ).rejects.toThrow(CommandExecError);
+    });
+
+    test('it throws CommandExecError when script command does not exist', async () => {
+      const filePath = join(tempDir, 'nonexistent.txt');
+
+      await expect(
+        operation.run({
+          path: filePath,
+          script: 'nonexistent_command_that_does_not_exist',
+          cwd: tempDir,
+        }),
+      ).rejects.toThrow(CommandExecError);
+    });
+
+    test('it includes exit code in CommandExecError when script fails', async () => {
+      const filePath = join(tempDir, 'exitcode.txt');
+
+      try {
+        await operation.run({
+          path: filePath,
+          script: 'exit 42',
+          cwd: tempDir,
+        });
+        expect.fail('Expected operation to throw');
+      } catch (error) {
+        expect(error).toBeInstanceOf(CommandExecError);
+        expect((error as CommandExecError).exitCode).toBe(42);
+      }
+    });
+
+    test('it includes stderr message in CommandExecError when script fails', async () => {
+      const filePath = join(tempDir, 'stderr.txt');
+
+      try {
+        await operation.run({
+          path: filePath,
+          script: 'echo "error message" >&2 && exit 1',
+          cwd: tempDir,
+        });
+        expect.fail('Expected operation to throw');
+      } catch (error) {
+        expect(error).toBeInstanceOf(CommandExecError);
+        expect((error as CommandExecError).message).toContain('error message');
+      }
     });
   });
 });
