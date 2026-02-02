@@ -14,7 +14,7 @@ $ npm install -g @enspirit/emb
 $ emb COMMAND
 running command...
 $ emb (--version)
-@enspirit/emb/0.24.0 darwin-x64 node-v22.18.0
+@enspirit/emb/0.25.0 darwin-arm64 node-v22.21.1
 $ emb --help [COMMAND]
 USAGE
   $ emb COMMAND
@@ -45,6 +45,7 @@ USAGE
 * [`emb ps`](#emb-ps)
 * [`emb resources`](#emb-resources)
 * [`emb resources build [COMPONENT]`](#emb-resources-build-component)
+* [`emb resources publish [RESOURCES]`](#emb-resources-publish-resources)
 * [`emb restart [SERVICE]`](#emb-restart-service)
 * [`emb run TASK`](#emb-run-task)
 * [`emb secrets`](#emb-secrets)
@@ -112,7 +113,7 @@ EXAMPLES
   $ emb clean
 ```
 
-_See code: [src/commands/clean.ts](https://github.com/enspirit/emb/blob/v0.24.0/src/commands/clean.ts)_
+_See code: [src/commands/clean.ts](https://github.com/enspirit/emb/blob/v0.25.0/src/commands/clean.ts)_
 
 ## `emb components`
 
@@ -137,7 +138,7 @@ EXAMPLES
   $ emb components
 ```
 
-_See code: [src/commands/components/index.ts](https://github.com/enspirit/emb/blob/v0.24.0/src/commands/components/index.ts)_
+_See code: [src/commands/components/index.ts](https://github.com/enspirit/emb/blob/v0.25.0/src/commands/components/index.ts)_
 
 ## `emb components shell SERVICE`
 
@@ -165,7 +166,7 @@ EXAMPLES
   $ emb components shell
 ```
 
-_See code: [src/commands/components/shell.ts](https://github.com/enspirit/emb/blob/v0.24.0/src/commands/components/shell.ts)_
+_See code: [src/commands/components/shell.ts](https://github.com/enspirit/emb/blob/v0.25.0/src/commands/components/shell.ts)_
 
 ## `emb config print`
 
@@ -190,7 +191,7 @@ EXAMPLES
   $ emb config print
 ```
 
-_See code: [src/commands/config/print.ts](https://github.com/enspirit/emb/blob/v0.24.0/src/commands/config/print.ts)_
+_See code: [src/commands/config/print.ts](https://github.com/enspirit/emb/blob/v0.25.0/src/commands/config/print.ts)_
 
 ## `emb containers`
 
@@ -215,7 +216,7 @@ EXAMPLES
   $ emb containers
 ```
 
-_See code: [src/commands/containers/index.ts](https://github.com/enspirit/emb/blob/v0.24.0/src/commands/containers/index.ts)_
+_See code: [src/commands/containers/index.ts](https://github.com/enspirit/emb/blob/v0.25.0/src/commands/containers/index.ts)_
 
 ## `emb containers prune`
 
@@ -239,7 +240,7 @@ EXAMPLES
   $ emb containers prune
 ```
 
-_See code: [src/commands/containers/prune.ts](https://github.com/enspirit/emb/blob/v0.24.0/src/commands/containers/prune.ts)_
+_See code: [src/commands/containers/prune.ts](https://github.com/enspirit/emb/blob/v0.25.0/src/commands/containers/prune.ts)_
 
 ## `emb down [SERVICE]`
 
@@ -267,7 +268,7 @@ EXAMPLES
   $ emb down
 ```
 
-_See code: [src/commands/down.ts](https://github.com/enspirit/emb/blob/v0.24.0/src/commands/down.ts)_
+_See code: [src/commands/down.ts](https://github.com/enspirit/emb/blob/v0.25.0/src/commands/down.ts)_
 
 ## `emb help [COMMAND]`
 
@@ -313,7 +314,7 @@ EXAMPLES
   $ emb images
 ```
 
-_See code: [src/commands/images/index.ts](https://github.com/enspirit/emb/blob/v0.24.0/src/commands/images/index.ts)_
+_See code: [src/commands/images/index.ts](https://github.com/enspirit/emb/blob/v0.25.0/src/commands/images/index.ts)_
 
 ## `emb images delete`
 
@@ -338,7 +339,7 @@ EXAMPLES
   $ emb images delete
 ```
 
-_See code: [src/commands/images/delete.ts](https://github.com/enspirit/emb/blob/v0.24.0/src/commands/images/delete.ts)_
+_See code: [src/commands/images/delete.ts](https://github.com/enspirit/emb/blob/v0.25.0/src/commands/images/delete.ts)_
 
 ## `emb images prune`
 
@@ -363,11 +364,11 @@ EXAMPLES
   $ emb images prune
 ```
 
-_See code: [src/commands/images/prune.ts](https://github.com/enspirit/emb/blob/v0.24.0/src/commands/images/prune.ts)_
+_See code: [src/commands/images/prune.ts](https://github.com/enspirit/emb/blob/v0.25.0/src/commands/images/prune.ts)_
 
 ## `emb images push`
 
-Push docker images.
+[DEPRECATED] Push docker images. Use "emb resources publish" instead.
 
 ```
 USAGE
@@ -384,7 +385,7 @@ GLOBAL FLAGS
   --json  Format output as json.
 
 DESCRIPTION
-  Push docker images.
+  [DEPRECATED] Push docker images. Use "emb resources publish" instead.
 
 EXAMPLES
   $ emb images push
@@ -392,7 +393,7 @@ EXAMPLES
   $ emb images push --registry my.registry.io --retag newtag
 ```
 
-_See code: [src/commands/images/push.ts](https://github.com/enspirit/emb/blob/v0.24.0/src/commands/images/push.ts)_
+_See code: [src/commands/images/push.ts](https://github.com/enspirit/emb/blob/v0.25.0/src/commands/images/push.ts)_
 
 ## `emb kubernetes logs COMPONENT`
 
@@ -418,7 +419,7 @@ EXAMPLES
   $ emb kubernetes logs
 ```
 
-_See code: [src/commands/kubernetes/logs.ts](https://github.com/enspirit/emb/blob/v0.24.0/src/commands/kubernetes/logs.ts)_
+_See code: [src/commands/kubernetes/logs.ts](https://github.com/enspirit/emb/blob/v0.25.0/src/commands/kubernetes/logs.ts)_
 
 ## `emb kubernetes ps`
 
@@ -441,7 +442,7 @@ EXAMPLES
   $ emb kubernetes ps
 ```
 
-_See code: [src/commands/kubernetes/ps.ts](https://github.com/enspirit/emb/blob/v0.24.0/src/commands/kubernetes/ps.ts)_
+_See code: [src/commands/kubernetes/ps.ts](https://github.com/enspirit/emb/blob/v0.25.0/src/commands/kubernetes/ps.ts)_
 
 ## `emb kubernetes restart [DEPLOYMENT]`
 
@@ -466,7 +467,7 @@ EXAMPLES
   $ emb kubernetes restart
 ```
 
-_See code: [src/commands/kubernetes/restart.ts](https://github.com/enspirit/emb/blob/v0.24.0/src/commands/kubernetes/restart.ts)_
+_See code: [src/commands/kubernetes/restart.ts](https://github.com/enspirit/emb/blob/v0.25.0/src/commands/kubernetes/restart.ts)_
 
 ## `emb kubernetes shell COMPONENT`
 
@@ -495,7 +496,7 @@ EXAMPLES
   $ emb kubernetes shell
 ```
 
-_See code: [src/commands/kubernetes/shell.ts](https://github.com/enspirit/emb/blob/v0.24.0/src/commands/kubernetes/shell.ts)_
+_See code: [src/commands/kubernetes/shell.ts](https://github.com/enspirit/emb/blob/v0.25.0/src/commands/kubernetes/shell.ts)_
 
 ## `emb logs [SERVICE]`
 
@@ -526,7 +527,7 @@ EXAMPLES
   $ emb logs --no-follow backend
 ```
 
-_See code: [src/commands/logs/index.ts](https://github.com/enspirit/emb/blob/v0.24.0/src/commands/logs/index.ts)_
+_See code: [src/commands/logs/index.ts](https://github.com/enspirit/emb/blob/v0.25.0/src/commands/logs/index.ts)_
 
 ## `emb logs archive [SERVICE]`
 
@@ -562,7 +563,7 @@ EXAMPLES
   $ emb logs archive --tail 1000
 ```
 
-_See code: [src/commands/logs/archive.ts](https://github.com/enspirit/emb/blob/v0.24.0/src/commands/logs/archive.ts)_
+_See code: [src/commands/logs/archive.ts](https://github.com/enspirit/emb/blob/v0.25.0/src/commands/logs/archive.ts)_
 
 ## `emb ps`
 
@@ -585,7 +586,7 @@ EXAMPLES
   $ emb ps
 ```
 
-_See code: [src/commands/ps.ts](https://github.com/enspirit/emb/blob/v0.24.0/src/commands/ps.ts)_
+_See code: [src/commands/ps.ts](https://github.com/enspirit/emb/blob/v0.25.0/src/commands/ps.ts)_
 
 ## `emb resources`
 
@@ -593,11 +594,12 @@ List resources.
 
 ```
 USAGE
-  $ emb resources [--json] [--verbose] [-C <value>] [--flavor <value>]
+  $ emb resources [--json] [--verbose] [-C <value>] [--flavor <value>] [--publishable]
 
 FLAGS
   -C, --root=<value>    Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
       --flavor=<value>  Specify the flavor to use.
+      --publishable     Only show resources that are publishable (publish: true)
   --[no-]verbose
 
 GLOBAL FLAGS
@@ -608,9 +610,11 @@ DESCRIPTION
 
 EXAMPLES
   $ emb resources
+
+  $ emb resources --publishable
 ```
 
-_See code: [src/commands/resources/index.ts](https://github.com/enspirit/emb/blob/v0.24.0/src/commands/resources/index.ts)_
+_See code: [src/commands/resources/index.ts](https://github.com/enspirit/emb/blob/v0.25.0/src/commands/resources/index.ts)_
 
 ## `emb resources build [COMPONENT]`
 
@@ -619,6 +623,7 @@ Build the resources of the monorepo
 ```
 USAGE
   $ emb resources build [COMPONENT...] [--json] [--verbose] [-C <value>] [--flavor <value>] [--dry-run] [-f]
+    [--publishable]
 
 ARGUMENTS
   [COMPONENT...]  List of resources to build (defaults to all)
@@ -628,6 +633,7 @@ FLAGS
   -f, --force           Bypass the cache and force the build
       --dry-run         Do not build the resources but only produce build meta information
       --flavor=<value>  Specify the flavor to use.
+      --publishable     Only build resources that are publishable (publish: true) and their dependencies
   --[no-]verbose
 
 GLOBAL FLAGS
@@ -638,9 +644,42 @@ DESCRIPTION
 
 EXAMPLES
   $ emb resources build build --flavor development
+
+  $ emb resources build build --publishable --flavor production
 ```
 
-_See code: [src/commands/resources/build.ts](https://github.com/enspirit/emb/blob/v0.24.0/src/commands/resources/build.ts)_
+_See code: [src/commands/resources/build.ts](https://github.com/enspirit/emb/blob/v0.25.0/src/commands/resources/build.ts)_
+
+## `emb resources publish [RESOURCES]`
+
+Publish resources to their registries
+
+```
+USAGE
+  $ emb resources publish [RESOURCES...] [--json] [--verbose] [-C <value>] [--flavor <value>] [--dry-run]
+
+ARGUMENTS
+  [RESOURCES...]  List of resources to publish (defaults to all publishable)
+
+FLAGS
+  -C, --root=<value>    Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
+      --dry-run         Do not publish, just show what would be published
+      --flavor=<value>  Specify the flavor to use.
+  --[no-]verbose
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Publish resources to their registries
+
+EXAMPLES
+  $ emb resources publish --flavor production
+
+  $ emb resources publish api:image --flavor production
+```
+
+_See code: [src/commands/resources/publish.ts](https://github.com/enspirit/emb/blob/v0.25.0/src/commands/resources/publish.ts)_
 
 ## `emb restart [SERVICE]`
 
@@ -668,7 +707,7 @@ EXAMPLES
   $ emb restart
 ```
 
-_See code: [src/commands/restart.ts](https://github.com/enspirit/emb/blob/v0.24.0/src/commands/restart.ts)_
+_See code: [src/commands/restart.ts](https://github.com/enspirit/emb/blob/v0.25.0/src/commands/restart.ts)_
 
 ## `emb run TASK`
 
@@ -726,7 +765,7 @@ EXAMPLES
   $ emb secrets --json
 ```
 
-_See code: [src/commands/secrets/index.ts](https://github.com/enspirit/emb/blob/v0.24.0/src/commands/secrets/index.ts)_
+_See code: [src/commands/secrets/index.ts](https://github.com/enspirit/emb/blob/v0.25.0/src/commands/secrets/index.ts)_
 
 ## `emb secrets providers`
 
@@ -751,7 +790,7 @@ EXAMPLES
   $ emb secrets providers
 ```
 
-_See code: [src/commands/secrets/providers.ts](https://github.com/enspirit/emb/blob/v0.24.0/src/commands/secrets/providers.ts)_
+_See code: [src/commands/secrets/providers.ts](https://github.com/enspirit/emb/blob/v0.25.0/src/commands/secrets/providers.ts)_
 
 ## `emb secrets validate`
 
@@ -781,7 +820,7 @@ EXAMPLES
   $ emb secrets validate --json
 ```
 
-_See code: [src/commands/secrets/validate.ts](https://github.com/enspirit/emb/blob/v0.24.0/src/commands/secrets/validate.ts)_
+_See code: [src/commands/secrets/validate.ts](https://github.com/enspirit/emb/blob/v0.25.0/src/commands/secrets/validate.ts)_
 
 ## `emb shell SERVICE`
 
@@ -834,7 +873,7 @@ EXAMPLES
   $ emb start
 ```
 
-_See code: [src/commands/start.ts](https://github.com/enspirit/emb/blob/v0.24.0/src/commands/start.ts)_
+_See code: [src/commands/start.ts](https://github.com/enspirit/emb/blob/v0.25.0/src/commands/start.ts)_
 
 ## `emb stop [SERVICE]`
 
@@ -862,7 +901,7 @@ EXAMPLES
   $ emb stop
 ```
 
-_See code: [src/commands/stop.ts](https://github.com/enspirit/emb/blob/v0.24.0/src/commands/stop.ts)_
+_See code: [src/commands/stop.ts](https://github.com/enspirit/emb/blob/v0.25.0/src/commands/stop.ts)_
 
 ## `emb tasks`
 
@@ -886,7 +925,7 @@ EXAMPLES
   $ emb tasks
 ```
 
-_See code: [src/commands/tasks/index.ts](https://github.com/enspirit/emb/blob/v0.24.0/src/commands/tasks/index.ts)_
+_See code: [src/commands/tasks/index.ts](https://github.com/enspirit/emb/blob/v0.25.0/src/commands/tasks/index.ts)_
 
 ## `emb tasks run TASK`
 
@@ -919,7 +958,7 @@ EXAMPLES
   $ emb tasks run
 ```
 
-_See code: [src/commands/tasks/run.ts](https://github.com/enspirit/emb/blob/v0.24.0/src/commands/tasks/run.ts)_
+_See code: [src/commands/tasks/run.ts](https://github.com/enspirit/emb/blob/v0.25.0/src/commands/tasks/run.ts)_
 
 ## `emb up [SERVICE]`
 
@@ -948,7 +987,7 @@ EXAMPLES
   $ emb up
 ```
 
-_See code: [src/commands/up.ts](https://github.com/enspirit/emb/blob/v0.24.0/src/commands/up.ts)_
+_See code: [src/commands/up.ts](https://github.com/enspirit/emb/blob/v0.25.0/src/commands/up.ts)_
 
 ## `emb update [CHANNEL]`
 
