@@ -4,8 +4,8 @@ import { createTestSetup, TestSetup } from 'tests/setup/set.context.js';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { CliError } from '../../../../../src/errors.js';
-import { ResourceFactory } from '../../../../../src/monorepo/resources/ResourceFactory.js';
 import { PublishResourcesOperation } from '../../../../../src/monorepo/operations/resources/PublishResourcesOperation.js';
+import { ResourceFactory } from '../../../../../src/monorepo/resources/ResourceFactory.js';
 
 describe('Monorepo / Operations / Resources / PublishResourcesOperation', () => {
   let setup: TestSetup;
@@ -67,15 +67,18 @@ describe('Monorepo / Operations / Resources / PublishResourcesOperation', () => 
       const publishCalls: string[] = [];
       const originalFactor = ResourceFactory.factor.bind(ResourceFactory);
 
-      vi.spyOn(ResourceFactory, 'factor').mockImplementation((type, context) => {
-        const builder = originalFactor(type, context);
-        if (type === 'docker/image') {
-          builder.publish = vi.fn(async () => {
-            publishCalls.push(context.config.id);
-          });
-        }
-        return builder;
-      });
+      vi.spyOn(ResourceFactory, 'factor').mockImplementation(
+        (type, context) => {
+          const builder = originalFactor(type, context);
+          if (type === 'docker/image') {
+            builder.publish = vi.fn(async () => {
+              publishCalls.push(context.config.id);
+            });
+          }
+
+          return builder;
+        },
+      );
 
       const result = await setup.monorepo.run(new PublishResourcesOperation(), {
         silent: true,
@@ -93,15 +96,18 @@ describe('Monorepo / Operations / Resources / PublishResourcesOperation', () => 
       const publishCalls: string[] = [];
       const originalFactor = ResourceFactory.factor.bind(ResourceFactory);
 
-      vi.spyOn(ResourceFactory, 'factor').mockImplementation((type, context) => {
-        const builder = originalFactor(type, context);
-        if (type === 'docker/image') {
-          builder.publish = vi.fn(async () => {
-            publishCalls.push(context.config.id);
-          });
-        }
-        return builder;
-      });
+      vi.spyOn(ResourceFactory, 'factor').mockImplementation(
+        (type, context) => {
+          const builder = originalFactor(type, context);
+          if (type === 'docker/image') {
+            builder.publish = vi.fn(async () => {
+              publishCalls.push(context.config.id);
+            });
+          }
+
+          return builder;
+        },
+      );
 
       const result = await setup.monorepo.run(new PublishResourcesOperation(), {
         dryRun: true,
@@ -121,15 +127,18 @@ describe('Monorepo / Operations / Resources / PublishResourcesOperation', () => 
       const publishCalls: string[] = [];
       const originalFactor = ResourceFactory.factor.bind(ResourceFactory);
 
-      vi.spyOn(ResourceFactory, 'factor').mockImplementation((type, context) => {
-        const builder = originalFactor(type, context);
-        if (type === 'docker/image') {
-          builder.publish = vi.fn(async () => {
-            publishCalls.push(context.config.id);
-          });
-        }
-        return builder;
-      });
+      vi.spyOn(ResourceFactory, 'factor').mockImplementation(
+        (type, context) => {
+          const builder = originalFactor(type, context);
+          if (type === 'docker/image') {
+            builder.publish = vi.fn(async () => {
+              publishCalls.push(context.config.id);
+            });
+          }
+
+          return builder;
+        },
+      );
 
       const result = await setup.monorepo.run(new PublishResourcesOperation(), {
         resources: ['api:image'],

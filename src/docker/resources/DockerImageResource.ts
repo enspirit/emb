@@ -15,6 +15,7 @@ import {
   ResourceBuildContext,
   ResourceFactory,
 } from '../../monorepo/resources/ResourceFactory.js';
+import { getDockerAuthConfig } from '../credentials.js';
 import { BuildImageOperation } from '../operations/index.js';
 
 /**
@@ -189,14 +190,11 @@ class DockerImageResourceBuilder extends SentinelFileBasedBuilder<
     tag: string,
     out?: Writable,
   ) {
-    const dockerImage = docker.getImage(`${repo}:${tag}`);
+    const imageRef = `${repo}:${tag}`;
+    const dockerImage = docker.getImage(imageRef);
 
-    const stream = await dockerImage.push({
-      authconfig: {
-        username: process.env.DOCKER_USERNAME,
-        password: process.env.DOCKER_PASSWORD,
-      },
-    });
+    const authconfig = await getDockerAuthConfig(imageRef);
+    const stream = await dockerImage.push(authconfig ? { authconfig } : {});
 
     const transform = new Transform({
       transform(chunk, encoding, callback) {
