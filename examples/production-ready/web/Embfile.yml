@@ -3,6 +3,7 @@ description: Production-ready web frontend
 resources:
   image:
     type: docker/image
+    publish: true
     params:
       target: development
 

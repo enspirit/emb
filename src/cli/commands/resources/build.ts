@@ -18,6 +18,7 @@ export default class ResourcesBuildCommand extends FlavoredCommand<
   static description = 'Build the resources of the monorepo';
   static examples = [
     `<%= config.bin %> <%= command.id %> build --flavor development`,
+    `<%= config.bin %> <%= command.id %> build --publishable --flavor production`,
   ];
   static flags = {
     'dry-run': Flags.boolean({
@@ -31,6 +32,11 @@ export default class ResourcesBuildCommand extends FlavoredCommand<
       required: false,
       description: 'Bypass the cache and force the build',
     }),
+    publishable: Flags.boolean({
+      required: false,
+      description:
+        'Only build resources that are publishable (publish: true) and their dependencies',
+    }),
   };
   static enableJsonFlag = true;
   static strict = false;
@@ -39,10 +45,16 @@ export default class ResourcesBuildCommand extends FlavoredCommand<
     const { argv, flags } = await this.parse(ResourcesBuildCommand);
     const { monorepo } = getContext();
 
-    const toBuild =
-      argv.length > 0
-        ? (argv as string[])
-        : monorepo.resources.map((c) => c.id);
+    let toBuild: string[];
+    if (argv.length > 0) {
+      toBuild = argv as string[];
+    } else if (flags.publishable) {
+      toBuild = monorepo.resources
+        .filter((r) => r.publish === true)
+        .map((r) => r.id);
+    } else {
+      toBuild = monorepo.resources.map((c) => c.id);
+    }
 
     return monorepo.run(new BuildResourcesOperation(), {
       dryRun: flags['dry-run'],

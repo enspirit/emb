@@ -21,7 +21,8 @@ export class GetDeploymentPodsOperation extends AbstractOperation<
     const { kubernetes, monorepo } = getContext();
 
     const selectorLabel =
-      monorepo.config.defaults?.kubernetes?.selectorLabel ?? 'app.kubernetes.io/component';
+      monorepo.config.defaults?.kubernetes?.selectorLabel ??
+      'app.kubernetes.io/component';
 
     const res = await kubernetes.core.listNamespacedPod({
       namespace: input.namespace,

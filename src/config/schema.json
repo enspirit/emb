@@ -135,6 +135,9 @@
               "additionalProperties": {
                 "type": "string"
               }
+            },
+            "publish": {
+              "$ref": "#/definitions/DockerPublishConfig"
             }
           }
         },
@@ -245,6 +248,21 @@
       },
       "additionalProperties": false
     },
+    "DockerPublishConfig": {
+      "type": "object",
+      "description": "Configuration for publishing docker images",
+      "properties": {
+        "registry": {
+          "type": "string",
+          "description": "Registry to push images to (e.g., ghcr.io/myorg, docker.io/mycompany)"
+        },
+        "tag": {
+          "type": "string",
+          "description": "Tag to use when publishing (overrides the build tag)"
+        }
+      },
+      "additionalProperties": false
+    },
     "DockerImageConfig": {
       "type": "object",
       "properties": {
@@ -285,6 +303,10 @@
         "dockerfile": {
           "type": "string",
           "description": "The Dockerfile to use"
+        },
+        "publish": {
+          "$ref": "#/definitions/DockerPublishConfig",
+          "description": "Publishing configuration for this image (overrides defaults.docker.publish)"
         }
       },
       "additionalProperties": false
@@ -308,6 +330,10 @@
       "properties": {
         "type": { "type": "string" },
         "params": {},
+        "publish": {
+          "type": "boolean",
+          "description": "Whether this resource should be published. Defaults to false."
+        },
         "dependencies": {
           "type": "array",
           "items": { "$ref": "#/definitions/QualifiedIdentifier" },

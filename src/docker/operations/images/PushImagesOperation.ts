@@ -3,6 +3,7 @@ import { join } from 'node:path/posix';
 import { Transform, Writable } from 'node:stream';
 import * as z from 'zod';
 
+import { getDockerAuthConfig } from '@/docker/credentials.js';
 import { ResourceFactory } from '@/monorepo/resources/ResourceFactory.js';
 import { AbstractOperation } from '@/operations';
 
@@ -106,14 +107,11 @@ export class PushImagesOperation extends AbstractOperation<
   }
 
   private async pushImage(repo: string, tag: string, out?: Writable) {
-    const dockerImage = await this.context.docker.getImage(`${repo}:${tag}`);
+    const imageRef = `${repo}:${tag}`;
+    const dockerImage = await this.context.docker.getImage(imageRef);
 
-    const stream = await dockerImage.push({
-      authconfig: {
-        username: process.env.DOCKER_USERNAME,
-        password: process.env.DOCKER_PASSWORD,
-      },
-    });
+    const authconfig = await getDockerAuthConfig(imageRef);
+    const stream = await dockerImage.push(authconfig ? { authconfig } : {});
 
     const transform = new Transform({
       transform(chunk, encoding, callback) {

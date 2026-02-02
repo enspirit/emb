@@ -119,6 +119,7 @@ emb resources build [RESOURCE...] [OPTIONS]
 **Options:**
 - `-f, --force` - Force rebuild, bypass cache
 - `--dry-run` - Show what would be built without building
+- `--publishable` - Only build resources marked as publishable (and their dependencies)
 - `--flavor <name>` - Use a specific flavor
 
 **Examples:**
@@ -127,6 +128,32 @@ emb resources build                     # Build all
 emb resources build api:image           # Build specific resource
 emb resources build -f                  # Force rebuild all
 emb resources build --flavor production # Build for production
+emb resources build --publishable       # Build only publishable resources
+```
+
+### emb resources publish
+
+Publish resources to their registries (e.g., push Docker images).
+
+```shell
+emb resources publish [RESOURCE...] [OPTIONS]
+```
+
+**Arguments:**
+- `RESOURCE...` - Optional resources to publish (defaults to all publishable)
+
+**Options:**
+- `--dry-run` - Show what would be published without publishing
+- `--flavor <name>` - Use a specific flavor
+
+Only resources with `publish: true` in their configuration are published. The registry and tag can be configured via `defaults.docker.publish` or per-resource `params.publish`.
+
+**Examples:**
+```shell
+emb resources publish                     # Publish all publishable resources
+emb resources publish api:image           # Publish specific resource
+emb resources publish --dry-run           # Preview without pushing
+emb resources publish --flavor production # Publish with production config
 ```
 
 ## List Commands
@@ -152,6 +179,16 @@ List all resources.
 
 ```shell
 emb resources [OPTIONS]
+```
+
+**Options:**
+- `--publishable` - Only show resources marked as publishable
+
+**Example output:**
+```
+  ID          NAME    TYPE           PUBLISHABLE   REFERENCE
+  api:image   image   docker/image   ✓             myapp/api:latest
+  web:image   image   docker/image   ✓             myapp/web:latest
 ```
 
 ### emb tasks
@@ -274,6 +311,7 @@ emb components shell    # Get shell in service (alias: emb shell)
 ```shell
 emb resources           # List resources
 emb resources build     # Build resources
+emb resources publish   # Publish resources to registries
 ```
 
 ### tasks
