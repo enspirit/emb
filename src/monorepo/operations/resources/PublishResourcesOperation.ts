@@ -56,24 +56,30 @@ export class PublishResourcesOperation extends AbstractOperation<
       return {};
     }
 
+    // Create a set of publishable resource IDs for filtering
+    const publishableIds = new Set(publishableResources.map((r) => r.id));
+
+    // Use ALL resources for dependency resolution, since publishable resources
+    // may depend on non-publishable ones (e.g., api:image depends on base:image)
+    const allResourcesCollection = new EMBCollection(monorepo.resources, {
+      idField: 'id',
+      depField: 'dependencies',
+    });
+
     // If specific resources requested, filter to those
     let targetResources: ResourceInfo[];
     if (input.resources && input.resources.length > 0) {
-      const collection = new EMBCollection(publishableResources, {
-        idField: 'id',
-        depField: 'dependencies',
-      });
-      targetResources = findRunOrder(input.resources, collection);
+      // Resolve order using full collection, then filter to only publishable
+      const orderedResources = findRunOrder(input.resources, allResourcesCollection);
+      targetResources = orderedResources.filter((r) => publishableIds.has(r.id));
     } else {
-      // All publishable resources
-      const collection = new EMBCollection(publishableResources, {
-        idField: 'id',
-        depField: 'dependencies',
-      });
-      targetResources = findRunOrder(
+      // All publishable resources - resolve order using full collection
+      const orderedResources = findRunOrder(
         publishableResources.map((r) => r.id),
-        collection,
+        allResourcesCollection,
       );
+      // Filter to only publishable (dependencies are resolved but not published)
+      targetResources = orderedResources.filter((r) => publishableIds.has(r.id));
     }
 
     // Verify each resource's builder supports publish

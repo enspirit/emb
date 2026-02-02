@@ -1,5 +1,10 @@
 description: API Gateway / reverse proxy
 
+resources:
+  image:
+    type: docker/image
+    publish: true
+
 tasks:
   deploy:
     description: Deploy gateway to production

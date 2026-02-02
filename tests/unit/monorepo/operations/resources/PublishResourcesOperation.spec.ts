@@ -191,6 +191,83 @@ describe('Monorepo / Operations / Resources / PublishResourcesOperation', () => 
       }
     });
 
+    test('it handles publishable resources with non-publishable dependencies', async () => {
+      // This is the bug: when a publishable resource depends on a non-publishable one,
+      // the operation should still work. The dependency just won't be published.
+      const depSetup = await createTestSetup({
+        tempDirPrefix: 'embPublishDepTest',
+        embfile: {
+          project: { name: 'test-dep-publish' },
+          plugins: [],
+          components: {
+            base: {
+              resources: {
+                image: {
+                  type: 'docker/image',
+                  // No publish: true - this is a base image not meant to be published
+                },
+              },
+            },
+            api: {
+              resources: {
+                image: {
+                  type: 'docker/image',
+                  publish: true,
+                  dependencies: ['base:image'], // Depends on non-publishable resource
+                },
+              },
+            },
+            worker: {
+              resources: {
+                image: {
+                  type: 'docker/image',
+                  publish: true,
+                  dependencies: ['base:image'], // Also depends on non-publishable resource
+                },
+              },
+            },
+          },
+        },
+      });
+
+      await mkdir(join(depSetup.tempDir, 'base'), { recursive: true });
+      await mkdir(join(depSetup.tempDir, 'api'), { recursive: true });
+      await mkdir(join(depSetup.tempDir, 'worker'), { recursive: true });
+
+      try {
+        const publishCalls: string[] = [];
+        const originalFactor = ResourceFactory.factor.bind(ResourceFactory);
+
+        vi.spyOn(ResourceFactory, 'factor').mockImplementation(
+          (type, context) => {
+            const builder = originalFactor(type, context);
+            if (type === 'docker/image') {
+              builder.publish = vi.fn(async () => {
+                publishCalls.push(context.config.id);
+              });
+            }
+            return builder;
+          },
+        );
+
+        const result = await depSetup.monorepo.run(
+          new PublishResourcesOperation(),
+          {
+            silent: true,
+          },
+        );
+
+        // Only api:image and worker:image should be published
+        // base:image should NOT be published (no publish: true)
+        expect(publishCalls).toContain('api:image');
+        expect(publishCalls).toContain('worker:image');
+        expect(publishCalls).not.toContain('base:image');
+        expect(Object.keys(result)).toHaveLength(2);
+      } finally {
+        await depSetup.cleanup();
+      }
+    });
+
     test('it returns empty result when no publishable resources exist', async () => {
       const emptySetup = await createTestSetup({
         tempDirPrefix: 'embPublishEmptyTest',

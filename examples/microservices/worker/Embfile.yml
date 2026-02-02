@@ -3,6 +3,7 @@ description: Background job worker
 resources:
   image:
     type: docker/image
+    publish: true
     dependencies:
       - base:image
 

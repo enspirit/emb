@@ -3,6 +3,7 @@ description: REST API service
 resources:
   image:
     type: docker/image
+    publish: true
     dependencies:
       - base:image
 
