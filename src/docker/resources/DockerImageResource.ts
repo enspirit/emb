@@ -1,9 +1,12 @@
+import { getContext } from '@';
 import { fdir as Fdir } from 'fdir';
 import { stat, statfs } from 'node:fs/promises';
 import { join } from 'node:path';
-import { Writable } from 'node:stream';
+import { join as posixJoin } from 'node:path/posix';
+import { Transform, Writable } from 'node:stream';
 import pMap from 'p-map';
 
+import { DockerPublishConfig } from '@/config/schema.js';
 import { ResourceInfo, SentinelFileBasedBuilder } from '@/monorepo';
 import { OpInput, OpOutput } from '@/operations/index.js';
 import { FilePrerequisite, GitPrerequisitePlugin } from '@/prerequisites';
@@ -23,6 +26,8 @@ type DockerImageResourceConfig = Partial<OpInput<BuildImageOperation>> & {
   image?: string;
   /** Image tag. Defaults to defaults.docker.tag or 'latest'. */
   tag?: string;
+  /** Publishing configuration (overrides defaults.docker.publish). */
+  publish?: DockerPublishConfig;
 };
 
 class DockerImageResourceBuilder extends SentinelFileBasedBuilder<
@@ -116,6 +121,121 @@ class DockerImageResourceBuilder extends SentinelFileBasedBuilder<
     }
 
     return { mtime: lastUpdated.time.getTime() };
+  }
+
+  /**
+   * Publish (push) the docker image to a registry.
+   * Uses configuration from defaults.docker.publish and resource-level params.publish.
+   */
+  async publish(
+    _resource: ResourceInfo<DockerImageResourceConfig>,
+    out?: Writable,
+  ): Promise<void> {
+    const { docker } = getContext();
+
+    const reference = await this.getReference();
+
+    // Merge defaults with resource-specific config (resource wins)
+    const defaults = this.monorepo.defaults.docker?.publish;
+    const resourceConfig = this.config?.publish;
+    const rawRegistry = resourceConfig?.registry ?? defaults?.registry;
+    const rawTag = resourceConfig?.tag ?? defaults?.tag;
+
+    // Expand any template variables in publish config
+    const expandedRegistry = rawRegistry
+      ? await this.monorepo.expand(rawRegistry)
+      : undefined;
+    const expandedTag = rawTag ? await this.monorepo.expand(rawTag) : undefined;
+
+    // Determine final image name and tag
+    const { imgName, tag } = await this.retagIfNecessary(
+      docker,
+      reference,
+      expandedTag,
+      expandedRegistry,
+    );
+
+    // Push the image
+    await this.pushImage(docker, imgName, tag, out);
+  }
+
+  private async retagIfNecessary(
+    docker: ReturnType<typeof getContext>['docker'],
+    fullName: string,
+    retag?: string,
+    registry?: string,
+  ) {
+    let [imgName, tag] = fullName.split(':');
+
+    // Retag if necessary
+    if (retag || registry) {
+      const dockerImage = docker.getImage(fullName);
+
+      tag = retag || tag;
+      imgName = registry ? posixJoin(registry, imgName) : imgName;
+
+      await dockerImage.tag({
+        tag,
+        repo: imgName,
+      });
+    }
+
+    return { imgName, tag };
+  }
+
+  private async pushImage(
+    docker: ReturnType<typeof getContext>['docker'],
+    repo: string,
+    tag: string,
+    out?: Writable,
+  ) {
+    const dockerImage = docker.getImage(`${repo}:${tag}`);
+
+    const stream = await dockerImage.push({
+      authconfig: {
+        username: process.env.DOCKER_USERNAME,
+        password: process.env.DOCKER_PASSWORD,
+      },
+    });
+
+    const transform = new Transform({
+      transform(chunk, encoding, callback) {
+        const lines = chunk.toString().split('\n');
+        lines.forEach((line: string) => {
+          if (!line.trim()) {
+            return;
+          }
+
+          try {
+            const { status } = JSON.parse(line.trim());
+            out?.write(status + '\n');
+          } catch (error) {
+            out?.write(error + '\n');
+          }
+        });
+
+        callback();
+      },
+    });
+
+    if (out) {
+      stream.pipe(transform).pipe(out);
+    }
+
+    await new Promise((resolve, reject) => {
+      docker.modem.followProgress(stream, (err, data) => {
+        if (err) {
+          return reject(err);
+        }
+
+        const hasError = data.find((d) => Boolean(d.error));
+        if (hasError) {
+          return reject(new Error(hasError.error));
+        }
+
+        resolve(null);
+      });
+    });
   }
 
   private async lastUpdatedInfo(sources: Array<FilePrerequisite>) {

@@ -4,7 +4,12 @@ import { FlavoredCommand } from '@/cli';
 import { PushImagesOperation } from '@/docker/operations/images/PushImagesOperation.js';
 
 export default class ImagesPush extends FlavoredCommand<typeof ImagesPush> {
-  static description = 'Push docker images.';
+  static deprecationOptions = {
+    message:
+      'Use "emb resources publish" instead. Configure publishing with publish: true on resources and defaults.docker.publish in .emb.yml',
+  };
+  static description =
+    '[DEPRECATED] Push docker images. Use "emb resources publish" instead.';
   static enableJsonFlag = true;
   static examples = [
     '<%= config.bin %> <%= command.id %>',

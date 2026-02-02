@@ -80,6 +80,9 @@ defaults:
       NODE_ENV: development
     labels:                      # Default labels
       maintainer: team@example.com
+    publish:                     # Default publishing settings
+      registry: ghcr.io/myorg    # Registry to push images to
+      tag: ${env:VERSION}        # Tag override for publishing
   kubernetes:
     namespace: staging                           # Default namespace for K8s operations
     selectorLabel: app.kubernetes.io/component   # Label for pod selection
@@ -161,6 +164,7 @@ Optional. Resources this component provides.
 resources:
   image:
     type: docker/image
+    publish: true              # Mark as publishable (opt-in)
     dependencies:
       - base:image
     params:
@@ -172,6 +176,15 @@ resources:
       context: .
       dockerfile: Dockerfile
 ```
+
+**Common resource properties:**
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `type` | string | Resource type (required): `docker/image`, `file` |
+| `publish` | boolean | Mark resource as publishable for `emb resources publish` |
+| `dependencies` | array | List of resource IDs this depends on |
+| `params` | object | Type-specific parameters |
 
 **Resource types:**
 
@@ -189,6 +202,8 @@ Builds a Docker image.
 | `labels` | object | Image labels |
 | `context` | string | Build context path |
 | `dockerfile` | string | Dockerfile path |
+| `publish.registry` | string | Registry to push to (overrides `defaults.docker.publish.registry`) |
+| `publish.tag` | string | Tag for publishing (overrides `defaults.docker.publish.tag`) |
 
 #### file
 
