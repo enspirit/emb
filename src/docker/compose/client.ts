@@ -108,9 +108,17 @@ export class DockerComposeClient {
       return;
     }
 
-    const { stdout: servicesOutput } = await execa({
-      cwd: this.monorepo.rootDir,
-    })`docker compose config --services`;
+    let servicesOutput: string;
+    try {
+      const result = await execa({
+        cwd: this.monorepo.rootDir,
+      })`docker compose config --services`;
+      servicesOutput = result.stdout;
+    } catch {
+      // No docker-compose config available (no compose file, docker not installed, etc.)
+      this.services = new Map();
+      return;
+    }
 
     const services = servicesOutput
       .split('\n')
