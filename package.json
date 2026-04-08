@@ -1,7 +1,7 @@
 {
   "name": "@enspirit/emb",
   "type": "module",
-  "version": "0.25.2",
+  "version": "0.25.3",
   "keywords": [
     "monorepo",
     "docker",
