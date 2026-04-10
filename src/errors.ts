@@ -119,3 +119,28 @@ export class ComposeExecError extends EMBError {
     super('COMPOSE_EXEC_ERR', msg);
   }
 }
+
+export interface ConfigFileError {
+  errors: string[];
+  file: string;
+}
+
+export class ConfigValidationError extends EMBError {
+  constructor(public fileErrors: ConfigFileError[]) {
+    super('CONFIG_VALIDATION', ConfigValidationError.formatMessage(fileErrors));
+  }
+
+  private static formatMessage(fileErrors: ConfigFileError[]): string {
+    if (fileErrors.length === 1) {
+      const { file, errors } = fileErrors[0];
+
+      return `${file} is invalid:\n${errors.map((e) => `  - ${e}`).join('\n')}`;
+    }
+
+    return `Configuration files have errors:\n\n${fileErrors
+      .map(({ file, errors }) => {
+        return `  ${file}:\n${errors.map((e) => `    - ${e}`).join('\n')}`;
+      })
+      .join('\n\n')}`;
+  }
+}

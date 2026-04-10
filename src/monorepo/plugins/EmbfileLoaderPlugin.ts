@@ -3,6 +3,7 @@ import { glob } from 'glob';
 import { basename, dirname, join } from 'node:path';
 
 import { validateEmbfile } from '@/config';
+import { ConfigFileError, ConfigValidationError } from '@/errors.js';
 import { Monorepo, MonorepoConfig } from '@/monorepo';
 
 import { AbstractPlugin } from './plugin.js';
@@ -42,28 +43,40 @@ export class EmbfileLoaderPlugin extends AbstractPlugin<
       follow: true,
     });
 
-    const newConfig = await files.reduce<Promise<MonorepoConfig>>(
-      async (pConfig, path) => {
-        const config = await pConfig;
-        const rootDir = dirname(path);
-        const name = basename(rootDir);
-        const embfile = await join(this.monorepo.rootDir, path);
+    const validationErrors: ConfigFileError[] = [];
+    let newConfig = config;
+
+    for (const path of files) {
+      const rootDir = dirname(path);
+      const name = basename(rootDir);
+      const embfile = join(this.monorepo.rootDir, path);
+
+      try {
         const component = await validateEmbfile(embfile);
-        const original = config.components[name];
+        const original = newConfig.components[name];
 
         const newComponent = deepmerge()(original || {}, {
           ...component,
           rootDir,
         });
 
-        return config.with({
+        newConfig = newConfig.with({
           components: {
             [name]: newComponent,
           },
         });
-      },
-      Promise.resolve(config),
-    );
+      } catch (error) {
+        if (error instanceof ConfigValidationError) {
+          validationErrors.push(...error.fileErrors);
+        } else {
+          throw error;
+        }
+      }
+    }
+
+    if (validationErrors.length > 0) {
+      throw new ConfigValidationError(validationErrors);
+    }
 
     return newConfig;
   }

@@ -7,6 +7,7 @@ import {
   validateEmbfile,
   validateUserConfig,
 } from '../../../src/config/validation.js';
+import { ConfigValidationError } from '../../../src/errors.js';
 
 describe('Config / Validation', () => {
   let tempDir: string;
@@ -56,8 +57,42 @@ components: {}
       };
 
       await expect(validateUserConfig(invalidConfig)).rejects.toThrow(
-        'Your .emb.yml is incorrect',
+        ConfigValidationError,
       );
+    });
+
+    test('it includes validation details in error message', async () => {
+      const invalidConfig = {
+        components: {},
+      };
+
+      try {
+        await validateUserConfig(invalidConfig);
+        expect.fail('should have thrown');
+      } catch (error_) {
+        expect(error_).to.be.instanceOf(ConfigValidationError);
+        const error = error_ as ConfigValidationError;
+        expect(error.message).to.include('.emb.yml is invalid');
+        expect(error.message).to.include(
+          "must have required property 'project'",
+        );
+        expect(error.fileErrors).to.have.length(1);
+        expect(error.fileErrors[0].file).to.equal('.emb.yml');
+      }
+    });
+
+    test('it includes file path in error when validating from file', async () => {
+      const configPath = join(tempDir, '.emb.yml');
+      await writeFile(configPath, 'components: {}\n');
+
+      try {
+        await validateUserConfig(configPath);
+        expect.fail('should have thrown');
+      } catch (error_) {
+        expect(error_).to.be.instanceOf(ConfigValidationError);
+        const error = error_ as ConfigValidationError;
+        expect(error.fileErrors[0].file).to.equal(configPath);
+      }
     });
 
     test('it throws when file does not exist', async () => {
@@ -170,6 +205,36 @@ tasks:
       const result = await validateEmbfile(component);
 
       expect(result.flavors?.production?.patches).toHaveLength(1);
+    });
+
+    test('it throws ConfigValidationError with details on invalid component', async () => {
+      const component = {
+        unknownField: 'bad',
+      };
+
+      try {
+        await validateEmbfile(component);
+        expect.fail('should have thrown');
+      } catch (error_) {
+        expect(error_).to.be.instanceOf(ConfigValidationError);
+        const error = error_ as ConfigValidationError;
+        expect(error.message).to.include('Embfile is invalid');
+        expect(error.message).to.include("unknown property 'unknownField'");
+      }
+    });
+
+    test('it includes file path in error when validating from file', async () => {
+      const embfilePath = join(tempDir, 'Embfile.yaml');
+      await writeFile(embfilePath, 'unknownField: bad\n');
+
+      try {
+        await validateEmbfile(embfilePath);
+        expect.fail('should have thrown');
+      } catch (error_) {
+        expect(error_).to.be.instanceOf(ConfigValidationError);
+        const error = error_ as ConfigValidationError;
+        expect(error.fileErrors[0].file).to.equal(embfilePath);
+      }
     });
   });
 });
