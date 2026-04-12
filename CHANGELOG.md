@@ -1,3 +1,92 @@
+## 0.26.0 - 2026-04-12
+
+* Task scripts now fail fast on the first failing command
+  - Multiline scripts run through `bash -eo pipefail -c` instead of `sh`
+  - Intermediate non-zero exits now abort the script (previously ignored)
+  - Pipelines propagate failures via `pipefail` (e.g. `false | true` now fails)
+  - **Breaking:** requires `bash` on PATH (previously `/bin/sh` was used)
+
+## 0.25.6 - 2026-04-10
+
+* Improve config validation error reporting with per-file details
+
+## 0.25.5 - 2026-04-08
+
+* Fix npm publish: explicitly set `NODE_AUTH_TOKEN` from `NPM_TOKEN` secret
+
+## 0.25.4 - 2026-04-08
+
+* Remove test gate from release workflow for faster tag deploys
+
+## 0.25.3 - 2026-04-08
+
+* Fix release pipeline: add QEMU/Buildx for cross-platform Docker builds
+* Add manual force-release workflow to bypass CI tests
+
+## 0.25.2 - 2026-04-07
+
+* Support projects without a docker-compose setup
+
+## 0.25.1 - 2026-02-02
+
+* Fix publish operation failing when publishable resources have non-publishable dependencies
+
+## 0.25.0 - 2026-02-02
+
+* Implement publishable resources abstraction
+* Add Docker credential helper support for image push
+
+## 0.24.0 - 2026-01-29
+
+* Add kubernetes executor for running tasks on K8s pods
+
+## 0.23.0 - 2026-01-28
+
+* Add optional component arguments to `stop` and `down` commands
+* Use consistent 'service' terminology across docker-compose operations
+
+## 0.22.1 - 2026-01-27
+
+* Add `content` property to file resource schema
+
+## 0.22.0 - 2026-01-27
+
+* Add `content` parameter to file resource for secrets support
+
+## 0.21.0 - 2026-01-27
+
+* Support multiple Docker images per component
+  - Add explicit `image` and `tag` fields to `docker/image` resource
+
+## 0.20.2 - 2026-01-25
+
+* Make 1Password secret provider connection lazy
+
+## 0.20.1 - 2026-01-24
+
+* Fix terminal size handling for interactive container exec
+
+## 0.20.0 - 2026-01-24
+
+* Add 1Password CLI (`op`) integration as secret provider
+
+## 0.19.0 - 2026-01-24
+
+* Add Docker image platform/architecture support
+* Convert production-ready example API to TypeScript
+* Fix secrets integration test setup for Keycloak 26+
+
+## 0.18.0 - 2026-01-23
+
+* Add `emb logs archive` command for archiving docker compose logs
+
+## 0.17.1 - 2026-01-22
+
+* Fix interactive task TTY passthrough and improve error logging
+* Add GitHub Actions release workflow and `bin/release` script
+* Speed up unit tests by removing global `beforeEach` from test setup
+* Various release pipeline fixes (0.17.2 – 0.17.5)
+
 ## 0.17.0 - 2026-01-17
 
 * Extend `emb logs` to support multiple components and all containers

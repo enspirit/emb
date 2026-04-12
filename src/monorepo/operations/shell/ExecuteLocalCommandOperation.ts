@@ -47,14 +47,16 @@ export class ExecuteLocalCommandOperation extends AbstractOperation<
   }
 
   protected async _run(input: z.input<typeof schema>): Promise<Readable> {
+    // Run scripts through `bash -eo pipefail -c` so multiline scripts fail fast
+    // on the first non-zero exit instead of silently continuing.
+    const bashArgs = ['-eo', 'pipefail', '-c', input.script];
     try {
       if (input.interactive) {
         // For interactive mode, inherit all stdio streams so the child process
         // has direct access to the terminal TTY. This allows interactive CLI tools
         // (like ionic, npm, etc.) to detect TTY and show prompts.
-        await execa(input.script, {
+        await execa('bash', bashArgs, {
           cwd: input.workingDir,
-          shell: true,
           env: input.env,
           stdio: 'inherit',
         });
@@ -68,10 +70,9 @@ export class ExecuteLocalCommandOperation extends AbstractOperation<
       }
 
       // Non-interactive mode: capture output
-      const proc = execa(input.script, {
+      const proc = execa('bash', bashArgs, {
         all: true,
         cwd: input.workingDir,
-        shell: true,
         env: input.env,
       });
 

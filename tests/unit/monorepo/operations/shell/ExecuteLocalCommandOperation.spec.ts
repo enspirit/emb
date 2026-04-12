@@ -111,5 +111,49 @@ describe('Monorepo / Operations / Shell / ExecuteLocalCommandOperation', () => {
       expect(output).toContain('first');
       expect(output).toContain('second');
     });
+
+    test('it fails fast on the first failing command in a multiline script', async () => {
+      const operation = new ExecuteLocalCommandOperation(mockWritable);
+
+      await expect(
+        operation.run({
+          script: [
+            'echo before',
+            'false',
+            'echo after',
+            'echo marker-should-not-appear',
+          ].join('\n'),
+        }),
+      ).rejects.toThrow();
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 100);
+      });
+      const output = outputBuffer.join('');
+      expect(output).toContain('before');
+      expect(output).not.toContain('after');
+      expect(output).not.toContain('marker-should-not-appear');
+    });
+
+    test('it propagates the failing command exit code (not the last command exit code)', async () => {
+      const operation = new ExecuteLocalCommandOperation(mockWritable);
+
+      await expect(
+        operation.run({
+          script: ['exit 42', 'echo should-not-run'].join('\n'),
+        }),
+      ).rejects.toMatchObject({ exitCode: 42 });
+    });
+
+    test('it fails on a broken pipeline thanks to pipefail', async () => {
+      const operation = new ExecuteLocalCommandOperation(mockWritable);
+
+      // Without pipefail, `false | true` exits 0. With pipefail it must fail.
+      await expect(
+        operation.run({
+          script: 'false | true',
+        }),
+      ).rejects.toThrow();
+    });
   });
 });
