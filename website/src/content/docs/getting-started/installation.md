@@ -3,7 +3,7 @@ title: Installation
 description: How to install EMB
 ---
 
-EMB requires **Node.js 20+** and **Docker** to be installed on your system.
+EMB requires **Node.js 22+** and **Docker** to be installed on your system.
 
 ## Using npm
 
@@ -24,12 +24,12 @@ emb --version
 You should see output like:
 
 ```output
-@enspirit/emb/0.14.1 darwin-arm64 node-v22.21.1
+@enspirit/emb/0.26.0 darwin-x64 node-v22.18.0
 ```
 
 ## Requirements
 
-- **Node.js 20+** - EMB is built with modern JavaScript features
+- **Node.js 22+** - EMB is built with modern JavaScript features
 - **Docker** - Required for building images and running containers
 - **Docker Compose** - Required for service orchestration
 

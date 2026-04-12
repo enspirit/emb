@@ -67,6 +67,8 @@ defaults:
   docker:
     tag: ${env:DOCKER_TAG}
     target: development
+  kubernetes:
+    namespace: ${env:K8S_NAMESPACE:-klaro}
 
 # Flavors allow environment-specific configuration variants.
 # Use --flavor <name> to activate a flavor: emb resources build --flavor production

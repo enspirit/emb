@@ -19,6 +19,7 @@ description: Background job worker
 resources:
   image:
     type: docker/image
+    publish: true
     dependencies:
       - base:image
 
@@ -62,12 +63,12 @@ emb resources
 ```
 
 ```output
- ID             NAME   TYPE          REFERENCE
-------------------------------------------------------------------
- api:image      image  docker/image  microservices/api:latest
- base:image     image  docker/image  microservices/base:latest
- gateway:image  image  docker/image  microservices/gateway:latest
- worker:image   image  docker/image  microservices/worker:latest
+ ID             NAME   TYPE          PUBLISHABLE  REFERENCE
+-------------------------------------------------------------------------------
+ api:image      image  docker/image  ✓            microservices/api:latest
+ base:image     image  docker/image               microservices/base:latest
+ gateway:image  image  docker/image  ✓            microservices/gateway:latest
+ worker:image   image  docker/image  ✓            microservices/worker:latest
 ```
 
 ## The API Component
@@ -84,6 +85,7 @@ description: REST API service
 resources:
   image:
     type: docker/image
+    publish: true
     dependencies:
       - base:image
 

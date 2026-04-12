@@ -344,11 +344,40 @@ emb config print        # Print configuration
 
 ### secrets
 
+EMB discovers secret references (`${vault:...}`, `${op:...}`) across `.emb.yml` and all component Embfiles.
+
 ```shell
 emb secrets             # List secret references in configuration
 emb secrets validate    # Validate that secrets can be resolved
 emb secrets providers   # Show configured secret providers
 ```
+
+**Common flags:**
+- `--flavor <name>` - Evaluate against a specific flavor
+- `--json` - Machine-readable output
+
+#### `emb secrets`
+
+Lists every secret reference found in the config (aggregated by provider + path + key), along with usage count and the component(s) that reference it. Values are never fetched or displayed.
+
+```output
+ PROVIDER  PATH                       KEY        COMPONENT  USAGECOUNT
+ vault     secret/myapp/database      url        api        2
+ op        Production/db-credentials  password   api        1
+```
+
+#### `emb secrets validate`
+
+Attempts to resolve each reference against its provider and reports pass/fail per secret, without printing values. Useful in CI to catch missing or renamed secrets before deploy.
+
+Additional flag:
+- `--fail-fast` - Stop on the first validation error
+
+#### `emb secrets providers`
+
+Shows configured secret providers and their connection status (e.g. `vault`, `op`). Handy for diagnosing auth/connectivity issues before running `validate`.
+
+See [Secrets Management](/emb/advanced/secrets/) for provider configuration, authentication methods (including OIDC with cached tokens), and reference syntax.
 
 ### kubernetes
 

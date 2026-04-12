@@ -29,7 +29,7 @@ emb --version
 
 You should see output like:
 ```
-@enspirit/emb/0.16.0 darwin-arm64 node-v22.x.x
+@enspirit/emb/0.26.0 darwin-x64 node-v22.x.x
 ```
 
 You should see the version number printed.

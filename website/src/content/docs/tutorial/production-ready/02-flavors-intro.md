@@ -122,6 +122,7 @@ description: Production-ready API with multi-stage builds
 resources:
   image:
     type: docker/image
+    publish: true
     params:
       target: development
 

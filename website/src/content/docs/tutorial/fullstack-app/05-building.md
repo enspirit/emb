@@ -14,10 +14,10 @@ emb resources
 ```
 
 ```output
- ID         NAME   TYPE          REFERENCE
-----------------------------------------------------------
- api:image  image  docker/image  fullstack-app/api:latest
- web:image  image  docker/image  fullstack-app/web:latest
+ ID         NAME   TYPE          PUBLISHABLE  REFERENCE
+-----------------------------------------------------------------------
+ api:image  image  docker/image               fullstack-app/api:latest
+ web:image  image  docker/image               fullstack-app/web:latest
 ```
 
 Each component has an `image` resource that can be built.

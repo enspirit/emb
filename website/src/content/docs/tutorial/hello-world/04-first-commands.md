@@ -28,9 +28,9 @@ emb resources
 ```
 
 ```output
- ID         NAME   TYPE          REFERENCE
---------------------------------------------------------
- api:image  image  docker/image  hello-world/api:latest
+ ID         NAME   TYPE          PUBLISHABLE  REFERENCE
+---------------------------------------------------------------------
+ api:image  image  docker/image               hello-world/api:latest
 ```
 
 Each resource has:
@@ -80,7 +80,7 @@ emb --help | head -20
 A replacement for our Makefile-for-monorepos
 
 VERSION
-  @enspirit/emb/0.22.1 darwin-arm64 node-v22.21.1
+  @enspirit/emb/0.26.0 darwin-x64 node-v22.18.0
 
 USAGE
   $ emb [COMMAND]

@@ -56,12 +56,12 @@ components:
   api:
     tasks:
       test:
-        exec: npm test
+        script: npm test
       lint:
-        exec: npm run lint
+        script: npm run lint
 ```
 
-Run with: `emb run api:test`
+Run with: `emb tasks run api:test`
 
 ## Services
 
@@ -78,10 +78,13 @@ A **Flavor** represents a configuration variant for different environments (deve
 ```yaml
 flavors:
   production:
-    patch:
+    patches:
       - op: replace
-        path: /components/api/resources/image/dockerfile
-        value: Dockerfile.prod
+        path: /env/NODE_ENV
+        value: production
+      - op: replace
+        path: /defaults/docker/target
+        value: production
 ```
 
 Run with: `emb up --flavor production`
@@ -91,10 +94,14 @@ Run with: `emb up --flavor production`
 All of this is configured in `.emb.yml` at the root of your monorepo. A minimal configuration might look like:
 
 ```yaml
-name: my-project
+project:
+  name: my-project
+
+plugins:
+  - name: autodocker
 ```
 
-With auto-discovery enabled (the default), EMB will find your components automatically. As your project grows, you can explicitly configure components, tasks, resources, and flavors.
+With the `autodocker` plugin enabled, EMB will find your components automatically. As your project grows, you can explicitly configure components, tasks, resources, and flavors.
 
 ## Summary
 

@@ -160,9 +160,6 @@
         "script": {
           "type": "string"
         },
-        "executor": {
-          "$ref": "#/definitions/Identifier"
-        },
         "options": {
           "type": "object",
           "additionalProperties": true
