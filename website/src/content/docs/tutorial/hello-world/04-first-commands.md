@@ -80,7 +80,7 @@ emb --help | head -20
 A replacement for our Makefile-for-monorepos
 
 VERSION
-  @enspirit/emb/0.26.0 darwin-x64 node-v22.18.0
+  @enspirit/emb/0.27.0 darwin-x64 node-v22.18.0
 
 USAGE
   $ emb [COMMAND]

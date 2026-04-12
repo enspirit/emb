@@ -67,6 +67,10 @@ defaults:
   docker:
     tag: ${env:DOCKER_TAG}
     target: development
+    # Default publishing destination for `emb resources publish`.
+    # Registry is prepended to image names when pushing.
+    publish:
+      registry: ${env:DOCKER_REGISTRY:-ghcr.io/enspirit}
   kubernetes:
     namespace: ${env:K8S_NAMESPACE:-klaro}
 
@@ -105,6 +109,10 @@ flavors:
       - op: add
         path: /defaults/docker/platform
         value: ${env:DOCKER_PLATFORM:-linux/amd64}
+      # In production, retag images with the release VERSION when publishing.
+      - op: add
+        path: /defaults/docker/publish/tag
+        value: ${env:VERSION:-latest}
 ```
 
 ## Tutorial Pages
