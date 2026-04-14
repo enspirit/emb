@@ -22,6 +22,7 @@ export abstract class BaseCommand extends Command {
     verbose: Flags.boolean({
       name: 'verbose',
       allowNo: true,
+      env: 'EMB_VERBOSE',
     }),
     root: Flags.string({
       char: 'C',

@@ -19,6 +19,7 @@ export abstract class FlavoredCommand<
       description: 'Specify the flavor to use.',
       name: 'flavor',
       required: false,
+      env: 'EMB_FLAVOR',
     }),
   };
   // add the --json flag

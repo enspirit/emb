@@ -9,12 +9,34 @@ Complete reference for all EMB commands.
 
 These options are available for all commands:
 
-| Option | Description |
-|--------|-------------|
-| `--json` | Format output as JSON |
-| `--verbose` / `--no-verbose` | Enable verbose output |
-| `--flavor <name>` | Use a specific flavor configuration |
-| `--help` | Show help for command |
+| Option | Env Var | Description |
+|--------|---------|-------------|
+| `-C, --root <path>` | `EMB_ROOT` | Run as if emb was started in `<path>` |
+| `--verbose` / `--no-verbose` | `EMB_VERBOSE` | Enable verbose output |
+| `--flavor <name>` | `EMB_FLAVOR` | Use a specific flavor configuration |
+| `--json` | — | Format output as JSON |
+| `--help` | — | Show help for command |
+
+## Environment Variables
+
+Any flag with an env-var fallback is resolved in the following order (first non-empty value wins):
+
+1. The CLI flag, if provided
+2. The environment variable
+3. The command's built-in default
+
+This lets you set defaults in your shell (or CI pipeline) and still override them on individual invocations:
+
+```shell
+export EMB_FLAVOR=production
+export EMB_VERBOSE=1
+
+emb resources build                     # uses the production flavor, verbose
+emb resources build --flavor staging    # flag overrides EMB_FLAVOR
+emb resources build --no-verbose        # flag overrides EMB_VERBOSE
+```
+
+For Kubernetes commands, the namespace also honors the `K8S_NAMESPACE` environment variable — see [Kubernetes Integration](/emb/advanced/kubernetes/#namespace-resolution).
 
 ## Core Commands
 
