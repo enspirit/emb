@@ -1,6 +1,10 @@
+import type { Ignore } from '@balena/dockerignore';
+
 import { getContext } from '@';
+import * as dockerignoreModule from '@balena/dockerignore';
 import { fdir as Fdir } from 'fdir';
-import { statfs } from 'node:fs/promises';
+import { readFile, statfs } from 'node:fs/promises';
+import { join } from 'node:path';
 import { join as posixJoin } from 'node:path/posix';
 import { Transform, Writable } from 'node:stream';
 
@@ -64,6 +68,38 @@ export const isDockerImageSentinel = (
   );
 };
 
+/**
+ * Load `.dockerignore` from the build context and return a predicate that
+ * returns true for paths that should be kept (i.e. not ignored).
+ *
+ * Returns undefined when no `.dockerignore` is present, so callers can skip
+ * any filtering work.
+ */
+// `@balena/dockerignore` is CJS (`module.exports = factory`), so under
+// nodenext the default import lands on the namespace — unwrap to the factory.
+type DockerignoreFactory = () => Ignore;
+const nsAny = dockerignoreModule as unknown as DockerignoreFactory & {
+  default?: DockerignoreFactory;
+};
+const dockerignore: DockerignoreFactory = nsAny.default ?? nsAny;
+
+const loadDockerignoreFilter = async (
+  contextDir: string,
+): Promise<((relativePath: string) => boolean) | undefined> => {
+  let contents: string;
+  try {
+    contents = await readFile(join(contextDir, '.dockerignore'), 'utf8');
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      return undefined;
+    }
+
+    throw error;
+  }
+
+  return dockerignore().add(contents).createFilter();
+};
+
 class DockerImageResourceBuilder extends SentinelFileBasedBuilder<
   DockerImageResourceConfig,
   OpOutput<BuildImageOperation>,
@@ -111,11 +147,13 @@ class DockerImageResourceBuilder extends SentinelFileBasedBuilder<
     // Ensure the folder exists
     await statfs(this.dockerContext);
 
-    const crawler = new Fdir();
-    const sources = await crawler
-      .withRelativePaths()
-      .crawl(this.dockerContext)
-      .withPromise();
+    const ignoreFilter = await loadDockerignoreFilter(this.dockerContext);
+    const crawler = new Fdir().withRelativePaths();
+    if (ignoreFilter) {
+      crawler.filter((path, isDirectory) => isDirectory || ignoreFilter(path));
+    }
+
+    const sources = await crawler.crawl(this.dockerContext).withPromise();
 
     // Build operation input - note that 'image' from config is only used for
     // getReference(), it's not passed to the build operation

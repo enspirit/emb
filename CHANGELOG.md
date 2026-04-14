@@ -1,3 +1,10 @@
+## 0.29.0 - 2026-04-14
+
+* Honor `.dockerignore` when listing sources for `docker/image` builds
+  - `builderInput.src` (surfaced in `resources build --dry-run --json`) now excludes files matched by `.dockerignore` in the build context
+  - Uses `@balena/dockerignore` for docker-spec-compliant pattern matching
+  - Only affects source enumeration — the CLI build path already relied on the docker daemon to apply `.dockerignore`
+
 ## 0.28.1 - 2026-04-14
 
 * Honor `EMB_VERBOSE` and `EMB_FLAVOR` env vars as fallbacks for `--verbose` and `--flavor`

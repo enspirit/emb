@@ -47,9 +47,12 @@
     "version": "oclif readme && git add README.md"
   },
   "dependencies": {
+    "@balena/dockerignore": "^1.0.2",
     "@fastify/deepmerge": "^3.1.0",
+    "@inquirer/prompts": "^7.10.1",
     "@kubernetes/client-node": "1.4.0",
     "@listr2/manager": "^3.0.5",
+    "@listr2/prompt-adapter-inquirer": "^3.0.5",
     "@oclif/core": "^4.8.0",
     "@oclif/plugin-autocomplete": "^3.2.39",
     "@oclif/plugin-help": "^6.2.36",
@@ -67,14 +70,12 @@
     "find-up": "^7.0.0",
     "glob": "^11.1.0",
     "graphlib": "^2.1.8",
-    "@inquirer/prompts": "^7.10.1",
-    "@listr2/prompt-adapter-inquirer": "^3.0.5",
     "listr2": "^9.0.5",
     "luxon": "^3.7.2",
     "open": "^10.1.0",
     "openid-client": "^6.4.3",
-    "protobufjs": "^7.5.4",
     "p-map": "^7.0.4",
+    "protobufjs": "^7.5.4",
     "simple-git": "^3.30.0",
     "yaml": "^2.8.2",
     "zod": "^4.3.5"
@@ -104,8 +105,8 @@
     "tsc-alias": "^1.8.16",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
-    "vitest": "^3.2.4",
-    "vite-tsconfig-paths": "^5.1.4"
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^3.2.4"
   },
   "engines": {
     "node": ">=20.0.0"

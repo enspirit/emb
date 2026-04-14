@@ -338,6 +338,60 @@ describe('Docker / DockerImageResource', () => {
       expect(result.input.buildArgs).toEqual({ NODE_ENV: 'production' });
     });
 
+    test('it excludes files matched by .dockerignore from src', async () => {
+      await writeFile(join(componentDir, 'index.ts'), 'console.log("hello")');
+      await writeFile(join(componentDir, 'secrets.env'), 'TOKEN=shh');
+      await mkdir(join(componentDir, 'node_modules', 'dep'), {
+        recursive: true,
+      });
+      await writeFile(
+        join(componentDir, 'node_modules', 'dep', 'index.js'),
+        '',
+      );
+      await writeFile(
+        join(componentDir, '.dockerignore'),
+        ['node_modules', '*.env'].join('\n'),
+      );
+
+      const builder = createBuilder();
+      const resource: ResourceInfo<DockerImageResourceConfig> = {
+        id: 'mycomponent:docker-image',
+        name: 'docker-image',
+        component: 'mycomponent',
+        type: 'docker/image',
+        params: {},
+      };
+
+      const result = await builder.build(resource);
+
+      const src = result.input.src ?? [];
+      expect(src).toContain('Dockerfile');
+      expect(src).toContain('index.ts');
+      expect(src).not.toContain('secrets.env');
+      expect(src.some((p) => p.includes('node_modules'))).toBe(false);
+    });
+
+    test('it keeps all files when no .dockerignore is present', async () => {
+      await writeFile(join(componentDir, 'index.ts'), 'console.log("hello")');
+      await writeFile(join(componentDir, 'secrets.env'), 'TOKEN=shh');
+
+      const builder = createBuilder();
+      const resource: ResourceInfo<DockerImageResourceConfig> = {
+        id: 'mycomponent:docker-image',
+        name: 'docker-image',
+        component: 'mycomponent',
+        type: 'docker/image',
+        params: {},
+      };
+
+      const result = await builder.build(resource);
+
+      const src = result.input.src ?? [];
+      expect(src).toContain('Dockerfile');
+      expect(src).toContain('index.ts');
+      expect(src).toContain('secrets.env');
+    });
+
     test('it passes target stage when provided', async () => {
       const builder = createBuilder({ target: 'runtime' });
       const resource: ResourceInfo<DockerImageResourceConfig> = {
