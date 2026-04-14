@@ -14,7 +14,7 @@ $ npm install -g @enspirit/emb
 $ emb COMMAND
 running command...
 $ emb (--version)
-@enspirit/emb/0.28.0 darwin-x64 node-v22.18.0
+@enspirit/emb/0.28.1 darwin-x64 node-v22.18.0
 $ emb --help [COMMAND]
 USAGE
   $ emb COMMAND
@@ -101,7 +101,7 @@ USAGE
 FLAGS
   -C, --root=<value>  Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   -f, --force         Force the deletion of containers & images
-  --[no-]verbose
+      --[no-]verbose  [env: EMB_VERBOSE]
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -113,7 +113,7 @@ EXAMPLES
   $ emb clean
 ```
 
-_See code: [src/commands/clean.ts](https://github.com/enspirit/emb/blob/v0.28.0/src/commands/clean.ts)_
+_See code: [src/commands/clean.ts](https://github.com/enspirit/emb/blob/v0.28.1/src/commands/clean.ts)_
 
 ## `emb components`
 
@@ -125,8 +125,8 @@ USAGE
 
 FLAGS
   -C, --root=<value>    Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
-      --flavor=<value>  Specify the flavor to use.
-  --[no-]verbose
+      --flavor=<value>  [env: EMB_FLAVOR] Specify the flavor to use.
+      --[no-]verbose    [env: EMB_VERBOSE]
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -138,7 +138,7 @@ EXAMPLES
   $ emb components
 ```
 
-_See code: [src/commands/components/index.ts](https://github.com/enspirit/emb/blob/v0.28.0/src/commands/components/index.ts)_
+_See code: [src/commands/components/index.ts](https://github.com/enspirit/emb/blob/v0.28.1/src/commands/components/index.ts)_
 
 ## `emb components shell SERVICE`
 
@@ -154,7 +154,7 @@ ARGUMENTS
 FLAGS
   -C, --root=<value>   Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   -s, --shell=<value>  [default: bash] The shell to run
-  --[no-]verbose
+      --[no-]verbose   [env: EMB_VERBOSE]
 
 DESCRIPTION
   Get a shell on a running service.
@@ -166,7 +166,7 @@ EXAMPLES
   $ emb components shell
 ```
 
-_See code: [src/commands/components/shell.ts](https://github.com/enspirit/emb/blob/v0.28.0/src/commands/components/shell.ts)_
+_See code: [src/commands/components/shell.ts](https://github.com/enspirit/emb/blob/v0.28.1/src/commands/components/shell.ts)_
 
 ## `emb config print`
 
@@ -178,8 +178,8 @@ USAGE
 
 FLAGS
   -C, --root=<value>    Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
-      --flavor=<value>  Specify the flavor to use.
-  --[no-]verbose
+      --flavor=<value>  [env: EMB_FLAVOR] Specify the flavor to use.
+      --[no-]verbose    [env: EMB_VERBOSE]
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -191,7 +191,7 @@ EXAMPLES
   $ emb config print
 ```
 
-_See code: [src/commands/config/print.ts](https://github.com/enspirit/emb/blob/v0.28.0/src/commands/config/print.ts)_
+_See code: [src/commands/config/print.ts](https://github.com/enspirit/emb/blob/v0.28.1/src/commands/config/print.ts)_
 
 ## `emb containers`
 
@@ -204,7 +204,7 @@ USAGE
 FLAGS
   -C, --root=<value>  Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   -a, --all           Retun all containers. By default, only running containers are shown
-  --[no-]verbose
+      --[no-]verbose  [env: EMB_VERBOSE]
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -216,7 +216,7 @@ EXAMPLES
   $ emb containers
 ```
 
-_See code: [src/commands/containers/index.ts](https://github.com/enspirit/emb/blob/v0.28.0/src/commands/containers/index.ts)_
+_See code: [src/commands/containers/index.ts](https://github.com/enspirit/emb/blob/v0.28.1/src/commands/containers/index.ts)_
 
 ## `emb containers prune`
 
@@ -228,7 +228,7 @@ USAGE
 
 FLAGS
   -C, --root=<value>  Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
-  --[no-]verbose
+      --[no-]verbose  [env: EMB_VERBOSE]
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -240,7 +240,7 @@ EXAMPLES
   $ emb containers prune
 ```
 
-_See code: [src/commands/containers/prune.ts](https://github.com/enspirit/emb/blob/v0.28.0/src/commands/containers/prune.ts)_
+_See code: [src/commands/containers/prune.ts](https://github.com/enspirit/emb/blob/v0.28.1/src/commands/containers/prune.ts)_
 
 ## `emb down [SERVICE]`
 
@@ -255,8 +255,8 @@ ARGUMENTS
 
 FLAGS
   -C, --root=<value>    Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
-      --flavor=<value>  Specify the flavor to use.
-  --[no-]verbose
+      --flavor=<value>  [env: EMB_FLAVOR] Specify the flavor to use.
+      --[no-]verbose    [env: EMB_VERBOSE]
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -268,7 +268,7 @@ EXAMPLES
   $ emb down
 ```
 
-_See code: [src/commands/down.ts](https://github.com/enspirit/emb/blob/v0.28.0/src/commands/down.ts)_
+_See code: [src/commands/down.ts](https://github.com/enspirit/emb/blob/v0.28.1/src/commands/down.ts)_
 
 ## `emb help [COMMAND]`
 
@@ -301,8 +301,8 @@ USAGE
 FLAGS
   -C, --root=<value>    Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   -a, --all             Show all images. Only images from a final layer (no children) are shown by default.
-      --flavor=<value>  Specify the flavor to use.
-  --[no-]verbose
+      --flavor=<value>  [env: EMB_FLAVOR] Specify the flavor to use.
+      --[no-]verbose    [env: EMB_VERBOSE]
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -314,7 +314,7 @@ EXAMPLES
   $ emb images
 ```
 
-_See code: [src/commands/images/index.ts](https://github.com/enspirit/emb/blob/v0.28.0/src/commands/images/index.ts)_
+_See code: [src/commands/images/index.ts](https://github.com/enspirit/emb/blob/v0.28.1/src/commands/images/index.ts)_
 
 ## `emb images delete`
 
@@ -327,7 +327,7 @@ USAGE
 FLAGS
   -C, --root=<value>  Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   -f, --force         Remove the image even if it is being used by stopped containers or has other tags
-  --[no-]verbose
+      --[no-]verbose  [env: EMB_VERBOSE]
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -339,7 +339,7 @@ EXAMPLES
   $ emb images delete
 ```
 
-_See code: [src/commands/images/delete.ts](https://github.com/enspirit/emb/blob/v0.28.0/src/commands/images/delete.ts)_
+_See code: [src/commands/images/delete.ts](https://github.com/enspirit/emb/blob/v0.28.1/src/commands/images/delete.ts)_
 
 ## `emb images prune`
 
@@ -352,7 +352,7 @@ USAGE
 FLAGS
   -C, --root=<value>  Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   -a, --all           Prune all images. When set to true all images will be pruned, not only dangling ones
-  --[no-]verbose
+      --[no-]verbose  [env: EMB_VERBOSE]
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -364,7 +364,7 @@ EXAMPLES
   $ emb images prune
 ```
 
-_See code: [src/commands/images/prune.ts](https://github.com/enspirit/emb/blob/v0.28.0/src/commands/images/prune.ts)_
+_See code: [src/commands/images/prune.ts](https://github.com/enspirit/emb/blob/v0.28.1/src/commands/images/prune.ts)_
 
 ## `emb images push`
 
@@ -376,10 +376,10 @@ USAGE
 
 FLAGS
   -C, --root=<value>      Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
-      --flavor=<value>    Specify the flavor to use.
+      --flavor=<value>    [env: EMB_FLAVOR] Specify the flavor to use.
       --registry=<value>  Override the registry to push to
       --retag=<value>     Override the original tag to push to a new tag
-  --[no-]verbose
+      --[no-]verbose      [env: EMB_VERBOSE]
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -393,7 +393,7 @@ EXAMPLES
   $ emb images push --registry my.registry.io --retag newtag
 ```
 
-_See code: [src/commands/images/push.ts](https://github.com/enspirit/emb/blob/v0.28.0/src/commands/images/push.ts)_
+_See code: [src/commands/images/push.ts](https://github.com/enspirit/emb/blob/v0.28.1/src/commands/images/push.ts)_
 
 ## `emb kubernetes logs COMPONENT`
 
@@ -410,7 +410,7 @@ FLAGS
   -C, --root=<value>       Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   -f, --[no-]follow        Follow log output
   -n, --namespace=<value>  The Kubernetes namespace to target
-  --[no-]verbose
+      --[no-]verbose       [env: EMB_VERBOSE]
 
 DESCRIPTION
   Follow kubernetes logs.
@@ -419,7 +419,7 @@ EXAMPLES
   $ emb kubernetes logs
 ```
 
-_See code: [src/commands/kubernetes/logs.ts](https://github.com/enspirit/emb/blob/v0.28.0/src/commands/kubernetes/logs.ts)_
+_See code: [src/commands/kubernetes/logs.ts](https://github.com/enspirit/emb/blob/v0.28.1/src/commands/kubernetes/logs.ts)_
 
 ## `emb kubernetes ps`
 
@@ -432,7 +432,7 @@ USAGE
 FLAGS
   -C, --root=<value>       Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   -n, --namespace=<value>  The Kubernetes namespace to target
-  --[no-]verbose
+      --[no-]verbose       [env: EMB_VERBOSE]
   --[no-]watch
 
 DESCRIPTION
@@ -442,7 +442,7 @@ EXAMPLES
   $ emb kubernetes ps
 ```
 
-_See code: [src/commands/kubernetes/ps.ts](https://github.com/enspirit/emb/blob/v0.28.0/src/commands/kubernetes/ps.ts)_
+_See code: [src/commands/kubernetes/ps.ts](https://github.com/enspirit/emb/blob/v0.28.1/src/commands/kubernetes/ps.ts)_
 
 ## `emb kubernetes restart [DEPLOYMENT]`
 
@@ -458,7 +458,7 @@ ARGUMENTS
 FLAGS
   -C, --root=<value>       Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   -n, --namespace=<value>  The Kubernetes namespace to target
-  --[no-]verbose
+      --[no-]verbose       [env: EMB_VERBOSE]
 
 DESCRIPTION
   Restart pods of an instance.
@@ -467,7 +467,7 @@ EXAMPLES
   $ emb kubernetes restart
 ```
 
-_See code: [src/commands/kubernetes/restart.ts](https://github.com/enspirit/emb/blob/v0.28.0/src/commands/kubernetes/restart.ts)_
+_See code: [src/commands/kubernetes/restart.ts](https://github.com/enspirit/emb/blob/v0.28.1/src/commands/kubernetes/restart.ts)_
 
 ## `emb kubernetes shell COMPONENT`
 
@@ -484,7 +484,7 @@ FLAGS
   -C, --root=<value>       Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   -n, --namespace=<value>  The Kubernetes namespace to target
   -s, --shell=<value>      [default: bash] The shell to run
-  --[no-]verbose
+      --[no-]verbose       [env: EMB_VERBOSE]
 
 DESCRIPTION
   Get a shell on a deployed component.
@@ -496,7 +496,7 @@ EXAMPLES
   $ emb kubernetes shell
 ```
 
-_See code: [src/commands/kubernetes/shell.ts](https://github.com/enspirit/emb/blob/v0.28.0/src/commands/kubernetes/shell.ts)_
+_See code: [src/commands/kubernetes/shell.ts](https://github.com/enspirit/emb/blob/v0.28.1/src/commands/kubernetes/shell.ts)_
 
 ## `emb logs [SERVICE]`
 
@@ -512,7 +512,7 @@ ARGUMENTS
 FLAGS
   -C, --root=<value>  Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   -f, --[no-]follow   Follow log output
-  --[no-]verbose
+      --[no-]verbose  [env: EMB_VERBOSE]
 
 DESCRIPTION
   Get service logs.
@@ -527,7 +527,7 @@ EXAMPLES
   $ emb logs --no-follow backend
 ```
 
-_See code: [src/commands/logs/index.ts](https://github.com/enspirit/emb/blob/v0.28.0/src/commands/logs/index.ts)_
+_See code: [src/commands/logs/index.ts](https://github.com/enspirit/emb/blob/v0.28.1/src/commands/logs/index.ts)_
 
 ## `emb logs archive [SERVICE]`
 
@@ -545,7 +545,7 @@ FLAGS
   -o, --output=<value>  Output directory for log files (defaults to .emb/<flavor>/logs/docker/compose)
   -t, --timestamps      Include timestamps in logs
       --tail=<value>    Number of lines to show from the end of the logs
-  --[no-]verbose
+      --[no-]verbose    [env: EMB_VERBOSE]
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -563,7 +563,7 @@ EXAMPLES
   $ emb logs archive --tail 1000
 ```
 
-_See code: [src/commands/logs/archive.ts](https://github.com/enspirit/emb/blob/v0.28.0/src/commands/logs/archive.ts)_
+_See code: [src/commands/logs/archive.ts](https://github.com/enspirit/emb/blob/v0.28.1/src/commands/logs/archive.ts)_
 
 ## `emb ps`
 
@@ -576,8 +576,8 @@ USAGE
 FLAGS
   -C, --root=<value>    Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   -a, --all             Show all stopped containers
-      --flavor=<value>  Specify the flavor to use.
-  --[no-]verbose
+      --flavor=<value>  [env: EMB_FLAVOR] Specify the flavor to use.
+      --[no-]verbose    [env: EMB_VERBOSE]
 
 DESCRIPTION
   Lists the containers running in the project.
@@ -586,7 +586,7 @@ EXAMPLES
   $ emb ps
 ```
 
-_See code: [src/commands/ps.ts](https://github.com/enspirit/emb/blob/v0.28.0/src/commands/ps.ts)_
+_See code: [src/commands/ps.ts](https://github.com/enspirit/emb/blob/v0.28.1/src/commands/ps.ts)_
 
 ## `emb resources`
 
@@ -598,9 +598,9 @@ USAGE
 
 FLAGS
   -C, --root=<value>    Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
-      --flavor=<value>  Specify the flavor to use.
+      --flavor=<value>  [env: EMB_FLAVOR] Specify the flavor to use.
       --publishable     Only show resources that are publishable (publish: true)
-  --[no-]verbose
+      --[no-]verbose    [env: EMB_VERBOSE]
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -614,7 +614,7 @@ EXAMPLES
   $ emb resources --publishable
 ```
 
-_See code: [src/commands/resources/index.ts](https://github.com/enspirit/emb/blob/v0.28.0/src/commands/resources/index.ts)_
+_See code: [src/commands/resources/index.ts](https://github.com/enspirit/emb/blob/v0.28.1/src/commands/resources/index.ts)_
 
 ## `emb resources build [COMPONENT]`
 
@@ -632,9 +632,9 @@ FLAGS
   -C, --root=<value>    Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   -f, --force           Bypass the cache and force the build
       --dry-run         Do not build the resources but only produce build meta information
-      --flavor=<value>  Specify the flavor to use.
+      --flavor=<value>  [env: EMB_FLAVOR] Specify the flavor to use.
       --publishable     Only build resources that are publishable (publish: true) and their dependencies
-  --[no-]verbose
+      --[no-]verbose    [env: EMB_VERBOSE]
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -648,7 +648,7 @@ EXAMPLES
   $ emb resources build build --publishable --flavor production
 ```
 
-_See code: [src/commands/resources/build.ts](https://github.com/enspirit/emb/blob/v0.28.0/src/commands/resources/build.ts)_
+_See code: [src/commands/resources/build.ts](https://github.com/enspirit/emb/blob/v0.28.1/src/commands/resources/build.ts)_
 
 ## `emb resources publish [RESOURCES]`
 
@@ -664,8 +664,8 @@ ARGUMENTS
 FLAGS
   -C, --root=<value>    Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
       --dry-run         Do not publish, just show what would be published
-      --flavor=<value>  Specify the flavor to use.
-  --[no-]verbose
+      --flavor=<value>  [env: EMB_FLAVOR] Specify the flavor to use.
+      --[no-]verbose    [env: EMB_VERBOSE]
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -679,7 +679,7 @@ EXAMPLES
   $ emb resources publish api:image --flavor production
 ```
 
-_See code: [src/commands/resources/publish.ts](https://github.com/enspirit/emb/blob/v0.28.0/src/commands/resources/publish.ts)_
+_See code: [src/commands/resources/publish.ts](https://github.com/enspirit/emb/blob/v0.28.1/src/commands/resources/publish.ts)_
 
 ## `emb restart [SERVICE]`
 
@@ -695,7 +695,7 @@ ARGUMENTS
 FLAGS
   -C, --root=<value>  Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   -f, --no-deps       Don't restart dependent services
-  --[no-]verbose
+      --[no-]verbose  [env: EMB_VERBOSE]
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -707,7 +707,7 @@ EXAMPLES
   $ emb restart
 ```
 
-_See code: [src/commands/restart.ts](https://github.com/enspirit/emb/blob/v0.28.0/src/commands/restart.ts)_
+_See code: [src/commands/restart.ts](https://github.com/enspirit/emb/blob/v0.28.1/src/commands/restart.ts)_
 
 ## `emb run TASK`
 
@@ -725,7 +725,7 @@ FLAGS
   -a, --all-matching       Run all tasks matching (when multiple matches)
   -x, --executor=<option>  Where to run the task. (experimental!)
                            <options: container|kubernetes|local>
-  --[no-]verbose
+      --[no-]verbose       [env: EMB_VERBOSE]
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -750,8 +750,8 @@ USAGE
 
 FLAGS
   -C, --root=<value>    Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
-      --flavor=<value>  Specify the flavor to use.
-  --[no-]verbose
+      --flavor=<value>  [env: EMB_FLAVOR] Specify the flavor to use.
+      --[no-]verbose    [env: EMB_VERBOSE]
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -765,7 +765,7 @@ EXAMPLES
   $ emb secrets --json
 ```
 
-_See code: [src/commands/secrets/index.ts](https://github.com/enspirit/emb/blob/v0.28.0/src/commands/secrets/index.ts)_
+_See code: [src/commands/secrets/index.ts](https://github.com/enspirit/emb/blob/v0.28.1/src/commands/secrets/index.ts)_
 
 ## `emb secrets providers`
 
@@ -777,8 +777,8 @@ USAGE
 
 FLAGS
   -C, --root=<value>    Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
-      --flavor=<value>  Specify the flavor to use.
-  --[no-]verbose
+      --flavor=<value>  [env: EMB_FLAVOR] Specify the flavor to use.
+      --[no-]verbose    [env: EMB_VERBOSE]
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -790,7 +790,7 @@ EXAMPLES
   $ emb secrets providers
 ```
 
-_See code: [src/commands/secrets/providers.ts](https://github.com/enspirit/emb/blob/v0.28.0/src/commands/secrets/providers.ts)_
+_See code: [src/commands/secrets/providers.ts](https://github.com/enspirit/emb/blob/v0.28.1/src/commands/secrets/providers.ts)_
 
 ## `emb secrets validate`
 
@@ -803,8 +803,8 @@ USAGE
 FLAGS
   -C, --root=<value>    Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
       --fail-fast       Stop on first validation error
-      --flavor=<value>  Specify the flavor to use.
-  --[no-]verbose
+      --flavor=<value>  [env: EMB_FLAVOR] Specify the flavor to use.
+      --[no-]verbose    [env: EMB_VERBOSE]
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -820,7 +820,7 @@ EXAMPLES
   $ emb secrets validate --json
 ```
 
-_See code: [src/commands/secrets/validate.ts](https://github.com/enspirit/emb/blob/v0.28.0/src/commands/secrets/validate.ts)_
+_See code: [src/commands/secrets/validate.ts](https://github.com/enspirit/emb/blob/v0.28.1/src/commands/secrets/validate.ts)_
 
 ## `emb shell SERVICE`
 
@@ -836,7 +836,7 @@ ARGUMENTS
 FLAGS
   -C, --root=<value>   Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   -s, --shell=<value>  [default: bash] The shell to run
-  --[no-]verbose
+      --[no-]verbose   [env: EMB_VERBOSE]
 
 DESCRIPTION
   Get a shell on a running service.
@@ -861,7 +861,7 @@ ARGUMENTS
 
 FLAGS
   -C, --root=<value>  Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
-  --[no-]verbose
+      --[no-]verbose  [env: EMB_VERBOSE]
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -873,7 +873,7 @@ EXAMPLES
   $ emb start
 ```
 
-_See code: [src/commands/start.ts](https://github.com/enspirit/emb/blob/v0.28.0/src/commands/start.ts)_
+_See code: [src/commands/start.ts](https://github.com/enspirit/emb/blob/v0.28.1/src/commands/start.ts)_
 
 ## `emb stop [SERVICE]`
 
@@ -888,8 +888,8 @@ ARGUMENTS
 
 FLAGS
   -C, --root=<value>    Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
-      --flavor=<value>  Specify the flavor to use.
-  --[no-]verbose
+      --flavor=<value>  [env: EMB_FLAVOR] Specify the flavor to use.
+      --[no-]verbose    [env: EMB_VERBOSE]
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -901,7 +901,7 @@ EXAMPLES
   $ emb stop
 ```
 
-_See code: [src/commands/stop.ts](https://github.com/enspirit/emb/blob/v0.28.0/src/commands/stop.ts)_
+_See code: [src/commands/stop.ts](https://github.com/enspirit/emb/blob/v0.28.1/src/commands/stop.ts)_
 
 ## `emb tasks`
 
@@ -913,7 +913,7 @@ USAGE
 
 FLAGS
   -C, --root=<value>  Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
-  --[no-]verbose
+      --[no-]verbose  [env: EMB_VERBOSE]
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -925,7 +925,7 @@ EXAMPLES
   $ emb tasks
 ```
 
-_See code: [src/commands/tasks/index.ts](https://github.com/enspirit/emb/blob/v0.28.0/src/commands/tasks/index.ts)_
+_See code: [src/commands/tasks/index.ts](https://github.com/enspirit/emb/blob/v0.28.1/src/commands/tasks/index.ts)_
 
 ## `emb tasks run TASK`
 
@@ -943,7 +943,7 @@ FLAGS
   -a, --all-matching       Run all tasks matching (when multiple matches)
   -x, --executor=<option>  Where to run the task. (experimental!)
                            <options: container|kubernetes|local>
-  --[no-]verbose
+      --[no-]verbose       [env: EMB_VERBOSE]
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -958,7 +958,7 @@ EXAMPLES
   $ emb tasks run
 ```
 
-_See code: [src/commands/tasks/run.ts](https://github.com/enspirit/emb/blob/v0.28.0/src/commands/tasks/run.ts)_
+_See code: [src/commands/tasks/run.ts](https://github.com/enspirit/emb/blob/v0.28.1/src/commands/tasks/run.ts)_
 
 ## `emb up [SERVICE]`
 
@@ -974,8 +974,8 @@ ARGUMENTS
 FLAGS
   -C, --root=<value>    Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   -f, --force           Bypass caches, force the recreation of containers, etc
-      --flavor=<value>  Specify the flavor to use.
-  --[no-]verbose
+      --flavor=<value>  [env: EMB_FLAVOR] Specify the flavor to use.
+      --[no-]verbose    [env: EMB_VERBOSE]
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -987,7 +987,7 @@ EXAMPLES
   $ emb up
 ```
 
-_See code: [src/commands/up.ts](https://github.com/enspirit/emb/blob/v0.28.0/src/commands/up.ts)_
+_See code: [src/commands/up.ts](https://github.com/enspirit/emb/blob/v0.28.1/src/commands/up.ts)_
 
 ## `emb update [CHANNEL]`
 
