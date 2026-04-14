@@ -1,0 +1,12 @@
+description: Fetches external documentation at build time and bakes it into
+  the image. Because the scraped content changes out-of-band with the repo,
+  we want a fresh build on every invocation — regardless of the active flavor.
+
+resources:
+  image:
+    type: docker/image
+    # Resource-level rebuildTrigger wins over any flavor-level default.
+    # Even under --flavor dev (which sets watch-paths for docker/image),
+    # this image still rebuilds every time.
+    rebuildTrigger:
+      strategy: always

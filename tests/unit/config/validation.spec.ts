@@ -9,6 +9,30 @@ import {
 } from '../../../src/config/validation.js';
 import { ConfigValidationError } from '../../../src/errors.js';
 
+const configWithResourceTrigger = (rebuildTrigger: unknown) => ({
+  project: { name: 'proj' },
+  components: {
+    api: {
+      resources: {
+        image: {
+          type: 'docker/image',
+          params: { dockerfile: 'Dockerfile' },
+          rebuildTrigger,
+        },
+      },
+    },
+  },
+});
+
+const configWithFlavorDefaults = (flavorDefaults: unknown) => ({
+  project: { name: 'proj' },
+  flavors: {
+    dev: {
+      defaults: flavorDefaults,
+    },
+  },
+});
+
 describe('Config / Validation', () => {
   let tempDir: string;
 
@@ -235,6 +259,154 @@ tasks:
         const error = error_ as ConfigValidationError;
         expect(error.fileErrors[0].file).to.equal(embfilePath);
       }
+    });
+  });
+
+  describe('rebuildTrigger on resources', () => {
+    test('it accepts a resource without rebuildTrigger', async () => {
+      const config = {
+        project: { name: 'proj' },
+        components: {
+          api: {
+            resources: {
+              image: {
+                type: 'docker/image',
+                params: { dockerfile: 'Dockerfile' },
+              },
+            },
+          },
+        },
+      };
+
+      await expect(validateUserConfig(config)).resolves.toBeDefined();
+    });
+
+    test('it accepts strategy=auto', async () => {
+      const config = configWithResourceTrigger({ strategy: 'auto' });
+
+      await expect(validateUserConfig(config)).resolves.toBeDefined();
+    });
+
+    test('it accepts strategy=always', async () => {
+      const config = configWithResourceTrigger({ strategy: 'always' });
+
+      await expect(validateUserConfig(config)).resolves.toBeDefined();
+    });
+
+    test('it accepts strategy=watch-paths with a non-empty paths array', async () => {
+      const config = configWithResourceTrigger({
+        strategy: 'watch-paths',
+        paths: ['Dockerfile', 'package.json', '/pnpm-lock.yaml'],
+      });
+
+      await expect(validateUserConfig(config)).resolves.toBeDefined();
+    });
+
+    test('it rejects an unknown strategy value', async () => {
+      const config = configWithResourceTrigger({ strategy: 'never' });
+
+      await expect(validateUserConfig(config)).rejects.toThrow(
+        ConfigValidationError,
+      );
+    });
+
+    test('it rejects watch-paths without a paths field', async () => {
+      const config = configWithResourceTrigger({ strategy: 'watch-paths' });
+
+      await expect(validateUserConfig(config)).rejects.toThrow(
+        ConfigValidationError,
+      );
+    });
+
+    test('it rejects watch-paths with an empty paths array', async () => {
+      const config = configWithResourceTrigger({
+        strategy: 'watch-paths',
+        paths: [],
+      });
+
+      await expect(validateUserConfig(config)).rejects.toThrow(
+        ConfigValidationError,
+      );
+    });
+
+    test('it rejects always with a stray paths field', async () => {
+      const config = configWithResourceTrigger({
+        strategy: 'always',
+        paths: ['Dockerfile'],
+      });
+
+      await expect(validateUserConfig(config)).rejects.toThrow(
+        ConfigValidationError,
+      );
+    });
+
+    test('it rejects a missing strategy field', async () => {
+      const config = configWithResourceTrigger({ paths: ['Dockerfile'] });
+
+      await expect(validateUserConfig(config)).rejects.toThrow(
+        ConfigValidationError,
+      );
+    });
+  });
+
+  describe('flavors.defaults.rebuildPolicy', () => {
+    test('it accepts a flavor without defaults', async () => {
+      const config = {
+        project: { name: 'proj' },
+        flavors: { dev: { patches: [] } },
+      };
+
+      await expect(validateUserConfig(config)).resolves.toBeDefined();
+    });
+
+    test('it accepts a flavor default for docker/image', async () => {
+      const config = configWithFlavorDefaults({
+        rebuildPolicy: {
+          'docker/image': {
+            strategy: 'watch-paths',
+            paths: ['Dockerfile', '/pnpm-lock.yaml'],
+          },
+        },
+      });
+
+      await expect(validateUserConfig(config)).resolves.toBeDefined();
+    });
+
+    test('it rejects rebuildPolicy for an unsupported resource type', async () => {
+      const config = configWithFlavorDefaults({
+        rebuildPolicy: {
+          file: { strategy: 'auto' },
+        },
+      });
+
+      await expect(validateUserConfig(config)).rejects.toThrow(
+        ConfigValidationError,
+      );
+    });
+
+    test('it rejects an invalid strategy under flavor defaults', async () => {
+      const config = configWithFlavorDefaults({
+        rebuildPolicy: {
+          'docker/image': { strategy: 'never' },
+        },
+      });
+
+      await expect(validateUserConfig(config)).rejects.toThrow(
+        ConfigValidationError,
+      );
+    });
+
+    test('it rejects unknown keys under flavor defaults', async () => {
+      const config = configWithFlavorDefaults({
+        rebuildPolicy: {
+          'docker/image': { strategy: 'auto' },
+        },
+        unknownField: true,
+      });
+
+      await expect(validateUserConfig(config)).rejects.toThrow(
+        ConfigValidationError,
+      );
     });
   });
 });

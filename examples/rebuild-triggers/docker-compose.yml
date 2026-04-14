@@ -1,0 +1,12 @@
+services:
+  api:
+    image: rebuild-triggers/api:${DOCKER_TAG:-latest}
+    ports:
+      - "${API_PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+
+  docs-scraper:
+    image: rebuild-triggers/docs-scraper:${DOCKER_TAG:-latest}
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}

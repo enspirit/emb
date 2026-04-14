@@ -16,6 +16,8 @@ import {
 } from '@/monorepo';
 import { AbstractOperation } from '@/operations';
 
+import { formatRebuildDecision } from '../../../docker/resources/formatRebuildDecision.js';
+
 export type BuildResourceMeta = {
   // if we running dryMode, we keep going through to collect meta info
   dryRun?: boolean;
@@ -174,6 +176,16 @@ export class BuildResourcesOperation extends AbstractOperation<
               task.skip();
               return parentTask.skip();
             };
+
+            const decisionLines = formatRebuildDecision({
+              resourceId: resource.id,
+              sentinelData: ctx.sentinelData,
+              cacheHit: Boolean(ctx.cacheHit),
+              force: Boolean(ctx.force),
+            });
+            if (decisionLines.length > 0) {
+              task.output = decisionLines.join('\n');
+            }
 
             if (ctx.cacheHit && !ctx.force && !ctx.dryRun) {
               return skip('[cache hit]');

@@ -318,8 +318,65 @@
           "items": {
             "$ref": "#/definitions/JsonPatchOperation"
           }
+        },
+        "defaults": {
+          "$ref": "#/definitions/FlavorDefaultsConfig"
         }
       }
+    },
+    "FlavorDefaultsConfig": {
+      "type": "object",
+      "description": "Per-flavor defaults applied to resources that do not set their own values",
+      "additionalProperties": false,
+      "properties": {
+        "rebuildPolicy": {
+          "type": "object",
+          "description": "Default rebuild trigger per resource type",
+          "additionalProperties": false,
+          "properties": {
+            "docker/image": {
+              "$ref": "#/definitions/RebuildTriggerConfig"
+            }
+          }
+        }
+      }
+    },
+    "RebuildTriggerConfig": {
+      "description": "Controls when a resource rebuild is triggered. Only docker/image resources read this in v1.",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["strategy"],
+          "properties": {
+            "strategy": { "const": "auto" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["strategy"],
+          "properties": {
+            "strategy": { "const": "always" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["strategy", "paths"],
+          "properties": {
+            "strategy": { "const": "watch-paths" },
+            "paths": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      ]
     },
     "ResourceConfig": {
       "type": "object",
@@ -335,6 +392,9 @@
           "type": "array",
           "items": { "$ref": "#/definitions/QualifiedIdentifier" },
           "uniqueItems": true
+        },
+        "rebuildTrigger": {
+          "$ref": "#/definitions/RebuildTriggerConfig"
         }
       },
       "additionalProperties": false,

@@ -23,7 +23,8 @@ export type ExampleName =
   | 'fullstack-app'
   | 'hello-world'
   | 'microservices'
-  | 'production-ready';
+  | 'production-ready'
+  | 'rebuild-triggers';
 
 /**
  * Path constants for example monorepos.
@@ -33,6 +34,7 @@ export const EXAMPLES = {
   'hello-world': resolve(currentDir, '../../examples/hello-world'),
   microservices: resolve(currentDir, '../../examples/microservices'),
   'production-ready': resolve(currentDir, '../../examples/production-ready'),
+  'rebuild-triggers': resolve(currentDir, '../../examples/rebuild-triggers'),
 } as const;
 
 /**

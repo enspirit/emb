@@ -185,6 +185,7 @@ resources:
 | `publish` | boolean | Mark resource as publishable for `emb resources publish` |
 | `dependencies` | array | List of resource IDs this depends on |
 | `params` | object | Type-specific parameters |
+| `rebuildTrigger` | object | Overrides when a rebuild happens. Read by `docker/image` resources. See [Rebuild triggers](#rebuild-triggers-dockerimage). |
 
 **Resource types:**
 
@@ -204,6 +205,57 @@ Builds a Docker image.
 | `dockerfile` | string | Dockerfile path |
 | `publish.registry` | string | Registry to push to (overrides `defaults.docker.publish.registry`) |
 | `publish.tag` | string | Tag for publishing (overrides `defaults.docker.publish.tag`) |
+
+##### Rebuild triggers (docker/image)
+
+By default a `docker/image` resource rebuilds when any git-tracked file
+under its build context has a newer mtime than the sentinel from the last
+successful build. That's the right default for CI and production. In dev,
+where source is often bind-mounted into containers, it's wasteful — the
+running container already sees the new code.
+
+The `rebuildTrigger` field on the resource (or a flavor-level default under
+`flavors.<flavor>.defaults.rebuildPolicy['docker/image']`) lets you pick
+how the rebuild decision is made.
+
+| Strategy | Rebuilds when | Typical use |
+|----------|---------------|-------------|
+| `auto` *(default)* | any git-tracked file in the docker context has changed | CI, production |
+| `always` | every invocation | images that fetch external content at build time |
+| `watch-paths` | one of the listed paths has changed | dev with bind-mounted source |
+
+```yaml
+resources:
+  image:
+    type: docker/image
+    rebuildTrigger:
+      strategy: watch-paths
+      paths:
+        - Dockerfile
+        - package.json
+        - /shared/base.Dockerfile   # /-prefix escapes to monorepo root
+```
+
+Paths in `watch-paths` are resolved against the resource's docker context
+(the same base used for `dockerfile` / `context`). A leading `/` escapes
+to the monorepo root, which is useful for shared files like root-level
+lockfiles or base Dockerfiles.
+
+`rebuildTrigger` follows this precedence, highest wins:
+
+1. `resources.<name>.rebuildTrigger` on the resource itself.
+2. `flavors.<flavor>.defaults.rebuildPolicy['docker/image']` on the
+   active flavor — see [Flavors → Rebuild policies](../../advanced/flavors#rebuild-policies).
+3. Built-in `{ strategy: auto }`.
+
+Non-`auto` rebuilds (and any `--force` run) print the resolved strategy,
+source, reason, and watched files in the build output, so you can see
+exactly why a rebuild did or didn't happen.
+
+Regardless of the strategy, two invariants hold:
+
+- If a dependency was rebuilt, this resource rebuilds too (dep cascade).
+- `--force` always rebuilds.
 
 #### file
 

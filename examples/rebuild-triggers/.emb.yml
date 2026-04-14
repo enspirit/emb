@@ -1,0 +1,57 @@
+project:
+  name: rebuild-triggers
+
+plugins:
+  - name: autodocker
+  - name: dotenv
+    config:
+      - .env
+  - name: embfiles
+
+env:
+  DOCKER_TAG: ${env:DOCKER_TAG:-latest}
+  NODE_ENV: ${env:NODE_ENV:-development}
+
+defaults:
+  docker:
+    tag: ${env:DOCKER_TAG}
+
+# ----------------------------------------------------------------------------
+# Rebuild triggers — flavor-aware rebuild decisions for docker/image resources
+#
+# Each docker/image resource rebuilds when any git-tracked file in its context
+# changes (strategy: auto). That's the right default for CI and prod but the
+# wrong default for dev, where source is bind-mounted into containers via
+# docker-compose.devel.yml — rebuilding then only wastes time because the
+# container already sees the new code. The only changes that should trigger a
+# rebuild in dev are image-shaping files: Dockerfile, package.json, lockfiles,
+# system-package lists.
+#
+# Three strategies are supported for `rebuildTrigger`:
+#   auto          git-scan of all tracked files in the docker context (default)
+#   always        rebuild on every invocation
+#   watch-paths   only rebuild when one of the listed paths changes; paths are
+#                 relative to the docker context (a leading / escapes up to
+#                 the monorepo root — not used here)
+#
+# Precedence, highest wins:
+#   1. Per-resource  resources.<name>.rebuildTrigger
+#   2. Flavor-level  flavors.<flavor>.defaults.rebuildPolicy['docker/image']
+#   3. Built-in      auto
+# ----------------------------------------------------------------------------
+
+flavors:
+  # Fast inner loop: source is bind-mounted, so only image-shaping files
+  # should trigger an image rebuild. Applies to every docker/image resource
+  # that does not set its own rebuildTrigger.
+  dev:
+    defaults:
+      rebuildPolicy:
+        docker/image:
+          strategy: watch-paths
+          paths:
+            - Dockerfile
+            - package.json
+
+  # Empty: falls back to the built-in 'auto' behavior.
+  prod: {}

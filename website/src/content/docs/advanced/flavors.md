@@ -163,3 +163,56 @@ emb config print --flavor production
 ```
 
 This shows the fully resolved configuration after applying flavor patches.
+
+## Rebuild Policies
+
+Beyond JSON Patch, flavors can set a `defaults.rebuildPolicy` that changes
+how EMB decides whether a resource needs a rebuild. Today this applies to
+`docker/image` resources.
+
+The common case: in dev, source is bind-mounted into containers via
+`docker-compose.devel.yml`, so rebuilding the image on every source change
+is pointless — the container already sees the new code. You only want a
+rebuild when *image-shaping* files change (Dockerfile, package.json,
+lockfiles, system-package lists).
+
+Set a flavor-wide policy under `defaults.rebuildPolicy['docker/image']`:
+
+```yaml
+flavors:
+  dev:
+    defaults:
+      rebuildPolicy:
+        docker/image:
+          strategy: watch-paths
+          paths:
+            - Dockerfile
+            - package.json
+
+  prod: {}   # absent → falls back to the builtin 'auto' strategy
+```
+
+Three strategies are available:
+
+| Strategy | Rebuilds when | Typical use |
+|----------|---------------|-------------|
+| `auto` *(default)* | any git-tracked file in the docker context changed | CI, production |
+| `always` | every invocation | images fetching external content at build time |
+| `watch-paths` | one of the listed paths changed | dev with bind-mounted source |
+
+### Overriding at the resource level
+
+A resource's own `rebuildTrigger` wins against any flavor-level default:
+
+```yaml
+# component/Embfile.yml
+resources:
+  image:
+    type: docker/image
+    rebuildTrigger:
+      strategy: always    # wins even when --flavor dev sets watch-paths
+```
+
+See the full precedence and path semantics in the
+[configuration reference](../../reference/configuration#rebuild-triggers-dockerimage).
+A runnable example lives under `examples/rebuild-triggers/`.
