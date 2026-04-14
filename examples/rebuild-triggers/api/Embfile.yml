@@ -1,0 +1,2 @@
+description: HTTP API. No per-resource rebuildTrigger — inherits whichever
+  policy the active flavor sets (or falls back to auto for prod/no-flavor).

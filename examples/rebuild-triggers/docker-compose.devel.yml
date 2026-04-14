@@ -1,0 +1,12 @@
+services:
+  # Mount only src/ so that node_modules installed inside the image
+  # (/app/node_modules) is not shadowed by the bind mount. Any change
+  # to a file under src/ is picked up by --watch without a rebuild.
+  api:
+    volumes:
+      - ./api/src:/app/src
+    command: ["node", "--watch", "src/server.js"]
+
+  docs-scraper:
+    volumes:
+      - ./docs-scraper/src:/app/src
