@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { rimraf } from 'rimraf';
@@ -22,6 +22,34 @@ import '../../../../src/docker/resources/DockerImageResource.js';
 type DockerImageResourceConfig = Partial<OpInput<BuildImageOperation>> & {
   image?: string;
   tag?: string;
+};
+
+const initGit = async (cwd: string) => {
+  const { execa } = await import('execa');
+  await execa('git', ['init'], { cwd });
+  await execa('git', ['config', 'user.email', 'test@test.com'], { cwd });
+  await execa('git', ['config', 'user.name', 'Test'], { cwd });
+};
+
+const commitFile = async (cwd: string, name: string, content = 'x') => {
+  const { execa } = await import('execa');
+  await writeFile(join(cwd, name), content);
+  await execa('git', ['add', name], { cwd });
+  await execa('git', ['commit', '-m', `add ${name}`], { cwd });
+};
+
+const waitForNewerMtime = async () => {
+  await new Promise<void>((resolve) => {
+    setTimeout(resolve, 10);
+  });
+};
+
+const mockSentinelAt = (
+  store: { stat: ReturnType<typeof vi.fn>; readFile: ReturnType<typeof vi.fn> },
+  mtime: Date,
+) => {
+  store.stat.mockResolvedValue({ mtime });
+  store.readFile.mockResolvedValue(JSON.stringify({ mtime: mtime.getTime() }));
 };
 
 describe('Docker / DockerImageResource', () => {
@@ -62,6 +90,7 @@ describe('Docker / DockerImageResource', () => {
           buildArgs: {},
         },
       },
+      flavors: {},
     } as unknown as Monorepo;
 
     mockComponent = {
@@ -76,13 +105,17 @@ describe('Docker / DockerImageResource', () => {
     await rimraf(rootDir);
   });
 
-  const createBuilder = (params: DockerImageResourceConfig = {}) => {
+  const createBuilder = (
+    params: DockerImageResourceConfig = {},
+    extra: Partial<ResourceInfo<DockerImageResourceConfig>> = {},
+  ) => {
     const config: ResourceInfo<DockerImageResourceConfig> = {
       id: 'mycomponent:docker-image',
       name: 'docker-image',
       component: 'mycomponent',
       type: 'docker/image',
       params,
+      ...extra,
     };
 
     const context: ResourceBuildContext<DockerImageResourceConfig> = {
@@ -318,6 +351,258 @@ describe('Docker / DockerImageResource', () => {
       const result = await builder.build(resource);
 
       expect(result.input.target).toBe('runtime');
+    });
+  });
+
+  describe('#mustBuild() — git-scan baseline (no sentinel)', () => {
+    const resource: ResourceInfo<DockerImageResourceConfig> = {
+      id: 'mycomponent:docker-image',
+      name: 'docker-image',
+      component: 'mycomponent',
+      type: 'docker/image',
+      params: {},
+    };
+
+    test('it returns the newest mtime across git-tracked files under the docker context', async () => {
+      await initGit(componentDir);
+      await commitFile(componentDir, 'Dockerfile', 'FROM node:18\n');
+
+      const builder = createBuilder();
+      const result = await builder.mustBuild?.(resource);
+
+      const dfStats = await stat(join(componentDir, 'Dockerfile'));
+      expect(result).toMatchObject({
+        mtime: dfStats.mtime.getTime(),
+        strategy: 'auto',
+        source: 'builtin',
+      });
+    });
+
+    test('it returns the max mtime when several tracked files are present', async () => {
+      await initGit(componentDir);
+      await commitFile(componentDir, 'Dockerfile', 'FROM node:18\n');
+      // Ensure the second file gets a strictly newer mtime.
+      await waitForNewerMtime();
+      await commitFile(componentDir, 'package.json', '{}');
+
+      const builder = createBuilder();
+      const result = await builder.mustBuild?.(resource);
+
+      const dfStats = await stat(join(componentDir, 'Dockerfile'));
+      const pkgStats = await stat(join(componentDir, 'package.json'));
+      const expected = Math.max(
+        dfStats.mtime.getTime(),
+        pkgStats.mtime.getTime(),
+      );
+      expect(result).toMatchObject({
+        mtime: expected,
+        strategy: 'auto',
+        source: 'builtin',
+      });
+    });
+
+    test('it considers only git-tracked files, ignoring untracked ones', async () => {
+      await initGit(componentDir);
+      await commitFile(componentDir, 'Dockerfile', 'FROM node:18\n');
+      // Untracked file with a (probably) newer mtime must NOT influence result.
+      await waitForNewerMtime();
+      await writeFile(join(componentDir, 'scratch.txt'), 'untracked');
+
+      const builder = createBuilder();
+      const result = await builder.mustBuild?.(resource);
+
+      const dfStats = await stat(join(componentDir, 'Dockerfile'));
+      expect(result).toMatchObject({
+        mtime: dfStats.mtime.getTime(),
+        strategy: 'auto',
+        source: 'builtin',
+      });
+    });
+
+    test('it returns undefined when there are no git-tracked files', async () => {
+      await initGit(componentDir);
+      // No files committed.
+
+      const builder = createBuilder();
+      const result = await builder.mustBuild?.(resource);
+
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe('#mustBuild() — strategy dispatch', () => {
+    const resource: ResourceInfo<DockerImageResourceConfig> = {
+      id: 'mycomponent:docker-image',
+      name: 'docker-image',
+      component: 'mycomponent',
+      type: 'docker/image',
+      params: {},
+    };
+
+    test('always strategy rebuilds regardless of the previous sentinel', async () => {
+      const past = new Date(Date.now() - 60_000);
+      mockSentinelAt(mockStore, past);
+
+      const builder = createBuilder(
+        {},
+        { rebuildTrigger: { strategy: 'always' } },
+      );
+      const result = await builder.mustBuild?.({
+        ...resource,
+        rebuildTrigger: { strategy: 'always' },
+      });
+
+      expect(result).toMatchObject({
+        strategy: 'always',
+        source: 'resource',
+      });
+      const sentinel = result as undefined | { mtime: number };
+      expect(sentinel?.mtime).toBeGreaterThan(past.getTime());
+    });
+
+    test('watch-paths skips when a watched file has not changed since the sentinel', async () => {
+      await initGit(componentDir);
+      await commitFile(componentDir, 'Dockerfile', 'FROM node:18\n');
+      const dfStats = await stat(join(componentDir, 'Dockerfile'));
+      // Sentinel is one minute AFTER the file's mtime → cache hit, no rebuild.
+      mockSentinelAt(mockStore, new Date(dfStats.mtime.getTime() + 60_000));
+
+      const res: ResourceInfo<DockerImageResourceConfig> = {
+        ...resource,
+        rebuildTrigger: { strategy: 'watch-paths', paths: ['Dockerfile'] },
+      };
+      const builder = createBuilder({}, { rebuildTrigger: res.rebuildTrigger });
+
+      const result = await builder.mustBuild?.(res);
+
+      expect(result).toBeUndefined();
+    });
+
+    test('watch-paths rebuilds when a watched file is newer than the sentinel', async () => {
+      await initGit(componentDir);
+      await commitFile(componentDir, 'Dockerfile', 'FROM node:18\n');
+      const dfStats = await stat(join(componentDir, 'Dockerfile'));
+      // Sentinel is one minute BEFORE the file's mtime → rebuild.
+      mockSentinelAt(mockStore, new Date(dfStats.mtime.getTime() - 60_000));
+
+      const res: ResourceInfo<DockerImageResourceConfig> = {
+        ...resource,
+        rebuildTrigger: { strategy: 'watch-paths', paths: ['Dockerfile'] },
+      };
+      const builder = createBuilder({}, { rebuildTrigger: res.rebuildTrigger });
+
+      const result = await builder.mustBuild?.(res);
+
+      expect(result).toMatchObject({
+        mtime: dfStats.mtime.getTime(),
+        strategy: 'watch-paths',
+        source: 'resource',
+      });
+    });
+
+    test('watch-paths ignores untracked changes outside the watched list', async () => {
+      await initGit(componentDir);
+      await commitFile(componentDir, 'Dockerfile', 'FROM node:18\n');
+      const dfStats = await stat(join(componentDir, 'Dockerfile'));
+      // Sentinel is AFTER Dockerfile → should be a cache hit for Dockerfile-only watch.
+      mockSentinelAt(mockStore, new Date(dfStats.mtime.getTime() + 60_000));
+
+      // Add a newer unrelated file AFTER the sentinel — must not trigger rebuild.
+      await waitForNewerMtime();
+      await writeFile(join(componentDir, 'src.ts'), 'console.log(1)');
+
+      const res: ResourceInfo<DockerImageResourceConfig> = {
+        ...resource,
+        rebuildTrigger: { strategy: 'watch-paths', paths: ['Dockerfile'] },
+      };
+      const builder = createBuilder({}, { rebuildTrigger: res.rebuildTrigger });
+
+      const result = await builder.mustBuild?.(res);
+
+      expect(result).toBeUndefined();
+    });
+
+    test('watch-paths follows a /-prefixed path to the monorepo root', async () => {
+      await writeFile(join(rootDir, 'pnpm-lock.yaml'), 'lock');
+      const lockStats = await stat(join(rootDir, 'pnpm-lock.yaml'));
+      mockSentinelAt(mockStore, new Date(lockStats.mtime.getTime() - 60_000));
+
+      const res: ResourceInfo<DockerImageResourceConfig> = {
+        ...resource,
+        rebuildTrigger: {
+          strategy: 'watch-paths',
+          paths: ['/pnpm-lock.yaml'],
+        },
+      };
+      const builder = createBuilder({}, { rebuildTrigger: res.rebuildTrigger });
+
+      const result = await builder.mustBuild?.(res);
+
+      expect(result).toMatchObject({
+        mtime: lockStats.mtime.getTime(),
+        strategy: 'watch-paths',
+        source: 'resource',
+      });
+    });
+
+    test('flavor-level default is applied when the resource has no trigger', async () => {
+      await writeFile(join(componentDir, 'Dockerfile'), 'FROM node:18\n');
+      const dfStats = await stat(join(componentDir, 'Dockerfile'));
+      mockSentinelAt(mockStore, new Date(dfStats.mtime.getTime() - 60_000));
+
+      (
+        mockMonorepo as unknown as { flavors: Record<string, unknown> }
+      ).flavors = {
+        default: {
+          defaults: {
+            rebuildPolicy: {
+              'docker/image': {
+                strategy: 'watch-paths',
+                paths: ['Dockerfile'],
+              },
+            },
+          },
+        },
+      };
+
+      const builder = createBuilder();
+      const result = await builder.mustBuild?.(resource);
+
+      expect(result).toMatchObject({
+        mtime: dfStats.mtime.getTime(),
+        strategy: 'watch-paths',
+        source: 'flavor',
+      });
+    });
+
+    test('resource trigger wins over the flavor-level default', async () => {
+      const past = new Date(Date.now() - 60_000);
+      mockSentinelAt(mockStore, past);
+
+      (
+        mockMonorepo as unknown as { flavors: Record<string, unknown> }
+      ).flavors = {
+        default: {
+          defaults: {
+            rebuildPolicy: {
+              'docker/image': { strategy: 'auto' },
+            },
+          },
+        },
+      };
+
+      const res: ResourceInfo<DockerImageResourceConfig> = {
+        ...resource,
+        rebuildTrigger: { strategy: 'always' },
+      };
+      const builder = createBuilder({}, { rebuildTrigger: res.rebuildTrigger });
+
+      const result = await builder.mustBuild?.(res);
+
+      expect(result).toMatchObject({
+        strategy: 'always',
+        source: 'resource',
+      });
     });
   });
 });

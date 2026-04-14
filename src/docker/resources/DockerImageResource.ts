@@ -1,15 +1,12 @@
 import { getContext } from '@';
 import { fdir as Fdir } from 'fdir';
-import { stat, statfs } from 'node:fs/promises';
-import { join } from 'node:path';
+import { statfs } from 'node:fs/promises';
 import { join as posixJoin } from 'node:path/posix';
 import { Transform, Writable } from 'node:stream';
-import pMap from 'p-map';
 
 import { DockerPublishConfig } from '@/config/schema.js';
 import { ResourceInfo, SentinelFileBasedBuilder } from '@/monorepo';
 import { OpInput, OpOutput } from '@/operations/index.js';
-import { FilePrerequisite, GitPrerequisitePlugin } from '@/prerequisites';
 
 import {
   ResourceBuildContext,
@@ -17,6 +14,14 @@ import {
 } from '../../monorepo/resources/ResourceFactory.js';
 import { getDockerAuthConfig } from '../credentials.js';
 import { BuildImageOperation } from '../operations/index.js';
+import { computeAlways } from './rebuildStrategies/always.js';
+import { computeAuto } from './rebuildStrategies/auto.js';
+import { StrategyResult, WatchedPath } from './rebuildStrategies/types.js';
+import { computeWatchPaths } from './rebuildStrategies/watchPaths.js';
+import {
+  RebuildTriggerSource,
+  resolveRebuildTrigger,
+} from './resolveRebuildTrigger.js';
 
 /**
  * Configuration for a docker/image resource.
@@ -31,10 +36,38 @@ type DockerImageResourceConfig = Partial<OpInput<BuildImageOperation>> & {
   publish?: DockerPublishConfig;
 };
 
+export type DockerImageSentinel = {
+  mtime: number;
+  strategy: 'always' | 'auto' | 'watch-paths';
+  source: RebuildTriggerSource;
+  reason: string;
+  watched?: WatchedPath[];
+};
+
+export const isDockerImageSentinel = (
+  value: unknown,
+): value is DockerImageSentinel => {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const candidate = value as Partial<DockerImageSentinel>;
+  return (
+    typeof candidate.mtime === 'number' &&
+    typeof candidate.reason === 'string' &&
+    (candidate.strategy === 'auto' ||
+      candidate.strategy === 'always' ||
+      candidate.strategy === 'watch-paths') &&
+    (candidate.source === 'resource' ||
+      candidate.source === 'flavor' ||
+      candidate.source === 'builtin')
+  );
+};
+
 class DockerImageResourceBuilder extends SentinelFileBasedBuilder<
   DockerImageResourceConfig,
   OpOutput<BuildImageOperation>,
-  { mtime: number }
+  DockerImageSentinel
 > {
   protected dockerContext: string;
 
@@ -112,16 +145,49 @@ class DockerImageResourceBuilder extends SentinelFileBasedBuilder<
     };
   }
 
-  async _mustBuild() {
-    const plugin = new GitPrerequisitePlugin();
-    const sources = await plugin.collect(this.dockerContext);
-    const lastUpdated = await this.lastUpdatedInfo(sources);
+  async _mustBuild(
+    resource: ResourceInfo<DockerImageResourceConfig>,
+  ): Promise<DockerImageSentinel | undefined> {
+    const flavor = this.monorepo.flavors[this.monorepo.currentFlavor];
+    const trigger = resolveRebuildTrigger({
+      resource: resource.rebuildTrigger,
+      flavor: flavor?.defaults?.rebuildPolicy?.['docker/image'],
+    });
 
-    if (!lastUpdated) {
-      return;
+    const ctx = {
+      dockerContext: this.dockerContext,
+      monorepoRoot: this.monorepo.rootDir,
+    };
+
+    let result: StrategyResult | undefined;
+    switch (trigger.strategy) {
+      case 'always': {
+        result = computeAlways();
+        break;
+      }
+
+      case 'auto': {
+        result = await computeAuto(ctx);
+        break;
+      }
+
+      case 'watch-paths': {
+        result = await computeWatchPaths(ctx, trigger.paths);
+        break;
+      }
     }
 
-    return { mtime: lastUpdated.time.getTime() };
+    if (!result) {
+      return undefined;
+    }
+
+    return {
+      mtime: result.mtime,
+      strategy: trigger.strategy,
+      source: trigger.source,
+      reason: result.reason,
+      ...(result.watched ? { watched: result.watched } : {}),
+    };
   }
 
   /**
@@ -234,29 +300,6 @@ class DockerImageResourceBuilder extends SentinelFileBasedBuilder<
         resolve(null);
       });
     });
-  }
-
-  private async lastUpdatedInfo(sources: Array<FilePrerequisite>) {
-    const stats = await pMap(
-      sources,
-      async (s) => {
-        const stats = await stat(join(this.dockerContext, s.path));
-
-        return {
-          time: stats.mtime,
-          path: s.path,
-        };
-      },
-      { concurrency: 30 },
-    );
-
-    if (stats.length === 0) {
-      return;
-    }
-
-    return stats.reduce((last, entry) => {
-      return last.time > entry.time ? last : entry;
-    }, stats[0]);
   }
 }
 
