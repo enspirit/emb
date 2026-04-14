@@ -1,3 +1,37 @@
+## 0.28.1 - 2026-04-14
+
+* Honor `EMB_VERBOSE` and `EMB_FLAVOR` env vars as fallbacks for `--verbose` and `--flavor`
+  - CLI flag still takes precedence over the env var
+  - Document env-var fallbacks and resolution order in the CLI reference
+
+## 0.28.0 - 2026-04-14
+
+* Add flavor-aware rebuild triggers for `docker/image` resources
+  - `rebuildTrigger: auto` (default) — newest-mtime across git-tracked files in context
+  - `rebuildTrigger: always` — rebuild every invocation
+  - `rebuildTrigger: watch-paths` — rebuild only when listed paths change (docker-context-relative, leading `/` escapes to monorepo root)
+  - Configurable per resource, or as flavor-wide default under `flavors.<flavor>.defaults.rebuildPolicy['docker/image']`
+  - Precedence: resource > flavor default > builtin auto; `--force` and dep-cascade invariants preserved
+  - Selected strategy, source, reason, and watched paths are surfaced in build output (auto stays silent)
+* Document rebuild triggers with a runnable example
+
+## 0.27.1 - 2026-04-12
+
+* Document resource publishing end-to-end
+  - New `advanced/publishing.md` covering `publish: true`, `defaults.docker.publish`, `emb resources publish`, CI workflow, and flavor patching
+  - Extend production-ready example with `defaults.docker.publish.registry` and a production flavor that sets `publish.tag` from `VERSION`
+
+## 0.27.0 - 2026-04-12
+
+* Sync docs with current codebase
+  - Fix task/flavor syntax in concepts (`script:`, `patches:`)
+  - Update version/arch in `--help` and `--version` output examples
+  - Add `PUBLISHABLE` column to `emb resources` output samples
+  - Add `publish: true` and kubernetes defaults to tutorial snippets
+  - Expand `emb secrets` reference with per-subcommand docs
+  - Bump Node.js requirement note to 22+
+* Remove dormant `executor` (singular) from `TaskConfig` JSON Schema; runtime only reads `executors` (plural)
+
 ## 0.26.0 - 2026-04-12
 
 * Task scripts now fail fast on the first failing command
