@@ -107,5 +107,51 @@ describe('Config - MonorepoConfig', () => {
         ?.params as { target: string };
       expect(newBuild.target).to.equal('production');
     });
+
+    test('applies patches from an extended flavor before the child patches', async () => {
+      const inheritedConfig = new MonorepoConfig({
+        project: { name: 'test' },
+        components: {
+          api: {
+            resources: {
+              image: {
+                type: 'docker/image',
+                params: { target: 'development', context: 'api' },
+              },
+            },
+          },
+        },
+        flavors: {
+          production: {
+            patches: [
+              {
+                op: 'replace',
+                path: '/components/api/resources/image/params/target',
+                value: 'production',
+              },
+            ],
+          },
+          test: {
+            extends: 'production',
+            patches: [
+              {
+                op: 'replace',
+                path: '/components/api/resources/image/params/target',
+                value: 'test',
+              },
+            ],
+          },
+        },
+      });
+      const inheritedRepo = new Monorepo(inheritedConfig, '/tmp');
+      await inheritedRepo.init();
+
+      const test = await inheritedRepo.withFlavor('test');
+      const params = test.component('api').resources?.image?.params as {
+        target: string;
+      };
+
+      expect(params.target).to.equal('test');
+    });
   });
 });

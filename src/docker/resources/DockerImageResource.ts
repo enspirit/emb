@@ -186,7 +186,10 @@ class DockerImageResourceBuilder extends SentinelFileBasedBuilder<
   async _mustBuild(
     resource: ResourceInfo<DockerImageResourceConfig>,
   ): Promise<DockerImageSentinel | undefined> {
-    const flavor = this.monorepo.flavors[this.monorepo.currentFlavor];
+    const flavorName = this.monorepo.currentFlavor;
+    const flavor = this.monorepo.flavors[flavorName]
+      ? this.monorepo.flavor(flavorName)
+      : undefined;
     const trigger = resolveRebuildTrigger({
       resource: resource.rebuildTrigger,
       flavor: flavor?.defaults?.rebuildPolicy?.['docker/image'],

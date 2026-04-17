@@ -70,8 +70,13 @@ export class PublishResourcesOperation extends AbstractOperation<
     let targetResources: ResourceInfo[];
     if (input.resources && input.resources.length > 0) {
       // Resolve order using full collection, then filter to only publishable
-      const orderedResources = findRunOrder(input.resources, allResourcesCollection);
-      targetResources = orderedResources.filter((r) => publishableIds.has(r.id));
+      const orderedResources = findRunOrder(
+        input.resources,
+        allResourcesCollection,
+      );
+      targetResources = orderedResources.filter((r) =>
+        publishableIds.has(r.id),
+      );
     } else {
       // All publishable resources - resolve order using full collection
       const orderedResources = findRunOrder(
@@ -79,7 +84,9 @@ export class PublishResourcesOperation extends AbstractOperation<
         allResourcesCollection,
       );
       // Filter to only publishable (dependencies are resolved but not published)
-      targetResources = orderedResources.filter((r) => publishableIds.has(r.id));
+      targetResources = orderedResources.filter((r) =>
+        publishableIds.has(r.id),
+      );
     }
 
     // Verify each resource's builder supports publish

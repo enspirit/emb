@@ -11,6 +11,8 @@ import {
   toIdentifedHash,
 } from '@/monorepo';
 
+import { resolveComponentFlavor } from './flavor.js';
+
 export class Component implements ComponentConfig {
   public readonly _rootDir?: string;
   public readonly tasks: Tasks;
@@ -37,13 +39,15 @@ export class Component implements ComponentConfig {
   }
 
   flavor(name: string, mustExist = true): ComponentFlavorConfig {
-    const flavor = this.flavors[name];
+    if (!this.flavors[name]) {
+      if (mustExist) {
+        throw new Error(`Unknown flavor: ${name}`);
+      }
 
-    if (!flavor && mustExist) {
-      throw new Error(`Unknown flavor: ${name}`);
+      return undefined as unknown as ComponentFlavorConfig;
     }
 
-    return flavor;
+    return resolveComponentFlavor(this.flavors, name);
   }
 
   cloneWith(config: Partial<ComponentConfig>): ComponentConfig {

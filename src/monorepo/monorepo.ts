@@ -39,6 +39,10 @@ export class Monorepo {
     return this._config.flavors;
   }
 
+  flavor(name: string) {
+    return this._config.flavor(name);
+  }
+
   get name() {
     return this._config.project.name;
   }

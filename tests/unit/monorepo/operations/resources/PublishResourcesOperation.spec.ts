@@ -246,6 +246,7 @@ describe('Monorepo / Operations / Resources / PublishResourcesOperation', () => 
                 publishCalls.push(context.config.id);
               });
             }
+
             return builder;
           },
         );
