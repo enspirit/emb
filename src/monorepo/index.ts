@@ -1,5 +1,6 @@
 export * from './component.js';
 export * from './config.js';
+export * from './flavor.js';
 export * from './monorepo.js';
 export * from './operations/index.js';
 export * from './plugins/index.js';

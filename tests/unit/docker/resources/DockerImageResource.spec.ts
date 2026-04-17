@@ -91,6 +91,9 @@ describe('Docker / DockerImageResource', () => {
         },
       },
       flavors: {},
+      flavor(name: string) {
+        return (this as unknown as Monorepo).flavors[name];
+      },
     } as unknown as Monorepo;
 
     mockComponent = {

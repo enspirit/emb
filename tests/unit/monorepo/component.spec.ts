@@ -225,6 +225,34 @@ describe('Monorepo / Component', () => {
 
       expect(() => component.withFlavor('broken')).toThrow();
     });
+
+    test('it applies patches from an extended flavor before the child patches', () => {
+      const component = new Component(
+        'api',
+        {
+          rootDir: 'api',
+          description: 'base',
+          flavors: {
+            production: {
+              patches: [
+                { op: 'replace', path: '/rootDir', value: 'api-prod' },
+                { op: 'replace', path: '/description', value: 'production' },
+              ],
+            },
+            test: {
+              extends: 'production',
+              patches: [{ op: 'replace', path: '/description', value: 'test' }],
+            },
+          },
+        },
+        monorepo,
+      );
+
+      const flavored = component.withFlavor('test');
+
+      expect(flavored.rootDir).toBe('api-prod');
+      expect(flavored.config.description).toBe('test');
+    });
   });
 
   describe('#join()', () => {

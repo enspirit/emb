@@ -10,6 +10,8 @@ import {
   ProjectFlavorConfig,
 } from '@/config';
 
+import { resolveProjectFlavor } from './flavor.js';
+
 export class MonorepoConfig implements EMBConfig {
   project: ProjectConfig;
   defaults: DefaultsConfig;
@@ -42,13 +44,7 @@ export class MonorepoConfig implements EMBConfig {
   }
 
   flavor(name: string): ProjectFlavorConfig {
-    const flavor = this.flavors[name];
-
-    if (!flavor) {
-      throw new Error(`Unknown flavor: ${name}`);
-    }
-
-    return flavor;
+    return resolveProjectFlavor(this.flavors, name);
   }
 
   toJSON(): Required<EMBConfig> {

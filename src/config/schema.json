@@ -313,6 +313,10 @@
       "additionalProperties": false,
       "required": [],
       "properties": {
+        "extends": {
+          "$ref": "#/definitions/Identifier",
+          "description": "Name of another flavor to inherit patches and defaults from. The parent's patches are applied before this flavor's own patches."
+        },
         "patches": {
           "type": "array",
           "items": {
@@ -447,6 +451,10 @@
       "additionalProperties": false,
       "required": [],
       "properties": {
+        "extends": {
+          "$ref": "#/definitions/Identifier",
+          "description": "Name of another flavor (within the same component) to inherit patches from. The parent's patches are applied before this flavor's own patches."
+        },
         "patches": {
           "type": "array",
           "items": {

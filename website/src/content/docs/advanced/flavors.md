@@ -154,6 +154,35 @@ This allows you to:
 - Set global environment changes at project level
 - Set component-specific build changes at component level
 
+## Extending Another Flavor
+
+A flavor can inherit from another flavor of the same level using the `extends` field. The parent's patches are applied first, then the child's patches on top — so a child can override a parent value by emitting its own `replace`, or undo a parent `add` with its own `remove`.
+
+```yaml
+flavors:
+  production:
+    patches:
+      - op: replace
+        path: /env/NODE_ENV
+        value: production
+      - op: replace
+        path: /env/LOG_LEVEL
+        value: warn
+
+  test:
+    extends: production
+    patches:
+      # keep everything production does, but flip NODE_ENV
+      - op: replace
+        path: /env/NODE_ENV
+        value: test
+      # and drop the LOG_LEVEL the parent set
+      - op: remove
+        path: /env/LOG_LEVEL
+```
+
+Inheritance also works at the component level (a component flavor can extend another component flavor of the same component) and across multiple levels (`a → b → c`). Project-level `defaults` (such as `rebuildPolicy`) are deep-merged with child values winning. Cycles and references to unknown parents are rejected at load time.
+
 ## Viewing Flavor Configuration
 
 To see what configuration a flavor produces:
