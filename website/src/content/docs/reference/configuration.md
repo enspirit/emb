@@ -181,7 +181,7 @@ resources:
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `type` | string | Resource type (required): `docker/image`, `file` |
+| `type` | string | Resource type (required): `docker/image`, `file`, `op/file` |
 | `publish` | boolean | Mark resource as publishable for `emb resources publish` |
 | `dependencies` | array | List of resource IDs this depends on |
 | `params` | object | Type-specific parameters |
@@ -291,6 +291,25 @@ resources:
 
 Note: If both `content` and `script` are provided, `content` takes precedence.
 
+#### op/file
+
+Materializes a 1Password attachment (document or file field) as a file on
+disk. Requires a configured [1Password provider](/emb/advanced/secrets/).
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `reference` | string | Required. Full 1Password secret reference, e.g. `op://vault/item/file` |
+| `path` | string | Destination path relative to the component (defaults to the resource name) |
+
+```yaml
+resources:
+  service-account.json:
+    type: op/file
+    params:
+      reference: op://Production/gcp-service-account/credentials.json
+      path: .secrets/service-account.json
+```
+
 ### tasks
 
 Optional. Component tasks.
@@ -313,6 +332,7 @@ tasks:
 | `description` | string | Task description |
 | `script` | string | Shell script to execute |
 | `pre` | array | Tasks to run before this one |
+| `dependencies` | array | Resource refs (`name` or `component:name`) that must be built before this task runs |
 | `executors` | array | Where to run: `local`, `container`, or `kubernetes` |
 | `interactive` | boolean | Requires TTY (default: false) |
 | `vars` | object | Task-specific variables |

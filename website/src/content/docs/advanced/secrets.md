@@ -523,6 +523,25 @@ op item list --vault Production
 op item get database-credentials --vault Production
 ```
 
+#### Fetching Attachments as Files
+
+For secrets that are whole files (service account JSONs, SSH keys, TLS
+certificates), use the `op/file` [resource type](/emb/reference/configuration/#opfile)
+instead of embedding the contents via `${op:...}`:
+
+```yaml
+resources:
+  service-account.json:
+    type: op/file
+    params:
+      reference: op://Production/gcp-service-account/credentials.json
+      path: .secrets/service-account.json
+```
+
+The `reference` is the full `op://` URI to a document item or a file field
+on an item. The resource materializes the file on disk, so tasks that need
+it can list it under `dependencies:`.
+
 ### Environment Variables Reference
 
 | Variable | Description |
