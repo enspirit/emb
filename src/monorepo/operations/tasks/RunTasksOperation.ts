@@ -14,6 +14,7 @@ import { EMBCollection, findRunOrder, TaskInfo } from '@/monorepo';
 import { IOperation } from '@/operations';
 
 import { ExecuteLocalCommandOperation } from '../index.js';
+import { BuildResourcesOperation } from '../resources/BuildResourcesOperation.js';
 
 export enum ExecutorType {
   container = 'container',
@@ -50,6 +51,29 @@ export class RunTasksOperation implements IOperation<
     const ordered = findRunOrder(params.tasks, collection, {
       onAmbiguous: params.allMatching ? 'runAll' : 'error',
     });
+
+    const { resources } = monorepo;
+    const qualifyDep = (dep: string, component?: string) => {
+      if (dep.includes(':') || !component) {
+        return dep;
+      }
+
+      const qualified = `${component}:${dep}`;
+      return resources.some((r) => r.id === qualified) ? qualified : dep;
+    };
+
+    const resourceDeps = [
+      ...new Set(
+        ordered.flatMap((t) =>
+          (t.dependencies ?? []).map((d) => qualifyDep(d, t.component)),
+        ),
+      ),
+    ];
+    if (resourceDeps.length > 0) {
+      await monorepo.run(new BuildResourcesOperation(), {
+        resources: resourceDeps,
+      });
+    }
 
     const hasInteractiveTasks = ordered.find((t) => t.interactive === true);
     if (hasInteractiveTasks) {

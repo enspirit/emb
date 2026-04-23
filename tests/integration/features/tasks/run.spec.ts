@@ -6,9 +6,11 @@
  * - Component tasks (api:test, api:lint, api:fail, web:test)
  */
 import { runCommand } from '@oclif/test';
+import { existsSync, rmSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, expect, test } from 'vitest';
 
-import { useExample } from '../../helpers.js';
+import { EXAMPLES, useExample } from '../../helpers.js';
 
 describe('Tasks - run', () => {
   useExample('fullstack-app');
@@ -54,5 +56,37 @@ describe('Tasks - run', () => {
     // Should run deps first (prerequisite), then build
     expect(stdout).toMatch(/Running deps/);
     expect(stdout).toMatch(/Running build/);
+  });
+
+  test('builds resource dependencies before running task (bare name)', async () => {
+    const fixturePath = resolve(
+      EXAMPLES['fullstack-app'],
+      'api/.emb/fixture.txt',
+    );
+    rmSync(fixturePath, { force: true });
+
+    const { error, stdout } = await runCommand('tasks run api:uses-fixture');
+
+    expect(error).toBeUndefined();
+    expect(stdout).toMatch(/Building api:fixture.txt/);
+    expect(stdout).toMatch(/Running api:uses-fixture/);
+    expect(existsSync(fixturePath)).toBe(true);
+  });
+
+  test('builds resource dependencies before running task (qualified id)', async () => {
+    const fixturePath = resolve(
+      EXAMPLES['fullstack-app'],
+      'api/.emb/fixture.txt',
+    );
+    rmSync(fixturePath, { force: true });
+
+    const { error, stdout } = await runCommand(
+      'tasks run api:uses-fixture-qualified',
+    );
+
+    expect(error).toBeUndefined();
+    expect(stdout).toMatch(/Building api:fixture.txt/);
+    expect(stdout).toMatch(/Running api:uses-fixture-qualified/);
+    expect(existsSync(fixturePath)).toBe(true);
   });
 });

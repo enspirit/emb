@@ -170,6 +170,13 @@
             "$ref": "#/definitions/QualifiedIdentifier"
           }
         },
+        "dependencies": {
+          "type": "array",
+          "description": "Resources that must be built before this task runs",
+          "items": {
+            "$ref": "#/definitions/QualifiedIdentifier"
+          }
+        },
         "executors": {
           "type": "array",
           "items": {

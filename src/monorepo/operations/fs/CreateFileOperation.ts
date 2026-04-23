@@ -1,5 +1,6 @@
 import { execa } from 'execa';
-import { open, statfs, utimes, writeFile } from 'node:fs/promises';
+import { mkdir, open, statfs, utimes, writeFile } from 'node:fs/promises';
+import { dirname } from 'node:path';
 import { Writable } from 'node:stream';
 import * as z from 'zod';
 
@@ -41,6 +42,8 @@ export class CreateFileOperation extends AbstractOperation<
         throw error;
       }
     }
+
+    await mkdir(dirname(input.path), { recursive: true });
 
     if (input.content !== undefined) {
       await writeFile(input.path, input.content);
