@@ -69,7 +69,7 @@
     },
     "QualifiedIdentifier": {
       "type": "string",
-      "pattern": "^([a-zA-Z]+[\\w._-]+:)?[a-zA-Z]+[\\w._-]+$"
+      "pattern": "^([a-zA-Z]+[\\w._-]+:)?[a-zA-Z]+[\\w./_-]+$"
     },
     "KubernetesConfig": {
       "type": "object",
@@ -166,6 +166,13 @@
         },
         "pre": {
           "type": "array",
+          "items": {
+            "$ref": "#/definitions/QualifiedIdentifier"
+          }
+        },
+        "dependencies": {
+          "type": "array",
+          "description": "Resources that must be built before this task runs",
           "items": {
             "$ref": "#/definitions/QualifiedIdentifier"
           }
@@ -434,6 +441,34 @@
                   "content": {
                     "type": "string",
                     "description": "Content to write to the file, supports template expansion for secrets"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": { "const": "op/file" }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "properties": {
+              "params": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["reference"],
+                "properties": {
+                  "reference": {
+                    "type": "string",
+                    "pattern": "^op://",
+                    "description": "Full 1Password secret reference, e.g. op://vault/item/file"
+                  },
+                  "path": {
+                    "type": "string",
+                    "description": "Optional destination path relative to the component. Defaults to the resource name."
                   }
                 }
               }

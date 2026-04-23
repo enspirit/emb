@@ -32,6 +32,20 @@ export interface OnePasswordPluginConfig {
  *   API_KEY: ${op:Development/api-keys#secret-key}
  * ```
  *
+ * Supported reference shapes:
+ * - `vault/item#field` — reads a single field from the item
+ * - `vault/item`       — reads the whole item as a record
+ *
+ * To materialize a 1Password file attachment on disk, use the `op/file`
+ * resource type (which writes the raw bytes via `op read --out-file`):
+ * ```yaml
+ * resources:
+ *   fastlane/keystore.jks:
+ *     type: op/file
+ *     params:
+ *       reference: op://MyVault/MyItem/keystore.jks
+ * ```
+ *
  * Authentication methods:
  * 1. Pre-authenticated session (interactive) - User runs `op signin` before using EMB
  * 2. Service account token (CI/CD) - Via `OP_SERVICE_ACCOUNT_TOKEN` env var

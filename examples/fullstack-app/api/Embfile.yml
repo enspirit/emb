@@ -1,5 +1,12 @@
 description: REST API backend service
 
+resources:
+  fixture.txt:
+    type: file
+    params:
+      path: .emb/fixture.txt
+      content: fixture-ok
+
 tasks:
   test:
     description: Run API tests
@@ -12,3 +19,17 @@ tasks:
   fail:
     description: A task that will fail
     script: exit 1
+
+  uses-fixture:
+    description: Reads a file produced by a resource dependency (bare name)
+    executors: [local]
+    dependencies: ['fixture.txt']
+    script: |
+      grep fixture-ok .emb/fixture.txt
+
+  uses-fixture-qualified:
+    description: Reads a file produced by a resource dependency (qualified id)
+    executors: [local]
+    dependencies: ['api:fixture.txt']
+    script: |
+      grep fixture-ok .emb/fixture.txt
