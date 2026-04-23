@@ -107,24 +107,17 @@ export class OnePasswordProvider extends AbstractSecretProvider<OnePasswordProvi
     // Ensure we're connected before fetching (lazy initialization)
     await this.connect();
 
-    // Parse path as vault/item
-    const slashIndex = ref.path.indexOf('/');
-    if (slashIndex === -1) {
+    const segments = ref.path.split('/').filter(Boolean);
+
+    if (segments.length !== 2) {
       throw new OnePasswordError(
-        `Invalid secret path '${ref.path}'. Expected format: vault/item`,
+        `Invalid secret path '${ref.path}'. Expected format: vault/item. ` +
+          `For file attachments, use the 'op/file' resource type with an 'op://...' reference.`,
         'OP_INVALID_PATH',
       );
     }
 
-    const vault = ref.path.slice(0, slashIndex);
-    const item = ref.path.slice(slashIndex + 1);
-
-    if (!vault || !item) {
-      throw new OnePasswordError(
-        `Invalid secret path '${ref.path}'. Both vault and item must be specified.`,
-        'OP_INVALID_PATH',
-      );
-    }
+    const [vault, item] = segments;
 
     try {
       const args = ['item', 'get', item, '--vault', vault, '--format', 'json'];
@@ -184,6 +177,71 @@ export class OnePasswordProvider extends AbstractSecretProvider<OnePasswordProvi
       throw new OnePasswordError(
         `Failed to fetch secret from 1Password: ${stderr}`,
         'OP_FETCH_ERROR',
+      );
+    }
+  }
+
+  /**
+   * Fetch a 1Password file attachment and write its raw bytes to `destPath`.
+   * Uses `op read --force --out-file` so the CLI writes the file directly,
+   * bypassing stdout (which replaces non-UTF-8 bytes with U+FFFD and therefore
+   * corrupts binary attachments like keystores and .p8 keys).
+   *
+   * @param reference A full 1Password secret reference, e.g. `op://vault/item/file`
+   * @param destPath  Absolute path where the attachment should be written
+   */
+  async fetchFileAttachment(
+    reference: string,
+    destPath: string,
+  ): Promise<void> {
+    await this.connect();
+
+    if (!reference.startsWith('op://')) {
+      throw new OnePasswordError(
+        `Invalid 1Password reference '${reference}'. Expected format: op://vault/item/file`,
+        'OP_INVALID_REFERENCE',
+      );
+    }
+
+    const args = ['read', '--force', '--out-file', destPath, reference];
+    if (this.config.account) {
+      args.push('--account', this.config.account);
+    }
+
+    try {
+      await this.execOp(args);
+    } catch (error) {
+      const err = error as NodeJS.ErrnoException & { stderr?: string };
+      const stderr = err.stderr || err.message || '';
+
+      if (stderr.includes("isn't a vault")) {
+        throw new OnePasswordError(
+          `Vault in reference '${reference}' not found in 1Password`,
+          'OP_VAULT_NOT_FOUND',
+        );
+      }
+
+      if (stderr.includes("isn't an item")) {
+        throw new OnePasswordError(
+          `Item in reference '${reference}' not found`,
+          'OP_ITEM_NOT_FOUND',
+        );
+      }
+
+      if (
+        stderr.includes('not signed in') ||
+        stderr.includes('not currently signed in') ||
+        stderr.includes('session expired')
+      ) {
+        throw new OnePasswordError(
+          "Not signed in to 1Password. Run 'op signin' or set OP_SERVICE_ACCOUNT_TOKEN",
+          'OP_NOT_AUTHENTICATED',
+        );
+      }
+
+      throw new OnePasswordError(
+        `Failed to read '${reference}': ${stderr}`,
+        'OP_FILE_FETCH_ERROR',
       );
     }
   }

@@ -446,6 +446,34 @@
               }
             }
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": { "const": "op/file" }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "properties": {
+              "params": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["reference"],
+                "properties": {
+                  "reference": {
+                    "type": "string",
+                    "pattern": "^op://",
+                    "description": "Full 1Password secret reference, e.g. op://vault/item/file"
+                  },
+                  "path": {
+                    "type": "string",
+                    "description": "Optional destination path relative to the component. Defaults to the resource name."
+                  }
+                }
+              }
+            }
+          }
         }
       ]
     },

@@ -309,6 +309,15 @@ describe('Secrets / Providers / OnePasswordProvider', () => {
       ).rejects.toThrow('Expected format: vault/item');
     });
 
+    test('rejects three-segment paths with a pointer to op/file', async () => {
+      await expect(
+        provider.fetchSecret({ path: 'SomeVault/SomeItem/key.pem' }),
+      ).rejects.toThrow(OnePasswordError);
+      await expect(
+        provider.fetchSecret({ path: 'SomeVault/SomeItem/key.pem' }),
+      ).rejects.toThrow("'op/file' resource type");
+    });
+
     test('throws OnePasswordError when vault not found', async () => {
       const error = new Error('Vault not found') as NodeJS.ErrnoException & {
         stderr: string;
@@ -383,6 +392,80 @@ describe('Secrets / Providers / OnePasswordProvider', () => {
       await expect(
         provider.get({ path: 'Production/db-creds', key: 'nonexistent' }),
       ).rejects.toThrow("Key 'nonexistent' not found in secret");
+    });
+  });
+
+  describe('#fetchFileAttachment()', () => {
+    beforeEach(async () => {
+      mockExecOp.mockResolvedValueOnce({
+        stdout: JSON.stringify({ email: 'user@example.com' }),
+        stderr: '',
+      });
+      await provider.connect();
+    });
+
+    test('invokes op read --force --out-file with the reference and dest path', async () => {
+      mockExecOp.mockResolvedValueOnce({ stdout: '', stderr: '' });
+
+      await provider.fetchFileAttachment(
+        'op://SomeVault/SomeItem/keystore.jks',
+        '/tmp/some/dest.jks',
+      );
+
+      expect(mockExecOp).toHaveBeenCalledWith([
+        'read',
+        '--force',
+        '--out-file',
+        '/tmp/some/dest.jks',
+        'op://SomeVault/SomeItem/keystore.jks',
+      ]);
+    });
+
+    test('passes account flag when configured', async () => {
+      config = { account: 'my-team' };
+      provider = new OnePasswordProvider(config);
+      mockExecOp = vi.spyOn(provider as never, 'execOp');
+
+      mockExecOp.mockResolvedValueOnce({
+        stdout: JSON.stringify({ email: 'user@example.com' }),
+        stderr: '',
+      });
+      mockExecOp.mockResolvedValueOnce({ stdout: '', stderr: '' });
+
+      await provider.fetchFileAttachment(
+        'op://SomeVault/SomeItem/keystore.jks',
+        '/tmp/dest.jks',
+      );
+
+      const call = mockExecOp.mock.calls[1][0] as string[];
+      expect(call.slice(-2)).to.deep.equal(['--account', 'my-team']);
+    });
+
+    test('rejects references that do not start with op://', async () => {
+      await expect(
+        provider.fetchFileAttachment(
+          'SomeVault/SomeItem/keystore.jks',
+          '/tmp/dest.jks',
+        ),
+      ).rejects.toThrow(OnePasswordError);
+      await expect(
+        provider.fetchFileAttachment(
+          'SomeVault/SomeItem/keystore.jks',
+          '/tmp/dest.jks',
+        ),
+      ).rejects.toThrow('op://vault/item/file');
+    });
+
+    test('surfaces vault-not-found errors', async () => {
+      const error = new Error('Vault not found') as NodeJS.ErrnoException & {
+        stderr: string;
+      };
+      error.stderr = "isn't a vault in this account";
+      mockExecOp.mockRejectedValueOnce(error);
+
+      await expect(
+        provider.fetchFileAttachment('op://NonExistent/item/file', '/tmp/dest'),
+      ).rejects.toThrow(OnePasswordError);
     });
   });
 });
