@@ -1,3 +1,19 @@
+## 0.30.0 - 2026-04-23
+
+* Add task→resource dependencies
+  - Tasks now accept `dependencies: [...]` listing resource refs that must be built before the task script runs
+  - Bare names resolve against the task's own component first, then fall back to global lookup; fully qualified `component:resource` refs also supported
+  - Fix `CreateFileOperation` to `mkdir -p` the target's parent directory, unbreaking `file` resources with nested paths
+
+* Allow `/` in resource refs
+  - Resource names can contain `/` (coming from the YAML key), so refs to them in `pre`, `dependencies`, etc. now permit `/` too
+  - Component and plugin names keep the stricter pattern — slashes are only allowed in the name suffix of a qualified ref, not in the `component:` prefix
+
+* Add `op/file` resource type for 1Password file attachments
+  - Declaratively materialize a 1Password attachment on disk, instead of text-interpolating `${op:...}` (which can't carry binary safely through the template pipeline)
+  - Writes raw bytes via `op read --force --out-file`, bypassing stdout UTF-8 corruption that would otherwise mangle keystores, `.p8` keys, etc.
+  - Params: `reference` (required, must start with `op://`) and optional `path` (defaults to the resource name)
+
 ## 0.29.0 - 2026-04-14
 
 * Honor `.dockerignore` when listing sources for `docker/image` builds
