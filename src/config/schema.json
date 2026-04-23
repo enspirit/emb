@@ -69,7 +69,7 @@
     },
     "QualifiedIdentifier": {
       "type": "string",
-      "pattern": "^([a-zA-Z]+[\\w._-]+:)?[a-zA-Z]+[\\w._-]+$"
+      "pattern": "^([a-zA-Z]+[\\w._-]+:)?[a-zA-Z]+[\\w./_-]+$"
     },
     "KubernetesConfig": {
       "type": "object",

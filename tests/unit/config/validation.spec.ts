@@ -409,4 +409,33 @@ tasks:
       );
     });
   });
+
+  describe('QualifiedIdentifier references', () => {
+    test('accepts slashes in task dependency refs', async () => {
+      const config = {
+        project: { name: 'proj' },
+        components: {
+          mobile: {
+            resources: {
+              'fastlane/key.p8': {
+                type: 'file',
+                params: { path: 'fastlane/key.p8', content: 'x' },
+              },
+            },
+            tasks: {
+              release: {
+                dependencies: ['fastlane/key.p8', 'mobile:fastlane/key.p8'],
+                script: 'echo ok',
+              },
+            },
+          },
+        },
+      };
+
+      const result = await validateUserConfig(config);
+      expect(
+        result.components!.mobile.tasks!.release.dependencies,
+      ).to.deep.equal(['fastlane/key.p8', 'mobile:fastlane/key.p8']);
+    });
+  });
 });
