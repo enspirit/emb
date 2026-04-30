@@ -28,6 +28,7 @@ const withAProjectLookingLike = async (
 const repoWithPlugin = async (
   rootDir: string,
   config: string[],
+  env: Record<string, string> = {},
 ): Promise<Monorepo> => {
   const repo = new Monorepo(
     {
@@ -40,6 +41,7 @@ const repoWithPlugin = async (
           config,
         },
       ],
+      env,
       components: {},
     },
     rootDir,
@@ -121,6 +123,36 @@ describe('Plugins / DotEnvPlugin', () => {
           repoWithPlugin(rootDir, ['.env.nonexistent']),
         ).resolves.toBeDefined();
       });
+    });
+
+    test('it loads .env before the project env block is expanded', async () => {
+      // Regression: previously .env was loaded in the plugin's async init(),
+      // which ran AFTER Monorepo.installEnv() expanded the env block. The
+      // expansion would fall back to the default and write that into
+      // process.env; dotenv then refused to overwrite it, silently dropping
+      // the .env value.
+      const originalValue = process.env.DOTENV_PRECEDENCE_VAR;
+      delete process.env.DOTENV_PRECEDENCE_VAR;
+
+      await withAProjectLookingLike(
+        {
+          '.env': 'DOTENV_PRECEDENCE_VAR=from_dotenv',
+        },
+        async (rootDir) => {
+          await repoWithPlugin(rootDir, ['.env'], {
+            // eslint-disable-next-line no-template-curly-in-string
+            DOTENV_PRECEDENCE_VAR: '${env:DOTENV_PRECEDENCE_VAR:-fallback}',
+          });
+
+          expect(process.env.DOTENV_PRECEDENCE_VAR).toBe('from_dotenv');
+        },
+      );
+
+      if (originalValue === undefined) {
+        delete process.env.DOTENV_PRECEDENCE_VAR;
+      } else {
+        process.env.DOTENV_PRECEDENCE_VAR = originalValue;
+      }
     });
   });
 });
