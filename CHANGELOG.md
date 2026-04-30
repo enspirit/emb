@@ -1,3 +1,9 @@
+## 0.30.1 - 2026-04-30
+
+* Fix `DotEnvPlugin` to load `.env` files at construction instead of `init()`
+  - Monorepo env-block expansion (e.g. `FOO: ${env:FOO:-default}`) runs right after plugins are instantiated, before any plugin's async `init()`
+  - Loading dotenv in the constructor ensures values from `.env` are visible during that expansion
+
 ## 0.30.0 - 2026-04-23
 
 * Add task→resource dependencies
