@@ -111,6 +111,10 @@
   "engines": {
     "node": ">=20.0.0"
   },
+  "overrides": {
+    "whatwg-url": "^14.2.0",
+    "tr46": "^5.1.1"
+  },
   "files": [
     "./bin",
     "./dist/src",

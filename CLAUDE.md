@@ -118,6 +118,6 @@ The `npm test` command validates all executable blocks match their expected outp
 ## Development
 
 - Node.js 22+ (see `.nvmrc`)
-- Package manager: pnpm
+- Package manager: npm (uses `package-lock.json`)
 - Entry point: `./bin/run.js`
 - Build output: `/dist/src`
