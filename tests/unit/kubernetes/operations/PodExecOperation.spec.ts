@@ -1,6 +1,8 @@
+import { Exec } from '@kubernetes/client-node';
+import { EventEmitter } from 'node:events';
 import { PassThrough } from 'node:stream';
 import { createTestContext } from 'tests/setup/set.context.js';
-import { beforeEach, describe, expect, test } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { PodExecOperation } from '@/kubernetes/operations/PodExecOperation.js';
 
@@ -77,11 +79,58 @@ describe('Kubernetes / Operations / PodExecOperation', () => {
   });
 
   describe('command building', () => {
-    test('it wraps script in sh -c', async () => {
-      // We can't easily test the actual exec call without mocking the Exec class
-      // This test verifies the operation is created with correct schema
+    let capturedCommand: Array<string> | undefined;
+
+    beforeEach(() => {
+      capturedCommand = undefined;
+      vi.spyOn(Exec.prototype, 'exec').mockImplementation(((
+        ...args: Array<unknown>
+      ) => {
+        // The 4th argument to Exec.exec is the command array (['sh', '-c', ...]).
+        capturedCommand = args[3] as Array<string>;
+        // The operation calls websocket.on(...), so a Node EventEmitter (not
+        // EventTarget) is required here.
+        // eslint-disable-next-line unicorn/prefer-event-target
+        const ws = new EventEmitter();
+        // Resolve the operation cleanly once its 'close' listener is attached.
+        setImmediate(() => ws.emit('close'));
+        return Promise.resolve(ws);
+      }) as never);
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    test('it single-quotes env values so $ and command substitution are not expanded', async () => {
       const operation = new PodExecOperation();
-      expect(operation).toBeDefined();
+      await operation.run({
+        namespace: 'default',
+        podName: 'test-pod',
+        container: 'main',
+        script: 'run.sh',
+        env: { PASSWORD: 'p@$$word', EVIL: 'x$(rm -rf /data)' },
+      });
+
+      const script = capturedCommand?.[2] ?? '';
+      // Single quotes make the shell treat the value literally: $$, $() and
+      // backticks are NOT expanded/executed inside the pod.
+      expect(script).toContain("export PASSWORD='p@$$word'");
+      expect(script).toContain("export EVIL='x$(rm -rf /data)'");
+    });
+
+    test('it single-quotes the working directory', async () => {
+      const operation = new PodExecOperation();
+      await operation.run({
+        namespace: 'default',
+        podName: 'test-pod',
+        container: 'main',
+        script: 'run.sh',
+        workingDir: '/tmp/$(reboot)',
+      });
+
+      const script = capturedCommand?.[2] ?? '';
+      expect(script).toContain("cd '/tmp/$(reboot)' &&");
     });
   });
 

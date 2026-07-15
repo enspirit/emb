@@ -5,6 +5,16 @@ import * as z from 'zod';
 import { CliError } from '@/errors.js';
 import { AbstractOperation } from '@/operations';
 
+/**
+ * POSIX single-quote a string so a `sh -c` script treats it literally. Single
+ * quotes suppress every shell expansion ($-expansion, `$()`/backtick command
+ * substitution, backslash processing); an embedded single quote is closed,
+ * escaped and reopened (`'\''`). Unlike JSON.stringify (double quotes), this
+ * neither corrupts values containing `$` nor allows command injection.
+ */
+const posixShellQuote = (value: string): string =>
+  `'${value.replaceAll("'", String.raw`'\''`)}'`;
+
 const schema = z.object({
   namespace: z.string().describe('The namespace of the pod'),
   podName: z.string().describe('The name of the pod'),
@@ -45,12 +55,14 @@ export class PodExecOperation extends AbstractOperation<typeof schema, void> {
 
     // Handle working directory by wrapping the command
     if (input.workingDir) {
-      script = `cd ${JSON.stringify(input.workingDir)} && ${script}`;
+      script = `cd ${posixShellQuote(input.workingDir)} && ${script}`;
     }
 
-    // Build environment variable exports
+    // Build environment variable exports. Values are single-quoted so a value
+    // like `p@$$word` or `x$(cmd)` is passed literally instead of being
+    // shell-expanded (silent corruption) or executed (injection).
     const envExports = Object.entries(input.env || {})
-      .map(([key, value]) => `export ${key}=${JSON.stringify(value)}`)
+      .map(([key, value]) => `export ${key}=${posixShellQuote(value)}`)
       .join('; ');
 
     if (envExports) {
