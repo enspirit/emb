@@ -72,15 +72,21 @@ describe('Docker / rebuildStrategies / computeAuto', () => {
     expect(result?.mtime).toBe(dfStats.mtime.getTime());
   });
 
-  test('it returns undefined when no tracked files exist', async () => {
+  test('it forces a rebuild when no tracked files exist', async () => {
     await initGit(contextDir);
 
+    const before = Date.now();
     const result = await computeAuto({
       dockerContext: contextDir,
       monorepoRoot: contextDir,
     });
 
-    expect(result).toBeUndefined();
+    // A context with no git-tracked files (e.g. a new component not yet
+    // `git add`ed) must force a build, not return undefined -- downstream,
+    // undefined is read as a cache hit and the image is silently never built.
+    expect(result).toBeDefined();
+    expect(result?.mtime).toBeGreaterThanOrEqual(before);
+    expect(result?.reason).toMatch(/no git-tracked files/i);
   });
 
   test('it tags the reason with the strategy name and the newest path', async () => {

@@ -473,14 +473,19 @@ describe('Docker / DockerImageResource', () => {
       });
     });
 
-    test('it returns undefined when there are no git-tracked files', async () => {
+    test('it forces a build when there are no git-tracked files', async () => {
       await initGit(componentDir);
-      // No files committed.
+      // No files committed -- a new component not yet `git add`ed.
 
+      const before = Date.now();
       const builder = createBuilder();
       const result = await builder.mustBuild?.(resource);
 
-      expect(result).toBeUndefined();
+      // undefined would be read downstream as a cache hit and the image would
+      // never be built; the auto strategy forces a rebuild instead.
+      expect(result).toBeDefined();
+      expect(result).toMatchObject({ strategy: 'auto', source: 'builtin' });
+      expect(result?.mtime).toBeGreaterThanOrEqual(before);
     });
   });
 
