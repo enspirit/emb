@@ -35,7 +35,7 @@
     "postpack": "shx rm -f oclif.manifest.json",
     "posttest": "npm run lint",
     "prepack": "oclif manifest && oclif readme",
-    "test": "npm run build:types && npm run test:unit && npm run test:integration",
+    "test": "npm run build && npm run test:unit && npm run test:integration",
     "test:unit": "vitest run --project unit",
     "test:unit:watch": "vitest --project unit",
     "test:integration": "npm run test:integration:features && npm run test:integration:docker && npm run test:integration:secrets",
