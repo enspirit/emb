@@ -1,10 +1,47 @@
-import { spawn } from 'node:child_process';
+import { ChildProcess, spawn } from 'node:child_process';
 import { createWriteStream, WriteStream } from 'node:fs';
 import { mkdir } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import * as z from 'zod';
 
 import { AbstractOperation } from '@/operations';
+
+/**
+ * Pipes a child process's stdout/stderr into a write stream and settles once
+ * the process has CLOSED (all stdio flushed) and the stream has finished.
+ * Rejects on a non-zero exit code, a spawn error, or a write-stream error.
+ * Listening on 'close' (not 'exit') guarantees stdio buffers are drained before
+ * the stream is ended, avoiding a write-after-end on the log file.
+ */
+export const pipeProcessToLog = (
+  child: ChildProcess,
+  writeStream: WriteStream,
+  label: string,
+): Promise<void> =>
+  new Promise((resolve, reject) => {
+    writeStream.on('error', reject);
+
+    child.stdout?.pipe(writeStream, { end: false });
+    child.stderr?.pipe(writeStream, { end: false });
+
+    child.on('error', (err) => {
+      reject(new Error(`Failed to get logs for ${label}: ${err.message}`));
+    });
+
+    child.on('close', (code) => {
+      writeStream.end(() => {
+        if (code === 0) {
+          resolve();
+        } else {
+          reject(
+            new Error(
+              `Failed to archive logs for ${label}: docker compose logs exited with code ${code}`,
+            ),
+          );
+        }
+      });
+    });
+  });
 
 export const ComposeLogsArchiveOperationInputSchema = z
   .object({
@@ -88,28 +125,13 @@ export class ComposeLogsArchiveOperation extends AbstractOperation<
 
     args.push(serviceName);
 
-    return new Promise((resolve, reject) => {
-      const writeStream: WriteStream = createWriteStream(outputPath);
+    const writeStream: WriteStream = createWriteStream(outputPath);
 
-      const child = spawn(cmd, args, {
-        stdio: ['ignore', 'pipe', 'pipe'],
-        cwd: monorepo.rootDir,
-      });
-
-      child.stdout?.pipe(writeStream, { end: false });
-      child.stderr?.pipe(writeStream, { end: false });
-
-      child.on('error', (err) => {
-        writeStream.end();
-        reject(
-          new Error(`Failed to get logs for ${serviceName}: ${err.message}`),
-        );
-      });
-
-      child.on('exit', () => {
-        writeStream.end();
-        resolve();
-      });
+    const child = spawn(cmd, args, {
+      stdio: ['ignore', 'pipe', 'pipe'],
+      cwd: monorepo.rootDir,
     });
+
+    return pipeProcessToLog(child, writeStream, serviceName);
   }
 }
