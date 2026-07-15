@@ -114,6 +114,20 @@ describe('Monorepo / Operations / FS / CreateFileOperation', () => {
       expect(fileContent).toBe(content);
     });
 
+    test('it writes content-bearing files with owner-only (0600) permissions', async () => {
+      const filePath = join(tempDir, 'secret.env');
+      // Content produced by FileResourceBuilder is run through monorepo.expand(),
+      // which resolves ${vault:...}/${op:...}/${env:...} secrets. The resulting
+      // file must never be world-readable.
+      const content = 'DB_PASSWORD=supersecret';
+
+      await operation.run({ path: filePath, content });
+
+      const fileStat = await stat(filePath);
+      // Permission bits are the last three octal digits of the mode.
+      expect(fileStat.mode.toString(8).slice(-3)).toBe('600');
+    });
+
     test('it writes empty content when content is empty string', async () => {
       const filePath = join(tempDir, 'emptycontent.txt');
 
