@@ -134,6 +134,47 @@ describe('Kubernetes / Operations / PodExecOperation', () => {
     });
   });
 
+  describe('interactive session cleanup', () => {
+    beforeEach(() => {
+      vi.spyOn(Exec.prototype, 'exec').mockImplementation((() => {
+        // eslint-disable-next-line unicorn/prefer-event-target
+        const ws = new EventEmitter();
+        // Resolve the operation cleanly once its 'close' listener is attached.
+        setImmediate(() => ws.emit('close'));
+        return Promise.resolve(ws);
+      }) as never);
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    test('it pauses stdin on close so the CLI does not hang', async () => {
+      // Mock the terminal-touching stdin methods so the test runner's own
+      // stdin is left untouched.
+      const pause = vi
+        .spyOn(process.stdin, 'pause')
+        .mockReturnValue(process.stdin);
+      vi.spyOn(process.stdin, 'unref').mockReturnValue(process.stdin);
+      if (typeof process.stdin.setRawMode === 'function') {
+        vi.spyOn(process.stdin, 'setRawMode').mockReturnValue(process.stdin);
+      }
+
+      const operation = new PodExecOperation();
+      await operation.run({
+        namespace: 'default',
+        podName: 'test-pod',
+        container: 'main',
+        script: 'sh',
+        interactive: true,
+      });
+
+      // client-node keeps process.stdin flowing and ref'd for interactive
+      // sessions; cleanup must release it or the process never exits.
+      expect(pause).toHaveBeenCalled();
+    });
+  });
+
   describe('error wrapping', () => {
     // Error wrapping is tested implicitly through the wrapError private method
     // These tests verify the error patterns we expect to handle

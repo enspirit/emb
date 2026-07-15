@@ -93,9 +93,18 @@ export class PodExecOperation extends AbstractOperation<typeof schema, void> {
       let sigintHandler: (() => void) | undefined;
 
       const cleanup = () => {
-        // Restore stdin raw mode
-        if (isInteractive && process.stdin.isTTY) {
-          process.stdin.setRawMode?.(false);
+        if (isInteractive) {
+          // Restore stdin raw mode
+          if (process.stdin.isTTY) {
+            process.stdin.setRawMode?.(false);
+          }
+
+          // client-node's WebSocketHandler attaches a permanent 'data' listener
+          // to process.stdin, putting it in flowing mode and keeping it ref'd in
+          // the event loop. Pause and unref it so the CLI can exit once the
+          // interactive session ends instead of hanging forever.
+          process.stdin.pause();
+          process.stdin.unref?.();
         }
 
         // Remove SIGINT handler
