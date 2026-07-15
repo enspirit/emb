@@ -131,10 +131,13 @@ export class TemplateExpander {
       }),
     );
 
-    // Build result string by replacing matches with resolved values
+    // Build result string by replacing matches with resolved values.
+    // The replacement must be a function so the value is inserted literally:
+    // a plain-string replacement would treat `$$`, `$&`, `$\`` and `$'` in the
+    // resolved value as special patterns, silently corrupting secrets.
     let result = input;
     for (const { match, value } of resolutions) {
-      result = result.replace(match, value);
+      result = result.replace(match, () => value);
     }
 
     return result.replaceAll('\\${', '${');
