@@ -477,15 +477,17 @@ describe('Docker / DockerImageResource', () => {
       await initGit(componentDir);
       // No files committed -- a new component not yet `git add`ed.
 
-      const before = Date.now();
       const builder = createBuilder();
       const result = await builder.mustBuild?.(resource);
 
       // undefined would be read downstream as a cache hit and the image would
       // never be built; the auto strategy forces a rebuild instead.
       expect(result).toBeDefined();
-      expect(result).toMatchObject({ strategy: 'auto', source: 'builtin' });
-      expect(result?.mtime).toBeGreaterThanOrEqual(before);
+      expect(result).toMatchObject({
+        strategy: 'auto',
+        source: 'builtin',
+        reason: expect.stringMatching(/no git-tracked files/i),
+      });
     });
   });
 
