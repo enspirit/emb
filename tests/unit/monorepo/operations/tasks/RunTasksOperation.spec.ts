@@ -1,5 +1,6 @@
 import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
+import { Writable } from 'node:stream';
 import { createTestSetup, TestSetup } from 'tests/setup/set.context.js';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 
@@ -203,6 +204,35 @@ describe('Monorepo / Operations / Tasks / RunTasksOperation', () => {
       } finally {
         await multiSetup.cleanup();
       }
+    });
+  });
+
+  describe('#runLocal()', () => {
+    test('it pipes local task output into the provided writable', async () => {
+      const operation = new RunTasksOperation();
+
+      const chunks: Array<Buffer> = [];
+      const collector = new Writable({
+        write(chunk, _encoding, callback) {
+          chunks.push(Buffer.from(chunk));
+          callback();
+        },
+      });
+
+      // runLocal is protected; forwarding the tee/log Writable to the local
+      // exec operation is the whole point of finding #47. Without it, output
+      // goes straight to process.stdout and the collector stays empty.
+      await (
+        operation as unknown as {
+          runLocal: (task: unknown, out: Writable) => Promise<unknown>;
+        }
+      ).runLocal(
+        { id: 'echo', name: 'echo', script: 'echo tee-capture-marker' },
+        collector,
+      );
+
+      const output = Buffer.concat(chunks).toString('utf8');
+      expect(output).toContain('tee-capture-marker');
     });
   });
 });
