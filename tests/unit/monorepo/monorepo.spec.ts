@@ -107,5 +107,23 @@ describe('Config - MonorepoConfig', () => {
         ?.params as { target: string };
       expect(newBuild.target).to.equal('production');
     });
+
+    test('preserves non-string (numeric) patch values', async () => {
+      const cfg = structuredClone(CompleteExample);
+      cfg.flavors.production.patches.push({
+        op: 'add',
+        path: '/components/frontend/resources/image/params/port',
+        value: 8080,
+      });
+
+      const repo = new Monorepo(new MonorepoConfig(cfg), '/tmp');
+      await repo.init();
+
+      const production = await repo.withFlavor('production');
+      const params = production.component('frontend').resources?.image
+        ?.params as { port: number };
+
+      expect(params.port).to.equal(8080);
+    });
   });
 });

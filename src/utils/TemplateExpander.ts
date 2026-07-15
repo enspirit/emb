@@ -152,6 +152,15 @@ export class TemplateExpander {
       return out as ExpandResult<T>;
     }
 
+    // Non-object primitives (number, boolean, null, undefined, ...) contain no
+    // templates and are returned unchanged. Without this guard they would fall
+    // into the object branch below, where Object.entries() turns numbers and
+    // booleans into {} and throws on null — corrupting e.g. JSON-patch values
+    // like `{ op: 'replace', path: '...', value: 8080 }`.
+    if (record === null || typeof record !== 'object') {
+      return record as ExpandResult<T>;
+    }
+
     if (Array.isArray(record)) {
       const out = await Promise.all(
         record.map((v) => this.expandRecord(v, options)),
