@@ -85,7 +85,14 @@ export class ContainerExecOperation extends AbstractOperation<
 
     const out = input.interactive ? process.stdout : this.out;
     if (out) {
-      exec.modem.demuxStream(stream, out, out);
+      if (isInteractive) {
+        // Tty is true, so Docker returns a RAW stream (no multiplexed 8-byte
+        // frame headers). demuxStream would misread the first bytes as a frame
+        // header with a huge length and stall; pipe the raw stream straight out.
+        stream.pipe(out);
+      } else {
+        exec.modem.demuxStream(stream, out, out);
+      }
     }
 
     await new Promise<void>((resolve, reject) => {
