@@ -233,11 +233,21 @@ export class Monorepo {
 
     await this.installStore();
 
-    const plugins = this._config.plugins.map((p) => {
-      const PluginClass: AbstractPluginConstructor = getPlugin(p.name);
+    const plugins = await Promise.all(
+      this._config.plugins.map(async (p) => {
+        const PluginClass: AbstractPluginConstructor = getPlugin(p.name);
 
-      return new PluginClass(p.config, this);
-    });
+        // Plugin config is part of the declaration and may contain templates:
+        // the vault/1password plugins document `${env:...}` placeholders in
+        // their config block. Expand them against the environment before the
+        // plugin ever sees the value; otherwise a literal '${env:VAULT_ADDR}'
+        // is passed straight through (e.g. as the server URL), silently
+        // bypassing the env fallback the template was meant to trigger.
+        const config = await this.expand(p.config as Expandable);
+
+        return new PluginClass(config, this);
+      }),
+    );
 
     this._config = await plugins.reduce(async (pConfig, plugin) => {
       const newConfig = await plugin.extendConfig?.(await pConfig);
