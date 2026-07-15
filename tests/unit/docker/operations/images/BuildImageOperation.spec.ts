@@ -1,7 +1,11 @@
 import { PassThrough } from 'node:stream';
 import { describe, expect, test } from 'vitest';
 
-import { BuildImageOperation, BuildImageOperationInputSchema } from '@/docker';
+import {
+  BuildImageOperation,
+  BuildImageOperationInputSchema,
+  redactBuildArgsForLog,
+} from '@/docker';
 
 /**
  * Note: Full testing of BuildImageOperation requires mocking `spawn` from
@@ -10,6 +14,43 @@ import { BuildImageOperation, BuildImageOperationInputSchema } from '@/docker';
  * for testing actual docker build interactions.
  */
 describe('Docker / BuildImageOperation', () => {
+  describe('redactBuildArgsForLog', () => {
+    test('it redacts --build-arg values but keeps names and other args', () => {
+      const args = [
+        'build',
+        '/ctx',
+        '-f',
+        '/ctx/Dockerfile',
+        '--tag',
+        'app:latest',
+        '--build-arg',
+        'NPM_TOKEN=super-secret-token',
+        '--build-arg',
+        'NODE_ENV=production',
+        '--label',
+        'version=1.0.0',
+      ];
+
+      const redacted = redactBuildArgsForLog(args);
+
+      // Build-arg values are hidden, arg names kept...
+      expect(redacted).toContain('NPM_TOKEN=***');
+      expect(redacted).toContain('NODE_ENV=***');
+      // ...the secret value never appears anywhere...
+      expect(redacted.join(' ')).not.toContain('super-secret-token');
+      // ...and non-build-arg tokens are untouched.
+      expect(redacted).toContain('--tag');
+      expect(redacted).toContain('app:latest');
+      expect(redacted).toContain('version=1.0.0');
+    });
+
+    test('it leaves args without build-args unchanged', () => {
+      const args = ['build', '/ctx', '--tag', 'app:latest'];
+
+      expect(redactBuildArgsForLog(args)).toEqual(args);
+    });
+  });
+
   describe('instantiation', () => {
     test('it can be instantiated without an output stream', () => {
       const operation = new BuildImageOperation();
