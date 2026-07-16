@@ -131,11 +131,9 @@ jobs:
         working-directory: website
         run: npm ci
 
-      # - name: Validate documentation
-      #   working-directory: website
-      #   run: npm test
-      #   env:
-      #     DEBUG_VALIDATE: '1'
+      - name: Validate documentation
+        working-directory: website
+        run: npm test
 
       - name: Build website
         working-directory: website

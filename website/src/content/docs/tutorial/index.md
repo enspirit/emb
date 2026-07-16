@@ -59,7 +59,7 @@ Master environment-specific configurations for staging and production deployment
 
 Before starting, ensure you have:
 
-- **Node.js 20+** - Check with `node --version`
+- **Node.js 22+** - Check with `node --version`
 - **Docker** - Check with `docker --version`
 - **Docker Compose** - Check with `docker compose version`
 

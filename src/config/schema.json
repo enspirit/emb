@@ -143,6 +143,20 @@
         },
         "kubernetes": {
           "$ref": "#/definitions/KubernetesConfig"
+        },
+        "build": {
+          "type": "object",
+          "description": "Default build settings",
+          "additionalProperties": false,
+          "properties": {
+            "concurrency": {
+              "description": "How many resources to build in parallel by default: a positive integer, or 'auto' for min(CPU count, 4). Overridden by the --jobs flag. Defaults to 1 (serial).",
+              "anyOf": [
+                { "type": "integer", "minimum": 1 },
+                { "const": "auto" }
+              ]
+            }
+          }
         }
       }
     },

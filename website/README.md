@@ -1,49 +1,141 @@
-# Starlight Starter Kit: Basics
+# EMB Documentation Site
 
-[![Built with Starlight](https://astro.badg.es/v2/built-with-starlight/tiny.svg)](https://starlight.astro.build)
+This directory holds the EMB documentation site, built with [Astro](https://docs.astro.build) and
+[Starlight](https://starlight.astro.build) and deployed to GitHub Pages at
+`https://enspirit.github.io/emb` (see `site` and `base` in `astro.config.mjs`).
 
-```
-npm create astro@latest -- --template starlight
-```
+It has its own `package.json` and `package-lock.json`, separate from the EMB CLI at the repo root.
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
-
-## 🚀 Project Structure
-
-Inside of your Astro + Starlight project, you'll see the following folders and files:
+## Layout
 
 ```
-.
-├── public/
-├── src/
-│   ├── assets/
-│   ├── content/
-│   │   └── docs/
-│   └── content.config.ts
-├── astro.config.mjs
-├── package.json
-└── tsconfig.json
+website/
+├── astro.config.mjs          # Astro + Starlight config, including the sidebar
+├── scripts/
+│   └── validate-docs.ts      # Executable-documentation validator
+└── src/
+    ├── assets/
+    ├── content/
+    │   └── docs/             # All documentation pages (.md / .mdx)
+    └── content.config.ts
 ```
 
-Starlight looks for `.md` or `.mdx` files in the `src/content/docs/` directory. Each file is exposed as a route based on its file name.
+Starlight turns every `.md`/`.mdx` file under `src/content/docs/` into a route based on its path.
 
-Images can be added to `src/assets/` and embedded in Markdown with a relative link.
+## Commands
 
-Static assets, like favicons, can be placed in the `public/` directory.
+Run from this directory:
 
-## 🧞 Commands
+```
+npm install            # Install dependencies
+npm run dev            # Dev server on http://localhost:4321/emb (alias: npm start)
+npm run build          # Build the static site into ./dist
+npm run preview        # Serve the built site locally
+npm run validate-docs  # Run the executable-documentation validator (alias: npm test)
+npm run astro -- --help
+```
 
-All commands are run from the root of the project, from a terminal:
+## Executable documentation
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+Documentation pages are also integration tests. `scripts/validate-docs.ts` walks every markdown
+file under `src/content/docs/`, runs the code blocks marked `exec`, and compares their output to
+the expected output pasted in the docs.
 
-## 👀 Want to learn more?
+### The contract
 
-Check out [Starlight’s docs](https://starlight.astro.build/), read [the Astro documentation](https://docs.astro.build), or jump into the [Astro Discord server](https://astro.build/chat).
+An executable block is a fenced block whose language is `sh`, `shell` or `bash` **and** whose meta
+string contains `exec`. Both conditions are required — a block without `exec` is never run, and
+`exec` on any other language is ignored.
+
+An `output` block immediately following the exec block is an assertion:
+
+````
+```shell exec cwd="../examples/hello-world"
+emb components
+```
+
+```output
+  NAME     ...
+```
+````
+
+Rules that matter in practice:
+
+- **`cwd="path"`** sets the working directory. It is resolved **relative to `website/`**, not to the
+  markdown file. That is why every real block uses the `../examples/...` form. With no `cwd`, the
+  command runs in `website/`.
+- **`skip`** skips execution. It only has an effect on a block that also carries `exec`; an
+  `exec skip` block still shows its `output` block on the page but never runs. A block
+  written as ```` ```shell skip ```` (no `exec`) is inert either way — the 41 blocks currently
+  written that way are decorative, not skipped.
+- **The exec block's content is the command**, passed to a shell verbatim, so multi-line blocks run
+  as a multi-line shell script.
+- **An exec block with no following `output` block still runs**, for its side effects (e.g. setup
+  steps). A non-zero exit code there is reported but does not fail validation. Only a mismatch
+  against an `output` block fails.
+- **Comparison is byte-for-byte**, after trailing whitespace is stripped from each line and from the
+  end of the whole string (`normalizeOutput`). Nothing else is normalized — no sorting, no
+  whitespace collapsing, no timestamp masking. Paste output verbatim from a real run; do not
+  hand-write or prettify it.
+- **stdout is compared; stderr is used only if stdout is empty.** Output is captured with
+  `NO_COLOR=1`, `FORCE_COLOR=0`, `CI=1` and `TERM=dumb` in the environment, and stdin is closed, so
+  what you paste must be the plain, uncoloured, non-interactive form. Never write a block that waits
+  for input.
+- **Each command has a 30s timeout** (`COMMAND_TIMEOUT` in the script). A timed-out command yields
+  empty stdout and fails its assertion.
+- `cmd | head -N` is special-cased: the pipe is stripped and the output is truncated to `N` lines by
+  the script, to avoid SIGPIPE issues on Linux.
+- The parser also recognises an `assert` meta option, but it is unused — an `output` block after an
+  `exec` block is always asserted.
+
+### Link checking
+
+The same script checks markdown links. Absolute internal links must carry the `/emb` base path
+(`/emb/reference/cli/`, not `/reference/cli/`). External links, anchors and relative links are not
+checked. A broken link fails the file.
+
+### `emb` must be the working copy
+
+The validator invokes the `emb` binary from `PATH`. It must resolve to this repository's build,
+otherwise you are validating the docs against whatever version happens to be installed. From the
+**repo root**:
+
+```
+npm ci
+npm run build
+npm link
+```
+
+This mirrors the `website` job in `.github/workflows/ci.yml`. Then, from `website/`:
+
+```
+npm ci
+npm run validate-docs
+```
+
+Set `DEBUG_VALIDATE=1` for per-command tracing.
+
+Note that the validation step is currently **commented out** in `.github/workflows/ci.yml`; CI only
+builds the site. Run the validator locally when you touch executable blocks or the examples.
+
+## Sidebar
+
+The sidebar is declared in `astro.config.mjs`. Whether adding a page requires a config edit depends
+on where you put it:
+
+Autogenerated from the directory — just add the file:
+
+- `advanced/`
+- `reference/`
+- `resources/`
+
+Hand-maintained — **you must add an entry in `astro.config.mjs`** or the page will not appear:
+
+- `getting-started/` (explicit `Introduction`, `Concepts`, `Installation`)
+- `tutorial/` (every tutorial page is listed explicitly, grouped per example)
+
+`src/content/docs/index.mdx` is the splash home page and is not in the sidebar.
+
+The tutorials use the example monorepos in `../examples/` (`hello-world`, `fullstack-app`,
+`microservices`, `production-ready`). Changing an example changes the expected output of the docs
+that exec against it, so re-run the validator after touching them.

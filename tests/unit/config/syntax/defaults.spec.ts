@@ -30,4 +30,40 @@ describe('Config syntax - Defaults', () => {
       },
     });
   });
+
+  test('allows defaults.build.concurrency as a positive integer', async () => {
+    await expect(
+      validateUserConfig({
+        defaults: { build: { concurrency: 4 } },
+        project: { name: 'test' },
+      }),
+    ).resolves.toBeDefined();
+  });
+
+  test("allows defaults.build.concurrency = 'auto'", async () => {
+    await expect(
+      validateUserConfig({
+        defaults: { build: { concurrency: 'auto' } },
+        project: { name: 'test' },
+      }),
+    ).resolves.toBeDefined();
+  });
+
+  test('rejects a non-positive build concurrency', async () => {
+    await expect(
+      validateUserConfig({
+        defaults: { build: { concurrency: 0 } },
+        project: { name: 'test' },
+      }),
+    ).rejects.toThrow();
+  });
+
+  test('rejects a non-numeric, non-auto build concurrency', async () => {
+    await expect(
+      validateUserConfig({
+        defaults: { build: { concurrency: 'fast' } },
+        project: { name: 'test' },
+      }),
+    ).rejects.toThrow();
+  });
 });

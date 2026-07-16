@@ -1,7 +1,9 @@
 import { ComponentIdentifiable, MaybeComponentIdentifiable } from '@';
 
+export * from './buildConcurrency.js';
 export * from './EMBCollection.js';
 export * from './graph.js';
+export * from './runGraph.js';
 export * from './types.js';
 
 // Alternative signatures

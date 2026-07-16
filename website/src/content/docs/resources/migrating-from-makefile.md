@@ -36,6 +36,21 @@ Here's how makefile commands map to EMB:
 | `make images` | `emb resources build` | Build all images |
 | `make {component}.image` | `emb resources build {component}:image` | Build specific image |
 | `make images FORCE=1` | `emb resources build --force` | Force rebuild |
+| `make -j8 images` | `emb resources build -j8` | Build up to 8 resources in parallel (dependency-ordered) |
+| `make -j images` | `emb resources build -j auto` | Parallel build, `auto` = min(CPU count, 4) |
+| `make -k images` | `emb resources build --keep-going` | Keep building after a failure, then report all failures |
+
+**EMB builds serially by default.** Unlike `make`, where parallelism is a property of your invocation, EMB defaults to one resource at a time — so a `make -j8` habit silently becomes a serial build unless you pass `-j`. To get your parallelism back, either pass `-j` on each invocation, or set a project-wide default in `.emb.yml`:
+
+```yaml
+defaults:
+  build:
+    concurrency: auto  # or a positive integer, e.g. 8
+```
+
+The `--jobs` flag overrides `defaults.build.concurrency`. Dependency order is always respected: a resource only starts once all of its `dependsOn` resources have succeeded, so raising `-j` can never build something out of order.
+
+Like `make -k`, `--keep-going` carries on with resources that don't depend on the failed one and skips the ones that do, reporting every failure at the end. Without it EMB fails fast: the first failure stops new builds from starting (those already running are allowed to finish).
 
 ### Lifecycle
 

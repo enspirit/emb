@@ -1,6 +1,13 @@
 ## Unreleased
 
-Correctness and security fixes from a full codebase audit.
+Parallel resource builds, plus correctness and security fixes from a full codebase audit.
+
+* Build resources in parallel
+  - New `--jobs`/`-j` flag on `emb resources build` and `emb up`: build up to N resources at once, or `auto` (min of CPU count and 4). Dependency order is always respected — a resource starts only once all of its dependencies have succeeded
+  - New `--keep-going`/`-k` flag: after a failure, keep building resources that don't depend on it, then report every failure together. Fail-fast remains the default
+  - New `defaults.build.concurrency` key in `.emb.yml` (a positive integer or `"auto"`) sets the project-wide default
+  - Precedence is `--jobs` > `defaults.build.concurrency` > `1`, so builds stay serial unless you opt in
+  - Build failures are now aggregated into a single `BUILD_FAILED` error listing every failed resource and every dependent that was skipped, instead of surfacing only the first builder error. Resources queued behind a dependency render `Waiting for <deps>`
 
 * Harden secret handling
   - Values containing `$$`, `` $` ``, `$&`, `$'` (e.g. Vault/1Password passwords) are inserted literally instead of being mangled as `String.replace` patterns

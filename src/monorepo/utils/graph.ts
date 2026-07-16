@@ -73,7 +73,19 @@ export function buildGraph<
   return g;
 }
 
-export function findRunOrder<
+interface RunSubgraph<T> {
+  byId: Map<string, T>;
+  ids: string[];
+  sub: graphlib.Graph;
+}
+
+/**
+ * Shared machinery behind findRunOrder/findRunGraph: build the full graph,
+ * reject cycles, expand the selection to its predecessor closure, and return
+ * the closure subgraph topsorted (ids), an id->item lookup, and the subgraph
+ * itself (so callers can read per-node edges).
+ */
+function resolveRunSubgraph<
   T extends Partial<Record<DPK, DepList>> &
     Record<IDK, string> & { name: string },
   IDK extends keyof T,
@@ -81,8 +93,8 @@ export function findRunOrder<
 >(
   selection: readonly string[],
   collection: EMBCollection<T, IDK, DPK>,
-  { onAmbiguous = 'error' as AmbiguityPolicy } = {},
-): T[] {
+  onAmbiguous: AmbiguityPolicy,
+): RunSubgraph<T> {
   const g = buildGraph(collection, onAmbiguous);
 
   const cycles = graphlib.alg.findCycles(g);
@@ -125,6 +137,10 @@ export function findRunOrder<
     byId.set(collection.idOf(t), t);
   }
 
+  return { ids, byId, sub };
+}
+
+function itemsFor<T>(ids: string[], byId: Map<string, T>): T[] {
   return ids.map((id) => {
     const t = byId.get(id);
     if (!t) {
@@ -133,4 +149,54 @@ export function findRunOrder<
 
     return t;
   });
+}
+
+export function findRunOrder<
+  T extends Partial<Record<DPK, DepList>> &
+    Record<IDK, string> & { name: string },
+  IDK extends keyof T,
+  DPK extends keyof T,
+>(
+  selection: readonly string[],
+  collection: EMBCollection<T, IDK, DPK>,
+  { onAmbiguous = 'error' as AmbiguityPolicy } = {},
+): T[] {
+  const { ids, byId } = resolveRunSubgraph(selection, collection, onAmbiguous);
+  return itemsFor(ids, byId);
+}
+
+/**
+ * The dependency graph of a selection: the same topsorted predecessor closure
+ * `findRunOrder` returns, plus each node's DIRECT dependency ids (within the
+ * closure). This is what a dependency-aware scheduler (runGraph) needs.
+ */
+export interface RunGraphPlan<T> {
+  /** id -> its direct dependency ids, restricted to the closure. */
+  dependencies: Map<string, string[]>;
+  /** Closure items, topologically ordered (dependencies before dependents). */
+  nodes: T[];
+}
+
+export function findRunGraph<
+  T extends Partial<Record<DPK, DepList>> &
+    Record<IDK, string> & { name: string },
+  IDK extends keyof T,
+  DPK extends keyof T,
+>(
+  selection: readonly string[],
+  collection: EMBCollection<T, IDK, DPK>,
+  { onAmbiguous = 'error' as AmbiguityPolicy } = {},
+): RunGraphPlan<T> {
+  const { ids, byId, sub } = resolveRunSubgraph(
+    selection,
+    collection,
+    onAmbiguous,
+  );
+
+  const dependencies = new Map<string, string[]>();
+  for (const id of ids) {
+    dependencies.set(id, sub.predecessors(id) ?? []);
+  }
+
+  return { nodes: itemsFor(ids, byId), dependencies };
 }

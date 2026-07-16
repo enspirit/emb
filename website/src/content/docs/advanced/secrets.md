@@ -597,14 +597,16 @@ env:
 
 flavors:
   staging:
-    - op: replace
-      path: /env/DATABASE_URL
-      value: ${op:Staging/database#url}
+    patches:
+      - op: replace
+        path: /env/DATABASE_URL
+        value: ${op:Staging/database#url}
 
   production:
-    - op: replace
-      path: /env/DATABASE_URL
-      value: ${op:Production/database#url}
+    patches:
+      - op: replace
+        path: /env/DATABASE_URL
+        value: ${op:Production/database#url}
 ```
 
 ### Troubleshooting

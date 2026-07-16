@@ -118,12 +118,12 @@ This ensures the API uses the production Docker target when building with `--fla
 
 When both project and component define the same flavor:
 
-1. Project-level patches apply first
-2. Component-level patches apply second
+1. Component-level patches apply first, to that component's own config subtree
+2. Project-level patches apply second, to the whole document — so a project patch targeting `/components/<name>/...` overrides the component's own patch on the same key
 
 This lets you:
-- Set global defaults at project level
-- Override specific components as needed
+- Set component-specific changes at component level
+- Set global defaults at project level, which win over component patches when they touch the same key
 
 ## Summary
 

@@ -73,15 +73,10 @@ This shows all Docker images managed by EMB for your project.
 Every command has built-in help:
 
 ```shell exec cwd="../examples/hello-world"
-emb --help | head -20
+emb --help | sed -n '6,20p'
 ```
 
 ```output
-A replacement for our Makefile-for-monorepos
-
-VERSION
-  @enspirit/emb/0.27.0 darwin-x64 node-v22.18.0
-
 USAGE
   $ emb [COMMAND]
 

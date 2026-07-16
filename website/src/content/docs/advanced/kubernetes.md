@@ -95,11 +95,15 @@ kubernetes:
 
 EMB resolves the namespace in this order of precedence:
 
-1. Environment variable: `K8S_NAMESPACE`
-2. Configuration: `defaults.kubernetes.namespace`
-3. Default: `default`
+1. CLI flag: `-n, --namespace`
+2. Environment variable: `K8S_NAMESPACE`
+3. Configuration: `defaults.kubernetes.namespace`
+4. Default: `default`
 
 ```shell
+# The --namespace flag wins over everything else
+emb kubernetes logs api --namespace production
+
 # Set environment variable
 export K8S_NAMESPACE=production
 emb run migrate --executor kubernetes
@@ -166,13 +170,13 @@ emb kubernetes shell <COMPONENT> [OPTIONS]
 
 **Options:**
 - `-n, --namespace <name>` - Target namespace
-- `-s, --shell <shell>` - Shell to use (default: `/bin/sh`)
+- `-s, --shell <shell>` - Shell to use (default: `bash`; pass `--shell sh` for images without bash)
 
 **Examples:**
 ```shell
 emb kubernetes shell api
 emb kubernetes shell api --namespace production
-emb kubernetes shell api --shell /bin/bash
+emb kubernetes shell api --shell sh
 ```
 
 ### emb kubernetes logs
@@ -185,37 +189,49 @@ emb kubernetes logs <COMPONENT> [OPTIONS]
 
 **Options:**
 - `-n, --namespace <name>` - Target namespace
-- `-f, --follow` - Follow log output
-- `--tail <lines>` - Number of lines to show
+- `-f, --follow` / `--no-follow` - Follow log output (default: follow). The last 50 lines are always shown.
 
 **Examples:**
 ```shell
 emb kubernetes logs api
-emb kubernetes logs api --follow
-emb kubernetes logs api --namespace production --tail 100
+emb kubernetes logs api --no-follow
+emb kubernetes logs api --namespace production
 ```
 
 ### emb kubernetes ps
 
-List pods for a deployment:
+List all pods in the target namespace. This command is namespace-scoped, not component-scoped: it takes no arguments, and any argument you pass is ignored rather than used as a filter.
 
 ```shell
-emb kubernetes ps <COMPONENT> [OPTIONS]
+emb kubernetes ps [OPTIONS]
 ```
 
 **Options:**
 - `-n, --namespace <name>` - Target namespace
+- `--watch` / `--no-watch` - Accepted by the parser but currently has no effect: the pod list is printed once and the command exits
+
+**Examples:**
+```shell
+emb kubernetes ps
+emb kubernetes ps --namespace production
+```
 
 ### emb kubernetes restart
 
-Restart pods for a deployment:
+Restart pods of one or more Kubernetes **deployments**. The arguments are deployment names as they exist in the cluster, not EMB component names. Omit the argument to restart every deployment in the target namespace.
 
 ```shell
-emb kubernetes restart <COMPONENT> [OPTIONS]
+emb kubernetes restart [DEPLOYMENT...] [OPTIONS]
 ```
 
 **Options:**
 - `-n, --namespace <name>` - Target namespace
+
+**Examples:**
+```shell
+emb kubernetes restart api worker --namespace production
+emb kubernetes restart   # Restarts every deployment in the namespace
+```
 
 ## Interactive Tasks
 

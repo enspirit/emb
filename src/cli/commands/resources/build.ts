@@ -6,6 +6,8 @@ import {
   BuildResourcesOperation,
 } from '@/monorepo/operations/resources/BuildResourcesOperation.js';
 
+import { buildFlags } from '../../buildFlags.js';
+
 export default class ResourcesBuildCommand extends FlavoredCommand<
   typeof ResourcesBuildCommand
 > {
@@ -17,8 +19,9 @@ export default class ResourcesBuildCommand extends FlavoredCommand<
   };
   static description = 'Build the resources of the monorepo';
   static examples = [
-    `<%= config.bin %> <%= command.id %> build --flavor development`,
-    `<%= config.bin %> <%= command.id %> build --publishable --flavor production`,
+    `<%= config.bin %> <%= command.id %> --flavor development`,
+    `<%= config.bin %> <%= command.id %> --publishable --flavor production`,
+    `<%= config.bin %> <%= command.id %> --jobs auto`,
   ];
   static flags = {
     'dry-run': Flags.boolean({
@@ -37,6 +40,7 @@ export default class ResourcesBuildCommand extends FlavoredCommand<
       description:
         'Only build resources that are publishable (publish: true) and their dependencies',
     }),
+    ...buildFlags,
   };
   static enableJsonFlag = true;
   static strict = false;
@@ -61,6 +65,8 @@ export default class ResourcesBuildCommand extends FlavoredCommand<
       force: flags.force,
       silent: flags.json,
       resources: toBuild,
+      jobs: flags.jobs,
+      keepGoing: flags['keep-going'],
     });
   }
 }
