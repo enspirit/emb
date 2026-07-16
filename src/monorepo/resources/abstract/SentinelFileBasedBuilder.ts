@@ -21,8 +21,19 @@ export abstract class SentinelFileBasedBuilder<
   private newSentinelData?: SentinelData | undefined;
 
   /**
-   * Checks wether or not the sentinel file is more recent
-   * that the output of the builder's sentinel data
+   * Whether the artifact produced by the previous successful build still exists
+   * out-of-band (e.g. a docker image that may have been pruned). Defaults to
+   * true — most builders have no external artifact to verify. Overrides must
+   * NOT reject: the caller treats any failure as "absent" (i.e. rebuild).
+   */
+  protected async artifactExists(_resource: ResourceInfo<I>): Promise<boolean> {
+    return true;
+  }
+
+  /**
+   * Checks whether the resource must be (re)built: true when there is no prior
+   * sentinel, when the sources are newer than the last build, or when the
+   * previously-built artifact no longer exists.
    */
   async mustBuild(
     resource: ResourceInfo<I>,
@@ -31,15 +42,32 @@ export abstract class SentinelFileBasedBuilder<
       return;
     }
 
-    this.lastSentinelFile = await this.readSentinel();
-    this.newSentinelData = await this._mustBuild(resource);
+    // Probe artifact existence up front so the check (e.g. a docker inspect)
+    // overlaps the sentinel read + rebuild-strategy computation instead of
+    // adding to the critical path. .catch keeps a rejected or (on a rebuild
+    // path) unconsumed probe from becoming an unhandled rejection and treats a
+    // failed probe as "absent", i.e. rebuild.
+    const artifactPresent = this.artifactExists(resource).catch(() => false);
 
-    if (!(this.lastSentinelFile && this.newSentinelData)) {
-      return this.newSentinelData;
+    const [lastSentinelFile, newSentinelData] = await Promise.all([
+      this.readSentinel(),
+      this._mustBuild(resource),
+    ]);
+    this.lastSentinelFile = lastSentinelFile;
+    this.newSentinelData = newSentinelData;
+
+    if (!(lastSentinelFile && newSentinelData)) {
+      return newSentinelData;
     }
 
-    if (this.lastSentinelFile.mtime < this.newSentinelData.mtime) {
-      return this.newSentinelData;
+    if (lastSentinelFile.mtime < newSentinelData.mtime) {
+      return newSentinelData;
+    }
+
+    // Sentinel is fresh, but the built artifact may have been removed
+    // out-of-band (e.g. `docker system prune`); force a rebuild if it is gone.
+    if (!(await artifactPresent)) {
+      return newSentinelData;
     }
   }
 

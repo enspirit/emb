@@ -128,6 +128,16 @@ class DockerImageResourceBuilder extends SentinelFileBasedBuilder<
     return this.monorepo.expand(`${fullImageName}:${tag}`);
   }
 
+  // The sentinel only tracks source freshness; the built image can still be
+  // removed out-of-band (`docker system prune`). inspect() resolves when the
+  // tag exists and rejects otherwise (a rejection is treated as "absent").
+  protected async artifactExists(): Promise<boolean> {
+    await getContext()
+      .docker.getImage(await this.getReference())
+      .inspect();
+    return true;
+  }
+
   get monorepo() {
     return this.buildContext.monorepo;
   }
