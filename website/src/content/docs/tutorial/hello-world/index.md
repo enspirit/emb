@@ -18,7 +18,7 @@ We'll use `examples/hello-world`, the simplest possible EMB project:
 
 ```
 hello-world/
-├── .emb.yml          # Just 6 lines of config
+├── .emb.yml          # Just 5 lines of config
 └── api/
     ├── Dockerfile    # Standard Node.js image
     ├── package.json
@@ -31,7 +31,7 @@ This example demonstrates that EMB can work with minimal configuration - you don
 
 Before starting, ensure you have:
 
-- Node.js 20+ installed
+- Node.js 22+ installed
 - Docker installed and running
 
 ## Let's Begin

@@ -134,7 +134,7 @@ tasks:
     script: npm test
 ```
 
-When both project and component define the same flavor, both sets of patches are applied (project first, then component).
+When both project and component define the same flavor, both sets of patches are applied (component first, then project). If they touch the same key, the project-level patch wins.
 
 ## Next Step
 

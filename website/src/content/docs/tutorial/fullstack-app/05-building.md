@@ -14,13 +14,14 @@ emb resources
 ```
 
 ```output
- ID         NAME   TYPE          PUBLISHABLE  REFERENCE
------------------------------------------------------------------------
- api:image  image  docker/image               fullstack-app/api:latest
- web:image  image  docker/image               fullstack-app/web:latest
+ ID               NAME         TYPE          PUBLISHABLE  REFERENCE                
+-----------------------------------------------------------------------------------
+ api:fixture.txt  fixture.txt  file                       api/.emb/fixture.txt     
+ api:image        image        docker/image               fullstack-app/api:latest 
+ web:image        image        docker/image               fullstack-app/web:latest 
 ```
 
-Each component has an `image` resource that can be built.
+Each component has an `image` resource; components can also declare other resource types (e.g. the `file` resource `api:fixture.txt`).
 
 ## Building All Images
 
@@ -87,7 +88,7 @@ emb resources build --dry-run
 
 ## Build Logs
 
-Build logs are saved to `.emb/default/logs/docker/build/`. If a build fails, check the log for details.
+Build logs are saved to `.emb/default/logs/docker/build/<tag>.log`, where `default` is the name of the current flavor. If a build fails, check the log for details.
 
 ## Custom Tags
 

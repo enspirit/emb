@@ -147,12 +147,14 @@ You can also build resources explicitly with `emb resources build --flavor produ
 
 When both project-level and component-level flavors with the same name exist, **both** are applied:
 
-1. Project-level patches are applied first
-2. Component-level patches are applied second
+1. Component-level patches are applied first, against that component's own config subtree (paths are relative to the component, e.g. `/resources/image/params/target`)
+2. Project-level patches are applied second, against the whole configuration document (paths are absolute, e.g. `/components/api/resources/image/params/target`)
+
+Because patches are last-write-wins, a project-level patch targeting `/components/<name>/...` overrides a component-level patch on the same key.
 
 This allows you to:
-- Set global environment changes at project level
 - Set component-specific build changes at component level
+- Set global environment changes at project level, overriding components where needed
 
 ## Viewing Flavor Configuration
 

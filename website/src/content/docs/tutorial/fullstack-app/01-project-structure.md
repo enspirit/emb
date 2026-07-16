@@ -20,6 +20,8 @@ emb components
  api
 ```
 
+The `NAME`, `ID`, `CREATED` and `STATUS` columns are filled in from Docker, so they stay empty until the containers are running.
+
 Both were auto-discovered by the `autodocker` plugin. But where do their descriptions and tasks come from?
 
 ## Component Embfiles
@@ -33,6 +35,13 @@ cat api/Embfile.yml
 ```output
 description: REST API backend service
 
+resources:
+  fixture.txt:
+    type: file
+    params:
+      path: .emb/fixture.txt
+      content: fixture-ok
+
 tasks:
   test:
     description: Run API tests
@@ -45,9 +54,25 @@ tasks:
   fail:
     description: A task that will fail
     script: exit 1
+
+  uses-fixture:
+    description: Reads a file produced by a resource dependency (bare name)
+    executors: [local]
+    dependencies: ['fixture.txt']
+    script: |
+      grep fixture-ok .emb/fixture.txt
+
+  uses-fixture-qualified:
+    description: Reads a file produced by a resource dependency (qualified id)
+    executors: [local]
+    dependencies: ['api:fixture.txt']
+    script: |
+      grep fixture-ok .emb/fixture.txt
 ```
 
 The `embfiles` plugin loads these files and merges them with the auto-discovered configuration.
+
+Alongside tasks, this Embfile declares a `fixture.txt` resource of type `file`, and two tasks that depend on it. A task's `dependencies` can name a resource either by its bare name (`fixture.txt`) or by its qualified id (`api:fixture.txt`) - EMB builds the resource before running the task.
 
 ## The embfiles Plugin
 
@@ -75,7 +100,7 @@ Component Embfiles can include:
 To see how everything comes together:
 
 ```shell exec cwd="../examples/fullstack-app"
-emb config print | head -30
+emb config print | head -51
 ```
 
 ```output
@@ -92,11 +117,16 @@ components:
         script: echo 'Running frontend tests...' && exit 0
     rootDir: web
   api:
+    description: REST API backend service
     resources:
       image:
         type: docker/image
         params: {}
-    description: REST API backend service
+      fixture.txt:
+        type: file
+        params:
+          path: .emb/fixture.txt
+          content: fixture-ok
     tasks:
       test:
         description: Run API tests
@@ -107,6 +137,22 @@ components:
       fail:
         description: A task that will fail
         script: exit 1
+      uses-fixture:
+        description: Reads a file produced by a resource dependency (bare name)
+        executors:
+          - local
+        dependencies:
+          - fixture.txt
+        script: |
+          grep fixture-ok .emb/fixture.txt
+      uses-fixture-qualified:
+        description: Reads a file produced by a resource dependency (qualified id)
+        executors:
+          - local
+        dependencies:
+          - api:fixture.txt
+        script: |
+          grep fixture-ok .emb/fixture.txt
     rootDir: api
 defaults: {}
 ```

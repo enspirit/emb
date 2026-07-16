@@ -36,13 +36,66 @@ plugins:
       - .env
       - .env.local
   - name: embfiles      # Load component Embfile.yml files
+  - name: op            # Fetch secrets and files from 1Password
 ```
 
 **Built-in plugins:**
 - `autodocker` - Auto-discovers components by looking for Dockerfiles
 - `dotenv` - Loads environment variables from .env files
 - `embfiles` - Loads component configuration from Embfile.yml files
+- `op` - Fetches secrets and files from 1Password, enabling `${op:...}` expansion and the `op/file` resource type (see [Secrets Management](/emb/advanced/secrets/))
 - `vault` - Fetches secrets from HashiCorp Vault (see [Secrets Management](/emb/advanced/secrets/))
+
+**Plugin configuration:**
+
+Plugins extend the configuration in the order they are listed. Each entry takes an optional `config` value whose shape depends on the plugin. Unknown keys are rejected, so a typo fails the whole config load.
+
+`autodocker`:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `glob` | string | Glob pattern used to find Dockerfiles (default: `*/Dockerfile`) |
+| `ignore` | string or array | Patterns to ignore when searching for Dockerfiles |
+
+```yaml
+plugins:
+  - name: autodocker
+    config:
+      glob: services/*/Dockerfile
+      ignore:
+        - services/legacy/**
+```
+
+`embfiles`:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `glob` | string or array | Glob pattern(s) used to find Embfiles (default: `*/Embfile.{yaml,yml}`) |
+
+```yaml
+plugins:
+  - name: embfiles
+    config:
+      glob: services/*/Embfile.yml
+```
+
+`dotenv` takes an array of `.env` file paths rather than an object, as shown in the example above.
+
+The `vault` plugin's configuration is documented in [Secrets Management](/emb/advanced/secrets/).
+
+Plugin `config` values are template-expanded before the plugin is constructed, so `${vars:...}` and `${env:...}` placeholders work there:
+
+```yaml
+vars:
+  dockerfileGlob: services/*/Dockerfile
+
+plugins:
+  - name: autodocker
+    config:
+      glob: ${vars:dockerfileGlob}
+```
+
+Because plugins are constructed before the configuration's own environment is installed, `${env:...}` in a plugin `config` resolves against the shell environment only. Variables declared in this file's [`env`](#env) block, or loaded by the `dotenv` plugin, are not yet available and silently fall back to the placeholder default. Use `vars` for values defined inside the configuration file.
 
 ### env
 
@@ -352,13 +405,15 @@ tasks:
 | Property | Type | Description |
 |----------|------|-------------|
 | `description` | string | Task description |
-| `script` | string | Shell script to execute |
-| `pre` | array | Tasks to run before this one |
+| `script` | string | Shell script to execute. Required unless `pre` is set |
+| `pre` | array | Tasks to run before this one. Required if `script` is omitted |
 | `dependencies` | array | Resource refs (`name` or `component:name`) that must be built before this task runs |
 | `executors` | array | Where to run: `local`, `container`, or `kubernetes` |
 | `interactive` | boolean | Requires TTY (default: false) |
 | `vars` | object | Task-specific variables |
 | `confirm` | object | Require user confirmation |
+
+Every task must define `script`, `pre`, or both. A task with neither (for example one carrying only a `description`) fails validation of the entire configuration file, not just that task.
 
 ### flavors
 

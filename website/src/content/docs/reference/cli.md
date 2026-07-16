@@ -84,7 +84,7 @@ emb up [SERVICE...] [OPTIONS]
 - `SERVICE...` - Optional services to start (defaults to all)
 
 **Options:**
-- `-f, --force` - Force recreation of containers
+- `-f, --force` - Bypass build caches (force-rebuild all resources) **and** force recreation of containers
 - `-j, --jobs <n|auto>` - Build up to `n` resources in parallel, or `auto` for min(CPU count, 4). Defaults to serial (1).
 - `-k, --keep-going` - After a failure, keep building resources that don't depend on the failed one. Off by default (fail-fast).
 - `--flavor <name>` - Use a specific flavor
@@ -94,38 +94,78 @@ emb up [SERVICE...] [OPTIONS]
 services themselves are started. See
 [Parallel builds](#parallel-builds) for details.
 
+`-f` also applies to both phases, so `emb up -f` is a full no-cache rebuild of
+every resource — not just a `docker compose --force-recreate`. Reach for it only
+when you mean it.
+
 **Examples:**
 ```shell
 emb up                      # Start all services
 emb up api web              # Start specific services
 emb up --flavor production  # Start with production config
-emb up -f                   # Force recreate containers
+emb up -f                   # Force rebuild resources and recreate containers
 emb up -j auto              # Build resources in parallel, then start
 ```
 
 ### emb down
 
-Stop all project services.
+Stop and remove the project's containers (defaults to all).
 
 ```shell
-emb down
+emb down [SERVICE...]
 ```
+
+**Arguments:**
+- `SERVICE...` - Optional services to stop and remove (defaults to all)
+
+### emb start
+
+Start existing (already created) project containers without recreating them.
+
+```shell
+emb start [SERVICE...]
+```
+
+**Arguments:**
+- `SERVICE...` - Optional services to start (defaults to all)
+
+### emb stop
+
+Stop project containers without removing them (contrast with `emb down`, which removes them).
+
+```shell
+emb stop [SERVICE...]
+```
+
+**Arguments:**
+- `SERVICE...` - Optional services to stop (defaults to all)
 
 ### emb restart
 
 Restart project services.
 
 ```shell
-emb restart [SERVICE...]
+emb restart [SERVICE...] [OPTIONS]
 ```
+
+**Arguments:**
+- `SERVICE...` - Optional services to restart (defaults to all)
+
+**Options:**
+- `-f, --no-deps` - Don't restart dependent services (note: the short form is `-f`, and it does **not** mean "force" as it does on `emb up`)
 
 ### emb ps
 
 List running containers.
 
 ```shell
-emb ps
+emb ps [OPTIONS]
 ```
+
+**Options:**
+- `-a, --all` - Show all stopped containers
+
+`emb ps` does not support `--json`.
 
 ### emb logs
 
@@ -149,21 +189,61 @@ emb logs api web          # Follow logs for multiple services
 emb logs --no-follow api  # Get log snapshot without following
 ```
 
+### emb logs archive
+
+Archive docker compose logs to files (one file per service).
+
+```shell
+emb logs archive [SERVICE...] [OPTIONS]
+```
+
+**Arguments:**
+- `SERVICE...` - Optional services to archive logs for (defaults to all)
+
+**Options:**
+- `-t, --timestamps` - Include timestamps in logs (default: false)
+- `--tail <n>` - Number of lines to show from the end of the logs
+- `-o, --output <dir>` - Output directory for log files (defaults to `.emb/<flavor>/logs/docker/compose`)
+
+**Examples:**
+```shell
+emb logs archive                  # Archive logs for all services
+emb logs archive api web          # Archive logs for specific services
+emb logs archive --timestamps     # Include timestamps
+emb logs archive --tail 1000      # Only the last 1000 lines per service
+```
+
 ### emb shell
 
 Get a shell in a running container.
 
 ```shell
-emb shell <SERVICE>
+emb shell <SERVICE> [OPTIONS]
+```
+
+**Arguments:**
+- `SERVICE` - The service to get a shell on (required)
+
+**Options:**
+- `-s, --shell <shell>` - The shell to run (default: `bash`)
+
+**Examples:**
+```shell
+emb shell api          # bash shell in the api container
+emb shell api -s sh    # for images without bash (e.g. alpine)
 ```
 
 ### emb clean
 
-Clean project build artifacts and caches.
+Tear the project down and remove its containers, images and EMB store (logs/sentinels).
+Runs `down`, `containers prune`, `images delete` and `images prune` in sequence.
 
 ```shell
-emb clean
+emb clean [OPTIONS]
 ```
+
+**Options:**
+- `-f, --force` - Force the deletion of containers & images (also prunes all project images, not just dangling ones)
 
 ## Build Commands
 
@@ -264,14 +344,20 @@ emb resources publish --flavor production # Publish with production config
 List discovered components.
 
 ```shell
-emb components [OPTIONS]
+emb components
 ```
+
+Takes no options beyond the global ones. The container columns (`NAME`, `ID`,
+`CREATED`, `STATUS`) are filled in from the component's running container, if any,
+and are blank for components that aren't currently up. `NAME` is the *container*
+name as reported by Docker, so it carries a leading `/`; the component name is in
+the `COMPONENT` column.
 
 **Example output:**
 ```
-  NAME         IMAGE_NAME       TAG      CONTAINER
-  api          myapp/api        latest
-  web          myapp/web        latest
+  COMPONENT   NAME            ID             CREATED       STATUS
+  api         /myapp-api-1    fe0648593184   2 hours ago   Up 2 hours
+  web         /myapp-web-1    8c7d6e5f4a3b   2 hours ago   Up 2 hours
 ```
 
 ### emb resources
@@ -315,6 +401,9 @@ List Docker images for the project.
 emb images [OPTIONS]
 ```
 
+**Options:**
+- `-a, --all` - Show all images. Only images from a final layer (no children) are shown by default.
+
 ### emb containers
 
 List Docker containers for the project.
@@ -322,6 +411,9 @@ List Docker containers for the project.
 ```shell
 emb containers [OPTIONS]
 ```
+
+**Options:**
+- `-a, --all` - Return all containers. By default, only running containers are shown.
 
 ## Task Commands
 
@@ -403,8 +495,14 @@ Some commands are grouped into topics with subcommands:
 
 ```shell
 emb components          # List components
-emb components logs     # View service logs (alias: emb logs)
 emb components shell    # Get shell in service (alias: emb shell)
+```
+
+### logs
+
+```shell
+emb logs                # View service logs
+emb logs archive        # Archive service logs to files
 ```
 
 ### resources
@@ -419,6 +517,7 @@ emb resources publish   # Publish resources to registries
 
 ```shell
 emb tasks               # List tasks
+emb tasks run           # Run tasks (alias: emb run)
 ```
 
 ### images
@@ -427,13 +526,13 @@ emb tasks               # List tasks
 emb images              # List images
 emb images delete       # Delete images
 emb images prune        # Prune unused images
+emb images push         # [DEPRECATED] Push images — use `emb resources publish` instead
 ```
 
 ### containers
 
 ```shell
 emb containers          # List containers
-emb containers delete   # Delete containers
 emb containers prune    # Prune stopped containers
 ```
 
@@ -483,11 +582,18 @@ See [Secrets Management](/emb/advanced/secrets/) for provider configuration, aut
 ### kubernetes
 
 ```shell
-emb kubernetes shell <COMPONENT>    # Open shell in pod
-emb kubernetes logs <COMPONENT>     # View pod logs
-emb kubernetes ps <COMPONENT>       # List pods
-emb kubernetes restart <COMPONENT>  # Restart pods
+emb kubernetes shell <COMPONENT>        # Open shell in pod
+emb kubernetes logs <COMPONENT>         # View pod logs
+emb kubernetes ps                       # List all pods in the namespace
+emb kubernetes restart [DEPLOYMENT...]  # Restart deployments (all in the namespace if omitted)
 ```
+
+`emb kubernetes ps` is namespace-scoped, not component-scoped: it lists every pod
+in the target namespace, and any argument you pass it is ignored.
+
+`emb kubernetes restart` takes Kubernetes **deployment** names as they exist in the
+cluster — not EMB component names. Omit the argument and it restarts *every*
+deployment in the target namespace.
 
 **Common options:**
 - `-n, --namespace <name>` - Target namespace
@@ -499,5 +605,8 @@ See [Kubernetes Integration](/emb/advanced/kubernetes/) for detailed usage.
 | Code | Meaning |
 |------|---------|
 | 0 | Success |
-| 1 | General error |
-| 2 | Command not found |
+| 1 | General error (build/task failure, unresolvable reference, unknown command, …) |
+| 2 | Invalid invocation — unknown flag, bad flag value, or a missing required argument |
+
+An unknown command exits **1**, not 2: `emb foo` falls through to `emb tasks run`,
+which reports ``Unknown reference `foo` `` with the code `UNKNOWN_REF`.
