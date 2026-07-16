@@ -259,11 +259,43 @@ export class BuildResourcesOperation extends AbstractOperation<
     },
   ) {
     const { buildDone, ...buildOptions } = options;
+
+    // The scheduler awaits `buildDone` to learn this resource's outcome, so a
+    // step that throws without settling it would stall the whole run. Every
+    // fallible step goes through this wrapper: the failure reaches the
+    // scheduler, then re-throws so listr stops this resource's chain.
+    const guard =
+      <T>(
+        step: (
+          ctx: BuildResourceMeta,
+          task: ListrTaskWrapper<
+            BuildResourceMeta,
+            typeof DefaultRenderer,
+            typeof SimpleRenderer
+          >,
+        ) => Promise<T>,
+      ) =>
+      async (
+        ctx: BuildResourceMeta,
+        task: ListrTaskWrapper<
+          BuildResourceMeta,
+          typeof DefaultRenderer,
+          typeof SimpleRenderer
+        >,
+      ): Promise<T> => {
+        try {
+          return await step(ctx, task);
+        } catch (error) {
+          buildDone.reject(error);
+          throw error;
+        }
+      };
+
     const list = parentTask.newListr<BuildResourceMeta>(
       [
         {
           title: 'Prepare build context',
-          task: async (ctx) => {
+          task: guard(async (ctx) => {
             // Extend the context for this specific resource build chain
             Object.assign(ctx, buildOptions, { resource });
 
@@ -273,13 +305,13 @@ export class BuildResourcesOperation extends AbstractOperation<
               config: resource,
               component: monorepo.component(resource.component),
             });
-          },
+          }),
         },
         // Actual build
         {
           title: `Checking cache for ${resource.id}`,
           /** Skip the build if the builder knows it can be skipped */
-          task: async (ctx) => {
+          task: guard(async (ctx) => {
             if (ctx.builder?.mustBuild) {
               ctx.sentinelData = await ctx.builder.mustBuild(ctx.resource!);
               ctx.cacheHit = !ctx.sentinelData;
@@ -292,12 +324,12 @@ export class BuildResourcesOperation extends AbstractOperation<
               );
               ctx.force = ctx.force || Boolean(depBuilt);
             }
-          },
+          }),
         },
         {
           rendererOptions: { persistentOutput: true },
           title: `Build ${resource.id}`,
-          task: async (ctx, task) => {
+          task: guard(async (ctx, task) => {
             const skip = (prefix: string) => {
               parentTask.title = `${prefix} ${resource.id}`;
               task.skip();
@@ -318,53 +350,54 @@ export class BuildResourcesOperation extends AbstractOperation<
               return skip('[cache hit]');
             }
 
-            try {
-              const { input, operation } = await ctx.builder!.build(
-                ctx.resource!,
-                task.stdout(),
-              );
-              ctx.builderInput = input;
+            const { input, operation } = await ctx.builder!.build(
+              ctx.resource!,
+              task.stdout(),
+            );
+            ctx.builderInput = input;
 
-              this.built.add(resource.id);
+            this.built.add(resource.id);
 
-              if (ctx.dryRun) {
-                return skip('[dry run]');
-              }
-
-              const output = await operation.run(ctx.builderInput!);
-
-              if (ctx.sentinelData) {
-                await ctx.builder!.commit?.(
-                  ctx.resource!,
-                  output,
-                  ctx.sentinelData,
-                );
-              }
-
-              return output;
-            } catch (error) {
-              buildDone.reject(error);
-              throw error;
+            if (ctx.dryRun) {
+              return skip('[dry run]');
             }
-          },
+
+            const output = await operation.run(ctx.builderInput!);
+
+            if (ctx.sentinelData) {
+              await ctx.builder!.commit?.(
+                ctx.resource!,
+                output,
+                ctx.sentinelData,
+              );
+            }
+
+            return output;
+          }),
         },
         {
           // Return build meta data and dump
           // cache data into sentinel file
-          async task(ctx) {
+          task: guard(async (ctx) => {
             if (ctx.builder) {
               delete ctx.builder;
             }
 
             parentContext[resource.id] = ctx;
             buildDone.resolve(ctx);
-          },
+          }),
         },
       ],
       {
         // A resource's own steps must run in order (prepare -> check -> build);
         // the parent list is concurrent, so pin this one to serial explicitly.
         concurrent: false,
+        // listr2 merges a subtask list's options over its parent task's, so the
+        // parent's exitOnError:false (which keeps one resource's failure from
+        // killing the others) would otherwise land here too and let this chain
+        // run `build` on a half-prepared context. A step failing here must stop
+        // this resource.
+        exitOnError: true,
         ctx: {
           ...buildOptions,
         } as BuildResourceMeta,

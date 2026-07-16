@@ -4,6 +4,7 @@ import { createTestSetup, TestSetup } from 'tests/setup/set.context.js';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 
 import { BuildResourcesOperation } from '../../../../../src/monorepo/operations/resources/BuildResourcesOperation.js';
+import { ResourceFactory } from '../../../../../src/monorepo/resources/ResourceFactory.js';
 
 const fileExists = async (p: string): Promise<boolean> => {
   try {
@@ -289,6 +290,100 @@ describe('Monorepo / Operations / Resources / BuildResourcesOperation', () => {
         expect(await fileExists(join(s.tempDir, 'api', 'child.txt'))).toBe(
           false,
         );
+      } finally {
+        await s.cleanup();
+      }
+    });
+
+    test('a failing "prepare build context" step surfaces the real error', async () => {
+      const s = await createTestSetup({
+        tempDirPrefix: 'embBuildPrepareFailure',
+        embfile: {
+          project: { name: 'test-build' },
+          plugins: [],
+          components: {
+            api: {
+              resources: {
+                bogus: {
+                  type: 'test/not-a-registered-type',
+                  params: { path: 'bogus.txt' },
+                },
+              },
+            },
+          },
+        },
+      });
+      await mkdir(join(s.tempDir, 'api'), { recursive: true });
+
+      try {
+        const run = s.monorepo.run(new BuildResourcesOperation(), {
+          resources: ['bogus'],
+          silent: true,
+        });
+
+        await expect(run).rejects.toThrow(/Failed to build/);
+        // The cause must be the real factory error, not a downstream TypeError
+        // from a swallowed failure leaving ctx.builder undefined.
+        await expect(run).rejects.toThrow(/Unknown resource type/);
+      } finally {
+        await s.cleanup();
+      }
+    });
+
+    test('a failing "check cache" step fails the build instead of silently succeeding', async () => {
+      let committed = false;
+
+      ResourceFactory.register(
+        'test/throws-on-cache-check',
+        class {
+          async build() {
+            return {
+              input: {},
+              operation: { run: async () => ({}) },
+            };
+          }
+
+          async commit() {
+            committed = true;
+          }
+
+          async getReference() {
+            return 'test/throws-on-cache-check';
+          }
+
+          async mustBuild(): Promise<unknown> {
+            throw new Error('cache check exploded');
+          }
+        } as never,
+      );
+
+      const s = await createTestSetup({
+        tempDirPrefix: 'embBuildCacheCheckFailure',
+        embfile: {
+          project: { name: 'test-build' },
+          plugins: [],
+          components: {
+            api: {
+              resources: {
+                flaky: { type: 'test/throws-on-cache-check' },
+              },
+            },
+          },
+        },
+      });
+      await mkdir(join(s.tempDir, 'api'), { recursive: true });
+
+      try {
+        await expect(
+          s.monorepo.run(new BuildResourcesOperation(), {
+            resources: ['flaky'],
+            silent: true,
+          }),
+        ).rejects.toThrow(/cache check exploded/);
+
+        // A swallowed cache-check error would build anyway and never commit the
+        // sentinel, leaving the cache permanently cold while reporting success.
+        expect(committed).toBe(false);
       } finally {
         await s.cleanup();
       }
