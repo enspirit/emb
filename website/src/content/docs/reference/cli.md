@@ -7,15 +7,42 @@ Complete reference for all EMB commands.
 
 ## Global Options
 
-These options are available for all commands:
+These options are available on every command:
 
 | Option | Env Var | Description |
 |--------|---------|-------------|
 | `-C, --root <path>` | `EMB_ROOT` | Run as if emb was started in `<path>` |
 | `--verbose` / `--no-verbose` | `EMB_VERBOSE` | Enable verbose output |
-| `--flavor <name>` | `EMB_FLAVOR` | Use a specific flavor configuration |
-| `--json` | — | Format output as JSON |
 | `--help` | — | Show help for command |
+
+Two more options are widely available but **not** universal. Passing one to a
+command that doesn't accept it fails with `Nonexistent flag`, so their scope is
+listed below. `emb <command> --help` is always authoritative.
+
+### --flavor
+
+`--flavor <name>` (env var: `EMB_FLAVOR`) selects a [flavor](/emb/advanced/flavors/).
+It is accepted by:
+
+`up`, `down`, `start`, `stop`, `restart`, `ps`, `components`, `config print`,
+`images`, `images push`, `resources`, `resources build`, `resources publish`,
+`secrets`, `secrets providers`, `secrets validate`
+
+It is **not** accepted by `clean`, `components shell`, `containers`,
+`containers prune`, `images delete`, `images prune`, `logs`, `logs archive`,
+`tasks`, `tasks run`, or any `kubernetes` command.
+
+**`emb run` does not support flavors.** `emb run` is an alias of `emb tasks run`,
+which has no `--flavor` flag — and because the flag doesn't exist there, `EMB_FLAVOR`
+is ignored too, *silently*. `EMB_FLAVOR=production emb run api:test` runs the task
+against the base configuration and prints no warning.
+
+### --json
+
+`--json` formats output as JSON. It is available on every command except:
+
+`ps`, `logs`, `components shell`, `kubernetes ps`, `kubernetes restart`,
+`kubernetes logs`, `kubernetes shell`
 
 ## Environment Variables
 
@@ -35,6 +62,11 @@ emb resources build                     # uses the production flavor, verbose
 emb resources build --flavor staging    # flag overrides EMB_FLAVOR
 emb resources build --no-verbose        # flag overrides EMB_VERBOSE
 ```
+
+An environment variable only reaches commands that declare the matching flag.
+`EMB_ROOT` and `EMB_VERBOSE` are honored everywhere, but `EMB_FLAVOR` is read only
+by the commands listed under [`--flavor`](#flavor) above — notably **not** by
+`emb run`. Exporting `EMB_FLAVOR` in CI does not flavor your task runs.
 
 For Kubernetes commands, the namespace also honors the `K8S_NAMESPACE` environment variable — see [Kubernetes Integration](/emb/advanced/kubernetes/#namespace-resolution).
 
