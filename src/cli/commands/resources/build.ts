@@ -19,8 +19,9 @@ export default class ResourcesBuildCommand extends FlavoredCommand<
   };
   static description = 'Build the resources of the monorepo';
   static examples = [
-    `<%= config.bin %> <%= command.id %> build --flavor development`,
-    `<%= config.bin %> <%= command.id %> build --publishable --flavor production`,
+    `<%= config.bin %> <%= command.id %> --flavor development`,
+    `<%= config.bin %> <%= command.id %> --publishable --flavor production`,
+    `<%= config.bin %> <%= command.id %> --jobs auto`,
   ];
   static flags = {
     'dry-run': Flags.boolean({

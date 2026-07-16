@@ -623,7 +623,7 @@ Build the resources of the monorepo
 ```
 USAGE
   $ emb resources build [COMPONENT...] [--json] [--verbose] [-C <value>] [--flavor <value>] [--dry-run] [-f]
-    [--publishable]
+    [--publishable] [-j <value>] [-k]
 
 ARGUMENTS
   [COMPONENT...]  List of resources to build (defaults to all)
@@ -631,6 +631,8 @@ ARGUMENTS
 FLAGS
   -C, --root=<value>    Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   -f, --force           Bypass the cache and force the build
+  -j, --jobs=<value>    Build up to N resources in parallel, or 'auto' (min of CPU count and 4). Default: serial (1).
+  -k, --keep-going      Keep building independent resources after a failure (fail-fast by default)
       --dry-run         Do not build the resources but only produce build meta information
       --flavor=<value>  [env: EMB_FLAVOR] Specify the flavor to use.
       --publishable     Only build resources that are publishable (publish: true) and their dependencies
@@ -643,9 +645,11 @@ DESCRIPTION
   Build the resources of the monorepo
 
 EXAMPLES
-  $ emb resources build build --flavor development
+  $ emb resources build --flavor development
 
-  $ emb resources build build --publishable --flavor production
+  $ emb resources build --publishable --flavor production
+
+  $ emb resources build --jobs auto
 ```
 
 _See code: [src/commands/resources/build.ts](https://github.com/enspirit/emb/blob/v0.30.2/src/commands/resources/build.ts)_
@@ -687,15 +691,16 @@ Restart the whole project.
 
 ```
 USAGE
-  $ emb restart [SERVICE...] [--json] [--verbose] [-C <value>] [-f]
+  $ emb restart [SERVICE...] [--json] [--verbose] [-C <value>] [--flavor <value>] [-f]
 
 ARGUMENTS
   [SERVICE...]  The service(s) to restart
 
 FLAGS
-  -C, --root=<value>  Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
-  -f, --no-deps       Don't restart dependent services
-      --[no-]verbose  [env: EMB_VERBOSE]
+  -C, --root=<value>    Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
+  -f, --no-deps         Don't restart dependent services
+      --flavor=<value>  [env: EMB_FLAVOR] Specify the flavor to use.
+      --[no-]verbose    [env: EMB_VERBOSE]
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -854,14 +859,15 @@ Starts the whole project.
 
 ```
 USAGE
-  $ emb start [SERVICE...] [--json] [--verbose] [-C <value>]
+  $ emb start [SERVICE...] [--json] [--verbose] [-C <value>] [--flavor <value>]
 
 ARGUMENTS
   [SERVICE...]  The service(s) to start
 
 FLAGS
-  -C, --root=<value>  Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
-      --[no-]verbose  [env: EMB_VERBOSE]
+  -C, --root=<value>    Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
+      --flavor=<value>  [env: EMB_FLAVOR] Specify the flavor to use.
+      --[no-]verbose    [env: EMB_VERBOSE]
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -966,7 +972,7 @@ Start the whole project.
 
 ```
 USAGE
-  $ emb up [SERVICE...] [--json] [--verbose] [-C <value>] [--flavor <value>] [-f]
+  $ emb up [SERVICE...] [--json] [--verbose] [-C <value>] [--flavor <value>] [-f] [-j <value>] [-k]
 
 ARGUMENTS
   [SERVICE...]  The service(s) to build and start
@@ -974,6 +980,8 @@ ARGUMENTS
 FLAGS
   -C, --root=<value>    Run as if emb was started in <path>. Can also be set via EMB_ROOT env var.
   -f, --force           Bypass caches, force the recreation of containers, etc
+  -j, --jobs=<value>    Build up to N resources in parallel, or 'auto' (min of CPU count and 4). Default: serial (1).
+  -k, --keep-going      Keep building independent resources after a failure (fail-fast by default)
       --flavor=<value>  [env: EMB_FLAVOR] Specify the flavor to use.
       --[no-]verbose    [env: EMB_VERBOSE]
 
