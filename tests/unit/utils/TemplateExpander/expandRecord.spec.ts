@@ -1,12 +1,47 @@
 import { describe, expect, test, vi } from 'vitest';
 
 import { TemplateExpander } from '@/utils';
+import type { Expandable } from '@/utils/TemplateExpander.js';
 
 describe('Utils / expandRecord', () => {
   const expander = new TemplateExpander();
   const expandRecordFn = vi.fn((record, opts) =>
     expander.expandRecord(record, opts),
   );
+
+  describe('non-string primitive values (non-regression)', () => {
+    const options = { sources: { env: {} } };
+
+    test('returns numbers unchanged', async () => {
+      expect(
+        await expander.expandRecord(8080 as unknown as Expandable, options),
+      ).to.equal(8080);
+    });
+
+    test('returns booleans unchanged', async () => {
+      expect(
+        await expander.expandRecord(true as unknown as Expandable, options),
+      ).to.equal(true);
+      expect(
+        await expander.expandRecord(false as unknown as Expandable, options),
+      ).to.equal(false);
+    });
+
+    test('returns null unchanged instead of throwing', async () => {
+      expect(
+        await expander.expandRecord(null as unknown as Expandable, options),
+      ).to.equal(null);
+    });
+
+    test('preserves non-string values nested in an object', async () => {
+      expect(
+        await expander.expandRecord(
+          { port: 8080, enabled: true } as unknown as Expandable,
+          options,
+        ),
+      ).to.deep.equal({ port: 8080, enabled: true });
+    });
+  });
 
   test('works as expected', async () => {
     await expandRecordFn(

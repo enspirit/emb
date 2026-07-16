@@ -1,9 +1,9 @@
 import { Args } from '@oclif/core';
 
-import { BaseCommand, getContext } from '@/cli';
+import { FlavoredCommand, getContext } from '@/cli';
 import { ComposeStartOperation } from '@/docker/index.js';
 
-export default class StartCommand extends BaseCommand {
+export default class StartCommand extends FlavoredCommand<typeof StartCommand> {
   static description = 'Starts the whole project.';
   static enableJsonFlag = true;
   static examples = ['<%= config.bin %> <%= command.id %>'];

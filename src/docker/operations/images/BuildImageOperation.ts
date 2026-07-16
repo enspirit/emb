@@ -42,6 +42,18 @@ export const BuildImageOperationInputSchema = z.object({
     .describe('Target platform for the build (e.g., linux/amd64, linux/arm64)'),
 });
 
+/**
+ * Returns a copy of the docker CLI args that is safe to write to a build log:
+ * the value of every `--build-arg key=value` token is redacted. Build args are
+ * expanded from `${vault:...}`/`${op:...}` secrets and the build log is not
+ * access-restricted, so their values must never be serialised. The arg name is
+ * kept for debuggability.
+ */
+export const redactBuildArgsForLog = (args: Array<string>): Array<string> =>
+  args.map((arg, i) =>
+    args[i - 1] === '--build-arg' ? `${arg.split('=')[0]}=***` : arg,
+  );
+
 export class BuildImageOperation extends AbstractOperation<
   typeof BuildImageOperationInputSchema,
   void
@@ -97,7 +109,10 @@ export class BuildImageOperation extends AbstractOperation<
       tee.pipe(this.out);
     }
 
-    tee.write('Building image with opts: ' + JSON.stringify(args));
+    tee.write(
+      'Building image with opts: ' +
+        JSON.stringify(redactBuildArgsForLog(args)),
+    );
 
     const child = await spawn('docker', args);
 

@@ -18,6 +18,12 @@ export class Monorepo {
   private _store!: EMBStore;
   private _managerFactory = new TaskManagerFactory();
   private initialized = false;
+  // Snapshot of the environment taken before installEnv() writes the config's
+  // env block into process.env. Used as the `env` source when expanding the
+  // config env block and flavor patches, so those self-referencing templates
+  // (e.g. `${env:VAR:-default}`) resolve against the original environment
+  // rather than values EMB itself installed for a previous flavor.
+  private _originalEnv?: Record<string, string | undefined>;
 
   constructor(
     config: EMBConfig,
@@ -153,12 +159,33 @@ export class Monorepo {
     vars?: Record<string, unknown>,
     expander = new TemplateExpander(),
   ) {
+    return this.expandWith(toExpand, {
+      vars,
+      // Runtime expansion resolves `${env:...}` against the live process.env,
+      // which includes the config's own env block installed by installEnv().
+      envSource: process.env as Record<string, unknown>,
+      expander,
+    });
+  }
+
+  private async expandWith<T extends Expandable>(
+    toExpand: T,
+    {
+      vars,
+      envSource,
+      expander = new TemplateExpander(),
+    }: {
+      vars?: Record<string, unknown>;
+      envSource: Record<string, unknown>;
+      expander?: TemplateExpander;
+    },
+  ) {
     const secrets = getContext()?.secrets;
     const sources: Record<
       string,
       ((key: string) => Promise<unknown>) | Record<string, unknown>
     > = {
-      env: process.env as Record<string, unknown>,
+      env: envSource,
       vars: vars || this.vars,
     };
 
@@ -183,13 +210,15 @@ export class Monorepo {
   }
 
   private async installEnv() {
-    // Expand env vars at the init and then we don't expand anymore
-    // The only available source for them is the existing env
+    // Expand env vars at the init and then we don't expand anymore.
+    // Expand against the original environment snapshot (not the live
+    // process.env, which a previous flavor's installEnv may have polluted) so
+    // the `${env:VAR:-default}` self-reference idiom keeps working per flavor.
     const expander = new TemplateExpander();
     const options = {
       default: 'env',
       sources: {
-        env: process.env,
+        env: this._originalEnv ?? process.env,
       },
     };
     const expanded = await expander.expandRecord(this._config.env, options);
@@ -204,16 +233,30 @@ export class Monorepo {
 
     await this.installStore();
 
-    const plugins = this._config.plugins.map((p) => {
-      const PluginClass: AbstractPluginConstructor = getPlugin(p.name);
+    const plugins = await Promise.all(
+      this._config.plugins.map(async (p) => {
+        const PluginClass: AbstractPluginConstructor = getPlugin(p.name);
 
-      return new PluginClass(p.config, this);
-    });
+        // Plugin config is part of the declaration and may contain templates:
+        // the vault/1password plugins document `${env:...}` placeholders in
+        // their config block. Expand them against the environment before the
+        // plugin ever sees the value; otherwise a literal '${env:VAULT_ADDR}'
+        // is passed straight through (e.g. as the server URL), silently
+        // bypassing the env fallback the template was meant to trigger.
+        const config = await this.expand(p.config as Expandable);
+
+        return new PluginClass(config, this);
+      }),
+    );
 
     this._config = await plugins.reduce(async (pConfig, plugin) => {
       const newConfig = await plugin.extendConfig?.(await pConfig);
       return newConfig ?? pConfig;
     }, Promise.resolve(this._config));
+
+    // Capture the environment (shell env + anything plugins such as dotenv have
+    // loaded) before installEnv() writes the config env block into process.env.
+    this._originalEnv = { ...process.env };
 
     await this.installEnv();
 
@@ -253,7 +296,13 @@ export class Monorepo {
 
         return {
           ...patch,
-          value: await this.expand(patch.value as Expandable),
+          // Flavor patches are part of the config declaration: expand their
+          // `${env:...}` templates against the original environment snapshot,
+          // not the live process.env polluted by the base flavor's installEnv.
+          value: await this.expandWith(patch.value as Expandable, {
+            envSource:
+              this._originalEnv ?? (process.env as Record<string, unknown>),
+          }),
         };
       }),
     );
@@ -307,6 +356,9 @@ export class Monorepo {
     const newConfig = new MonorepoConfig(withGlobalPatches);
 
     const repo = new Monorepo(newConfig, this._rootDir, flavorName);
+    // Reuse the base repo's environment snapshot so the flavored installEnv
+    // expands against the original environment, not the base-flavor's install.
+    repo._originalEnv = this._originalEnv;
     await repo.installStore();
     await repo.installEnv();
     return repo;

@@ -185,6 +185,29 @@ describe('TemplateExpander', () => {
       expect(result).to.equal('Password: fallback');
     });
 
+    test('substitutes values containing $ replacement patterns literally', async () => {
+      const asyncSource = vi.fn(async (key: string) => {
+        if (key === 'password') {
+          // Contains $$, $&, $` and $' which String.replace treats specially
+          return "pa$$w$&or$`d$'";
+        }
+
+        throw new Error(`Unknown key: ${key}`);
+      });
+
+      const options = {
+        sources: {
+          vault: asyncSource,
+        },
+      };
+
+      const result = await expander.expand(
+        'Secret: ${vault:password} end',
+        options,
+      );
+      expect(result).to.equal("Secret: pa$$w$&or$`d$' end");
+    });
+
     test('throws error when async source fails without default', async () => {
       const asyncSource = vi.fn(async () => {
         throw new Error('Connection failed');

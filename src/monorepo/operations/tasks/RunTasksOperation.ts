@@ -170,14 +170,14 @@ export class RunTasksOperation implements IOperation<
     );
   }
 
-  protected async runLocal(task: TaskWithScript, _out: Writable) {
+  protected async runLocal(task: TaskWithScript, out?: Writable) {
     const { monorepo } = getContext();
 
     const cwd = task.component
       ? monorepo.join(monorepo.component(task.component).rootDir)
       : monorepo.rootDir;
 
-    return monorepo.run(new ExecuteLocalCommandOperation(), {
+    return monorepo.run(new ExecuteLocalCommandOperation(out), {
       script: task.script,
       workingDir: cwd,
       interactive: task.interactive,

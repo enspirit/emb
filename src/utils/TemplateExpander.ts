@@ -131,10 +131,13 @@ export class TemplateExpander {
       }),
     );
 
-    // Build result string by replacing matches with resolved values
+    // Build result string by replacing matches with resolved values.
+    // The replacement must be a function so the value is inserted literally:
+    // a plain-string replacement would treat `$$`, `$&`, `$\`` and `$'` in the
+    // resolved value as special patterns, silently corrupting secrets.
     let result = input;
     for (const { match, value } of resolutions) {
-      result = result.replace(match, value);
+      result = result.replace(match, () => value);
     }
 
     return result.replaceAll('\\${', '${');
@@ -147,6 +150,15 @@ export class TemplateExpander {
     if (typeof record === 'string') {
       const out = await this.expand(record, options);
       return out as ExpandResult<T>;
+    }
+
+    // Non-object primitives (number, boolean, null, undefined, ...) contain no
+    // templates and are returned unchanged. Without this guard they would fall
+    // into the object branch below, where Object.entries() turns numbers and
+    // booleans into {} and throws on null — corrupting e.g. JSON-patch values
+    // like `{ op: 'replace', path: '...', value: 8080 }`.
+    if (record === null || typeof record !== 'object') {
+      return record as ExpandResult<T>;
     }
 
     if (Array.isArray(record)) {

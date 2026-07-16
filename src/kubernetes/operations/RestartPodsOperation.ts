@@ -1,4 +1,5 @@
 import { getContext } from '@';
+import { PatchStrategy, setHeaderOptions } from '@kubernetes/client-node';
 import { ListrTask } from 'listr2';
 import * as z from 'zod';
 
@@ -42,19 +43,27 @@ export class PodsRestartOperation extends AbstractOperation<
   }
 
   private async patchDeployment(namespace: string, name: string) {
-    const patch = [
-      {
-        op: 'add',
-        path: '/spec/template/metadata/annotations/kubectl.kubernetes.io~1restartedAt',
-        value: new Date().toISOString(),
+    // Use a strategic merge patch (like `kubectl rollout restart`) rather than
+    // an RFC 6902 `add`: the server rejects `add` on
+    // /spec/template/metadata/annotations/<key> when the annotations map does
+    // not yet exist (common for minimal deployments). A strategic merge creates
+    // the annotations map if absent and preserves existing entries.
+    const body = {
+      spec: {
+        template: {
+          metadata: {
+            annotations: {
+              'kubectl.kubernetes.io/restartedAt': new Date().toISOString(),
+            },
+          },
+        },
       },
-    ];
+    };
 
-    return this.context.kubernetes.apps.patchNamespacedDeployment({
-      namespace,
-      name,
-      body: patch,
-    });
+    return this.context.kubernetes.apps.patchNamespacedDeployment(
+      { namespace, name, body },
+      setHeaderOptions('Content-Type', PatchStrategy.StrategicMergePatch),
+    );
   }
 
   private async listDeployments(namespace: string): Promise<Array<string>> {

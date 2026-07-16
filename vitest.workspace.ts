@@ -6,13 +6,8 @@
  * causes path resolution issues with the tsconfig paths. This will be
  * addressed when Vitest provides better project inheritance.
  */
-import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineWorkspace } from 'vitest/config';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 const sharedConfig = {
   plugins: [
@@ -23,16 +18,12 @@ const sharedConfig = {
     }),
   ],
   resolve: {
-    alias: {
-      '@/': resolve(__dirname, './src/'),
-      '@/cli': resolve(__dirname, './src/cli/index.js'),
-      '@/config': resolve(__dirname, './src/config/index.js'),
-      '@/docker': resolve(__dirname, './src/docker/index.js'),
-      '@/monorepo': resolve(__dirname, './src/monorepo/index.js'),
-      '@/operations': resolve(__dirname, './src/operations/index.js'),
-      '@/prerequisites': resolve(__dirname, './src/prerequisites/index.js'),
-      '@/utils': resolve(__dirname, './src/utils/index.js'),
-    },
+    // Path aliases are resolved by the tsconfigPaths() plugin above, which
+    // reads tsconfig.json's `paths` and correctly remaps `.js` import
+    // specifiers to their `.ts` source. The previous hand-written alias map
+    // prefix-matched barrel entries (e.g. `@/config`), mangling subpath
+    // imports like `@/config/index.js` into `.../src/config/index.js/index.js`
+    // and making the whole CLI command graph unloadable under vitest.
     extensions: ['.js', '.ts', '.json'],
   },
 };

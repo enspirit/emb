@@ -13,7 +13,15 @@ export const computeAuto = async (
   const sources = await plugin.collect(ctx.dockerContext);
 
   if (sources.length === 0) {
-    return undefined;
+    // No git-tracked files in the context (e.g. a new component not yet
+    // `git add`ed). Returning undefined here is read downstream as a cache
+    // hit (BuildResourcesOperation: cacheHit = !sentinelData), so the image
+    // would be silently never built. We cannot determine freshness from git,
+    // so force a rebuild with the newest possible mtime.
+    return {
+      mtime: Date.now(),
+      reason: 'strategy=auto; no git-tracked files, forcing rebuild',
+    };
   }
 
   const stats = await pMap(

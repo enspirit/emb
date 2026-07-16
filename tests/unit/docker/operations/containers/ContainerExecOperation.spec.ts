@@ -18,16 +18,18 @@ describe('Docker / ContainerExecOperation', () => {
     inspect: Mock;
     modem: { demuxStream: Mock };
   };
-  let mockStream: EventEmitter;
+  let mockStream: EventEmitter & { pipe: Mock };
 
   beforeEach(async () => {
     await createTestContext();
     context = getContext();
     getContainer = context.docker.getContainer as Mock;
 
-    // Create mock stream - EventEmitter is needed for Node.js stream mocking
+    // Create mock stream - EventEmitter is needed for Node.js stream mocking.
+    // A pipe() spy is added because the raw-TTY exec path pipes the stream
+    // straight to the output instead of demultiplexing it.
     // eslint-disable-next-line unicorn/prefer-event-target
-    mockStream = new EventEmitter();
+    mockStream = Object.assign(new EventEmitter(), { pipe: vi.fn() });
 
     // Create mock exec object
     mockExec = {
@@ -187,6 +189,28 @@ describe('Docker / ContainerExecOperation', () => {
         output,
         output,
       );
+    });
+  });
+
+  describe('when interactive (a TTY is allocated)', () => {
+    test('it pipes the raw stream instead of demultiplexing it', async () => {
+      const output = new PassThrough();
+      const operation = new ContainerExecOperation(output);
+
+      setTimeout(() => {
+        mockStream.emit('end');
+      }, 10);
+
+      await operation.run({
+        container: 'test-container',
+        script: 'bash',
+        tty: true,
+      });
+
+      // With Tty=true the Docker stream is raw (no multiplex frame headers), so
+      // demuxStream would misparse it; the stream must be piped straight out.
+      expect(mockStream.pipe).toHaveBeenCalledWith(output);
+      expect(mockExec.modem.demuxStream).not.toHaveBeenCalled();
     });
   });
 

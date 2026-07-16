@@ -60,6 +60,41 @@ describe('Config - MonorepoConfig', () => {
         expect(process.env.DOCKER_TAG).to.equal('latest');
       });
     });
+
+    describe('after withFlavor()', () => {
+      test('expands flavored env against the original shell env, not the base-flavor install', async () => {
+        const originalDockerTag = process.env.DOCKER_TAG;
+        delete process.env.DOCKER_TAG;
+
+        try {
+          const cfg = structuredClone(CompleteExample);
+          cfg.flavors!.production.patches!.push({
+            op: 'replace',
+            path: '/env/DOCKER_TAG',
+            // eslint-disable-next-line no-template-curly-in-string
+            value: '${env:DOCKER_TAG:-stable}',
+          });
+
+          const repo = new Monorepo(new MonorepoConfig(cfg), '/tmp');
+          await repo.init();
+
+          // Base install writes the default-flavor value
+          expect(process.env.DOCKER_TAG).to.equal('latest');
+
+          await repo.withFlavor('production');
+
+          // The flavored fallback must win: the base-installed 'latest' must
+          // not leak into the flavored expansion.
+          expect(process.env.DOCKER_TAG).to.equal('stable');
+        } finally {
+          if (originalDockerTag === undefined) {
+            delete process.env.DOCKER_TAG;
+          } else {
+            process.env.DOCKER_TAG = originalDockerTag;
+          }
+        }
+      });
+    });
   });
 
   describe('.name', () => {
@@ -106,6 +141,24 @@ describe('Config - MonorepoConfig', () => {
       const newBuild = production.component('frontend').resources?.image
         ?.params as { target: string };
       expect(newBuild.target).to.equal('production');
+    });
+
+    test('preserves non-string (numeric) patch values', async () => {
+      const cfg = structuredClone(CompleteExample);
+      cfg.flavors!.production.patches!.push({
+        op: 'add',
+        path: '/components/frontend/resources/image/params/port',
+        value: 8080,
+      });
+
+      const repo = new Monorepo(new MonorepoConfig(cfg), '/tmp');
+      await repo.init();
+
+      const production = await repo.withFlavor('production');
+      const params = production.component('frontend').resources?.image
+        ?.params as { port: number };
+
+      expect(params.port).to.equal(8080);
     });
   });
 });

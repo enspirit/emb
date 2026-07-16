@@ -1,5 +1,12 @@
 import { execa } from 'execa';
-import { mkdir, open, statfs, utimes, writeFile } from 'node:fs/promises';
+import {
+  chmod,
+  mkdir,
+  open,
+  statfs,
+  utimes,
+  writeFile,
+} from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { Writable } from 'node:stream';
 import * as z from 'zod';
@@ -46,7 +53,13 @@ export class CreateFileOperation extends AbstractOperation<
     await mkdir(dirname(input.path), { recursive: true });
 
     if (input.content !== undefined) {
-      await writeFile(input.path, input.content);
+      // File-resource content is produced through monorepo.expand(), which
+      // resolves ${vault:...}/${op:...}/${env:...} secrets. Write it owner-only
+      // so the materialized secret is never world-readable. writeFile's mode is
+      // masked by the process umask, so force it with an explicit chmod (as
+      // VaultTokenCache does).
+      await writeFile(input.path, input.content, { mode: 0o600 });
+      await chmod(input.path, 0o600);
     } else if (input.script) {
       await execa(input.script, {
         all: true,

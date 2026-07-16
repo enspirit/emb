@@ -114,4 +114,47 @@ describe('Kubernetes / Operations / PodsRestartOperation', () => {
       expect(manager.runAll).toHaveBeenCalled();
     });
   });
+
+  describe('#patchDeployment()', () => {
+    // Called directly: the taskManager mock above resolves runAll without ever
+    // executing the per-deployment tasks, so the public path never patches.
+    test('it uses a strategic merge patch so it works when annotations are absent', async () => {
+      const operation = new PodsRestartOperation();
+
+      await (
+        operation as unknown as {
+          patchDeployment: (
+            namespace: string,
+            name: string,
+          ) => Promise<unknown>;
+        }
+      ).patchDeployment('production', 'api');
+
+      expect(
+        mockKubernetes.apps.patchNamespacedDeployment,
+      ).toHaveBeenCalledTimes(1);
+
+      const [params, options] =
+        mockKubernetes.apps.patchNamespacedDeployment.mock.calls[0];
+
+      // A strategic-merge object, NOT an RFC6902 `add` array (which the API
+      // server rejects when spec.template.metadata.annotations does not exist).
+      expect(Array.isArray(params.body)).toBe(false);
+      expect(params.body).toMatchObject({
+        spec: {
+          template: {
+            metadata: {
+              annotations: {
+                'kubectl.kubernetes.io/restartedAt': expect.any(String),
+              },
+            },
+          },
+        },
+      });
+
+      // A content-type override must be passed so the request is sent as a
+      // strategic merge patch (client-node defaults to json-patch).
+      expect(options).toBeDefined();
+    });
+  });
 });

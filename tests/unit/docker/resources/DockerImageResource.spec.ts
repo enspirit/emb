@@ -1,3 +1,4 @@
+import { resetContext, setContext } from '@';
 import { mkdir, mkdtemp, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -62,6 +63,9 @@ describe('Docker / DockerImageResource', () => {
     readFile: ReturnType<typeof vi.fn>;
     writeFile: ReturnType<typeof vi.fn>;
   };
+  // docker.getImage(ref).inspect() used by the builder's artifactExists probe.
+  // Resolves by default (image present); override per test to simulate a prune.
+  let mockInspect: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
     rootDir = await mkdtemp(join(tmpdir(), 'embDockerImage'));
@@ -99,9 +103,16 @@ describe('Docker / DockerImageResource', () => {
       join: vi.fn((path: string) => join(componentDir, path)),
       relative: vi.fn((path: string) => join('mycomponent', path)),
     } as unknown as Component;
+
+    // The builder resolves docker via getContext().docker. Default: image exists.
+    mockInspect = vi.fn().mockResolvedValue({});
+    setContext({
+      docker: { getImage: vi.fn(() => ({ inspect: mockInspect })) },
+    } as never);
   });
 
   afterEach(async () => {
+    resetContext();
     await rimraf(rootDir);
   });
 
@@ -473,14 +484,21 @@ describe('Docker / DockerImageResource', () => {
       });
     });
 
-    test('it returns undefined when there are no git-tracked files', async () => {
+    test('it forces a build when there are no git-tracked files', async () => {
       await initGit(componentDir);
-      // No files committed.
+      // No files committed -- a new component not yet `git add`ed.
 
       const builder = createBuilder();
       const result = await builder.mustBuild?.(resource);
 
-      expect(result).toBeUndefined();
+      // undefined would be read downstream as a cache hit and the image would
+      // never be built; the auto strategy forces a rebuild instead.
+      expect(result).toBeDefined();
+      expect(result).toMatchObject({
+        strategy: 'auto',
+        source: 'builtin',
+        reason: expect.stringMatching(/no git-tracked files/i),
+      });
     });
   });
 
@@ -655,6 +673,55 @@ describe('Docker / DockerImageResource', () => {
 
       expect(result).toMatchObject({
         strategy: 'always',
+        source: 'resource',
+      });
+    });
+  });
+
+  describe('#mustBuild() — built image existence', () => {
+    const baseResource: ResourceInfo<DockerImageResourceConfig> = {
+      id: 'mycomponent:docker-image',
+      name: 'docker-image',
+      component: 'mycomponent',
+      type: 'docker/image',
+      params: {},
+    };
+
+    // A fresh sentinel (newer than the watched file) would normally be a cache
+    // hit; these tests isolate the additional "is the image still there?" gate.
+    const freshSentinelWatchPaths = async (): Promise<
+      ResourceInfo<DockerImageResourceConfig>
+    > => {
+      await initGit(componentDir);
+      await commitFile(componentDir, 'Dockerfile', 'FROM node:18\n');
+      const dfStats = await stat(join(componentDir, 'Dockerfile'));
+      mockSentinelAt(mockStore, new Date(dfStats.mtime.getTime() + 60_000));
+      return {
+        ...baseResource,
+        rebuildTrigger: { strategy: 'watch-paths', paths: ['Dockerfile'] },
+      };
+    };
+
+    test('cache hit when the sentinel is fresh AND the image still exists', async () => {
+      const res = await freshSentinelWatchPaths();
+      mockInspect.mockResolvedValue({}); // image present
+
+      const builder = createBuilder({}, { rebuildTrigger: res.rebuildTrigger });
+      const result = await builder.mustBuild?.(res);
+
+      expect(result).toBeUndefined();
+    });
+
+    test('forces a rebuild when the image was pruned even though the sentinel is fresh', async () => {
+      const res = await freshSentinelWatchPaths();
+      // Image removed out-of-band (e.g. `docker system prune`).
+      mockInspect.mockRejectedValue(new Error('no such image'));
+
+      const builder = createBuilder({}, { rebuildTrigger: res.rebuildTrigger });
+      const result = await builder.mustBuild?.(res);
+
+      expect(result).toMatchObject({
+        strategy: 'watch-paths',
         source: 'resource',
       });
     });
