@@ -86,6 +86,8 @@ defaults:
   kubernetes:
     namespace: staging                           # Default namespace for K8s operations
     selectorLabel: app.kubernetes.io/component   # Label for pod selection
+  build:
+    concurrency: auto            # Build this many resources in parallel (default: 1)
 ```
 
 **Kubernetes defaults:**
@@ -94,6 +96,26 @@ defaults:
 |--------|-------------|---------|
 | `namespace` | Default Kubernetes namespace | `default` |
 | `selectorLabel` | Label name used to find component pods | `app.kubernetes.io/component` |
+
+**Build defaults:**
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `concurrency` | How many resources to build in parallel. A positive integer, or `"auto"` for min(CPU count, 4). | `1` (serial) |
+
+`defaults.build.concurrency` sets the project-wide default; `emb resources build --jobs`
+and `emb up --jobs` override it per run. Dependency order is always respected — see
+[Parallel builds](/emb/reference/cli/#parallel-builds).
+
+```yaml
+defaults:
+  build:
+    concurrency: 4      # a positive integer
+    # concurrency: auto # or min(CPU count, 4)
+```
+
+`defaults.build` rejects unknown keys, so a typo (`concurrancy`, `jobs`, `parallelism`)
+fails validation rather than being silently ignored.
 
 ### components
 

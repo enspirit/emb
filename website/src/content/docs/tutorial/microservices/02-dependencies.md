@@ -108,7 +108,7 @@ Both `api` and `worker` depend on `base`, meaning `base` must be built first.
 Without explicit dependencies, EMB might try to build `worker` before `base` exists, causing the build to fail. Dependencies ensure:
 
 1. **Correct build order** - Parents built before children
-2. **Parallel optimization** - Independent components can build simultaneously
+2. **Parallel optimization** - Independent components can build simultaneously when you opt in with `--jobs` (builds are serial by default)
 3. **Rebuild detection** - If `base` changes, dependents are rebuilt
 
 ## Next Step

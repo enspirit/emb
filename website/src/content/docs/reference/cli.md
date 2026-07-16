@@ -53,7 +53,14 @@ emb up [SERVICE...] [OPTIONS]
 
 **Options:**
 - `-f, --force` - Force recreation of containers
+- `-j, --jobs <n|auto>` - Build up to `n` resources in parallel, or `auto` for min(CPU count, 4). Defaults to serial (1).
+- `-k, --keep-going` - After a failure, keep building resources that don't depend on the failed one. Off by default (fail-fast).
 - `--flavor <name>` - Use a specific flavor
+
+`emb up` builds any required resources before starting the services. `--jobs` and
+`--keep-going` apply to that build phase only — they do not affect how the
+services themselves are started. See
+[Parallel builds](#parallel-builds) for details.
 
 **Examples:**
 ```shell
@@ -61,6 +68,7 @@ emb up                      # Start all services
 emb up api web              # Start specific services
 emb up --flavor production  # Start with production config
 emb up -f                   # Force recreate containers
+emb up -j auto              # Build resources in parallel, then start
 ```
 
 ### emb down
@@ -140,6 +148,8 @@ emb resources build [RESOURCE...] [OPTIONS]
 
 **Options:**
 - `-f, --force` - Force rebuild, bypass cache
+- `-j, --jobs <n|auto>` - Build up to `n` resources in parallel, or `auto` for min(CPU count, 4). Defaults to serial (1). Overrides `defaults.build.concurrency`.
+- `-k, --keep-going` - After a failure, keep building resources that don't depend on the failed one. Off by default (fail-fast).
 - `--dry-run` - Show what would be built without building
 - `--publishable` - Only build resources marked as publishable (and their dependencies)
 - `--flavor <name>` - Use a specific flavor
@@ -151,7 +161,44 @@ emb resources build api:image           # Build specific resource
 emb resources build -f                  # Force rebuild all
 emb resources build --flavor production # Build for production
 emb resources build --publishable       # Build only publishable resources
+emb resources build -j 4                # Build up to 4 resources in parallel
+emb resources build --jobs auto         # Parallelism = min(CPU count, 4)
+emb resources build -j auto -k          # Parallel, don't stop at the first failure
 ```
+
+#### Parallel builds
+
+By default EMB builds resources one at a time. Pass `-j`/`--jobs` to build several
+at once, or set [`defaults.build.concurrency`](/emb/reference/configuration/#defaults)
+in `.emb.yml` to make it the default for your project. The flag wins over the config.
+
+Dependency order is always respected, whatever the concurrency: a resource starts
+only once **all** of its dependencies have finished successfully, so only
+independent resources ever run at the same time. Raising `--jobs` can therefore
+speed up a wide dependency graph a lot and a deep, narrow one not at all. Resources
+still waiting on a dependency show `Waiting for <deps>` while they queue.
+
+`auto` resolves to min(CPU count, 4). The cap is deliberately conservative because
+builds are usually IO- and daemon-bound rather than CPU-bound — Docker already
+parallelises work internally, so a high `--jobs` can oversubscribe the daemon and
+end up slower.
+
+#### When a build fails
+
+By default builds are **fail-fast**: on the first failure EMB stops starting new
+resources, lets the ones already running finish, and skips the rest. With
+`-k`/`--keep-going` it instead keeps building everything that doesn't depend on the
+failure; only the failed resource's dependents are skipped, since building them
+against a missing dependency would be meaningless.
+
+Either way the command exits non-zero and ends with a `BUILD_FAILED` summary
+naming every resource that failed and every dependent that was skipped:
+
+```
+Failed to build: api:image. Skipped dependent(s): api:bundle. (<the first error>)
+```
+
+Each failing resource's own output is shown above the summary.
 
 ### emb resources publish
 

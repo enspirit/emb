@@ -37,6 +37,45 @@ EMB will:
 3. Build each component one by one
 4. Ensure dependencies complete before dependents
 
+## Building in Parallel
+
+Step 3 above is the default: one resource at a time. Since `api` and `worker` don't
+depend on each other, they can just as well build at the same time:
+
+```shell skip
+emb resources build --jobs 2
+```
+
+Now `base` builds first, then `api` and `worker` build concurrently — the dependency
+edges are still honoured, so nothing starts before its dependencies have succeeded.
+Use `--jobs auto` to let EMB pick (min of your CPU count and 4), or set it once for
+the project:
+
+```yaml
+defaults:
+  build:
+    concurrency: auto
+```
+
+The `--jobs` flag overrides the config. Parallelism only helps where the graph is
+wide: a chain of resources that each depend on the previous one builds at the same
+speed no matter what you pass.
+
+## When a Build Fails
+
+By default EMB is fail-fast: at the first failure it stops starting new resources,
+lets running ones finish, and skips the rest. Add `--keep-going` to build everything
+that doesn't depend on the failure instead:
+
+```shell skip
+emb resources build --jobs auto --keep-going
+```
+
+If `base` fails, `api` and `worker` are skipped — they depend on it, so building them
+would be pointless. But an independent component like `gateway` still builds. Either
+way the command exits non-zero and ends with a summary naming what failed and what
+was skipped as a result.
+
 ## Building a Single Component
 
 When you build a specific component:
@@ -94,6 +133,7 @@ You've learned about microservices patterns in EMB:
 - **Base images** - Shared foundations for consistency
 - **Dependencies** - Declaring build order requirements
 - **Build ordering** - Automatic resolution of the dependency graph
+- **Parallel builds** - `--jobs` to build independent resources concurrently, `--keep-going` to push past failures
 
 ## Next Tutorial
 
