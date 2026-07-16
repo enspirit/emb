@@ -66,6 +66,9 @@ export default defineWorkspace([
       },
       // Longer timeout for Docker operations
       testTimeout: 120_000,
+      // `clean --force` (image removal) in setup/teardown can exceed the
+      // default 10s hook timeout.
+      hookTimeout: 120_000,
     },
   },
   {
