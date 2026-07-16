@@ -275,4 +275,35 @@ describe('runGraph', () => {
       ),
     ).rejects.toThrow(/progress|cycle|unsatisf/i);
   });
+
+  test('calls onSettle once per node with its final status', async () => {
+    const deps: Record<string, string[]> = {
+      a: [],
+      b: ['a'],
+      c: ['b'],
+      x: [],
+    };
+    const h = makeHarness(['a', 'b', 'c', 'x']);
+    const settled: Array<[string, string]> = [];
+
+    const done = runGraph(['a', 'b', 'c', 'x'], (id) => deps[id], h.worker, {
+      concurrency: 4,
+      keepGoing: true,
+      onSettle: (id, result) => settled.push([id, result.status]),
+    });
+
+    await flush();
+    h.gates.get('a')!.reject(new Error('boom'));
+    await flush();
+    h.gates.get('x')!.resolve();
+    await done;
+
+    expect(settled).toHaveLength(4);
+    expect(Object.fromEntries(settled)).toEqual({
+      a: 'failed',
+      b: 'skipped',
+      c: 'skipped',
+      x: 'succeeded',
+    });
+  });
 });

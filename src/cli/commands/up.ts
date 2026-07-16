@@ -4,6 +4,8 @@ import { FlavoredCommand, getContext } from '@/cli';
 import { ComposeUpOperation } from '@/docker/index.js';
 import { BuildResourcesOperation } from '@/monorepo/operations/resources/BuildResourcesOperation.js';
 
+import { buildFlags } from '../buildFlags.js';
+
 export default class UpCommand extends FlavoredCommand<typeof UpCommand> {
   static description = 'Start the whole project.';
   static enableJsonFlag = true;
@@ -15,6 +17,7 @@ export default class UpCommand extends FlavoredCommand<typeof UpCommand> {
       description: 'Bypass caches, force the recreation of containers, etc',
       name: 'force',
     }),
+    ...buildFlags,
   };
   static args = {
     service: Args.string({
@@ -55,6 +58,8 @@ export default class UpCommand extends FlavoredCommand<typeof UpCommand> {
       await monorepo.run(new BuildResourcesOperation(), {
         force: flags.force,
         resources,
+        jobs: flags.jobs,
+        keepGoing: flags['keep-going'],
       });
     }
 

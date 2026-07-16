@@ -117,6 +117,9 @@ export abstract class SentinelFileBasedBuilder<
     _output: O,
     reason: SentinelData,
   ): Promise<void> {
-    this.storeSentinelData(reason);
+    // Await the write: under concurrent builds the operation awaits commit(),
+    // so the sentinel must actually be flushed before the build is considered
+    // done (previously fire-and-forget -> lost cache writes / unhandled errors).
+    await this.storeSentinelData(reason);
   }
 }

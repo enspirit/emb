@@ -14,7 +14,7 @@ export interface RunGraphResult<V> {
   value?: V;
 }
 
-export interface RunGraphOptions {
+export interface RunGraphOptions<V = unknown> {
   /** Maximum number of workers running at once (clamped to >= 1). */
   concurrency: number;
   /**
@@ -24,6 +24,12 @@ export interface RunGraphOptions {
    * only the transitive dependents of a failed node are skipped.
    */
   keepGoing?: boolean;
+  /**
+   * Called exactly once for each node when it reaches a terminal state
+   * (succeeded / failed / skipped), as it happens. Lets callers react to
+   * skips they never scheduled a worker for (e.g. mark a UI task skipped).
+   */
+  onSettle?: (id: string, result: RunGraphResult<V>) => void;
 }
 
 /**
@@ -44,13 +50,18 @@ export const runGraph = async <V>(
   nodes: string[],
   dependenciesOf: (id: string) => string[],
   worker: (id: string) => Promise<V>,
-  options: RunGraphOptions,
+  options: RunGraphOptions<V>,
 ): Promise<Map<string, RunGraphResult<V>>> => {
   const concurrency = Math.max(1, Math.floor(options.concurrency));
   const keepGoing = options.keepGoing ?? false;
 
   const results = new Map<string, RunGraphResult<V>>();
   const pending = new Set(nodes);
+
+  const settle = (id: string, result: RunGraphResult<V>) => {
+    results.set(id, result);
+    options.onSettle?.(id, result);
+  };
 
   // Reverse edges (id -> ids that depend on it), used to cascade skips.
   const dependentsOf = new Map<string, string[]>();
@@ -73,7 +84,7 @@ export const runGraph = async <V>(
       return;
     }
 
-    results.set(id, { status: 'skipped', reason });
+    settle(id, { status: 'skipped', reason });
   };
 
   // Mark every transitive dependent of a failed node as skipped.
@@ -128,10 +139,10 @@ export const runGraph = async <V>(
           .then(() => worker(id))
           .then(
             (value) => {
-              results.set(id, { status: 'succeeded', value });
+              settle(id, { status: 'succeeded', value });
             },
             (error) => {
-              results.set(id, { status: 'failed', error });
+              settle(id, { status: 'failed', error });
               if (keepGoing) {
                 skipDependents(id);
               } else {
