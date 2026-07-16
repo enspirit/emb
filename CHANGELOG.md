@@ -1,3 +1,39 @@
+## Unreleased
+
+Correctness and security fixes from a full codebase audit.
+
+* Harden secret handling
+  - Values containing `$$`, `` $` ``, `$&`, `$'` (e.g. Vault/1Password passwords) are inserted literally instead of being mangled as `String.replace` patterns
+  - Plugin config is template-expanded, so documented `${env:...}` placeholders (vault `address`/`token`, …) resolve instead of reaching the provider as literal strings
+  - `file` resources embedding secrets are written `0600` (owner-only), not world-readable
+  - Docker `--build-arg` secret values are redacted (`key=***`) from build logs
+  - Kubernetes pod exec env values and working dir are POSIX single-quoted, preventing shell expansion, command injection, and silent corruption
+
+* Fix docker image builds and caching
+  - `emb images prune` filters to this project's dangling images instead of pruning every dangling image on the host; `--all` now works
+  - `auto` rebuild strategy no longer reports a false cache hit (skipping the build) when the context has no git-tracked files
+  - A rebuild is forced when the built image was removed out-of-band (e.g. `docker system prune`)
+  - Interactive container exec output is no longer garbled (raw TTY streams are piped, not demultiplexed)
+  - `emb logs archive` honors the process exit code and flushes the log file — no false success, no truncation
+
+* Fix kubernetes operations
+  - `emb kubernetes restart` works when the pod template has no annotations (strategic merge patch, like `kubectl rollout restart`)
+  - Interactive kubernetes tasks no longer hang the CLI after the remote command exits
+
+* Fix CLI flavors and task output
+  - `start` and `restart` support flavors (`--flavor` / `EMB_FLAVOR`), consistent with `up`/`down`/`stop`/`ps`
+  - Flavored env expansion (`VAR: ${env:VAR:-flavor-default}`) is no longer polluted by the base flavor's installed values
+  - Non-string flavor JSON-patch values (numbers, booleans, null) are preserved instead of being corrupted to `{}` or crashing
+  - Local task output routes through the task renderer and per-task log file (was bypassing both)
+
+* Tooling
+  - `npm test` builds before integration tests, so they exercise current sources instead of a stale/missing `dist/`
+  - Fixed vitest path resolution so CLI command modules are unit-testable
+
+## 0.30.2 - 2026-06-10
+
+* Suppress the Node.js `punycode` deprecation warning via dependency `overrides`
+
 ## 0.30.1 - 2026-04-30
 
 * Fix `DotEnvPlugin` to load `.env` files at construction instead of `init()`
