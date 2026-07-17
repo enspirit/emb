@@ -3,7 +3,7 @@ import { Flags } from '@oclif/core';
 import { printTable } from '@oclif/table';
 
 import { FlavoredCommand, TABLE_DEFAULTS } from '@/cli';
-import { listImages, shortId } from '@/docker';
+import { listImages, projectImageTags, shortId } from '@/docker';
 import { timeAgo } from '@/utils';
 
 export type ImageInfo = {
@@ -41,9 +41,8 @@ export default class ImagesIndex extends FlavoredCommand<typeof ImagesIndex> {
     });
 
     const flatten = images.reduce((imgs, img) => {
-      const matches = (img.RepoTags || [])
-        ?.filter((tag) => tag.indexOf(context.monorepo.name) === 0)
-        .map((m) => {
+      const matches = projectImageTags(img.RepoTags, context.monorepo.name).map(
+        (m) => {
           const [name, tag] = m.split(':');
 
           return {
@@ -53,7 +52,8 @@ export default class ImagesIndex extends FlavoredCommand<typeof ImagesIndex> {
             size: img.Size,
             tag,
           };
-        });
+        },
+      );
 
       return [...imgs, ...matches];
     }, [] as Array<ImageInfo>);

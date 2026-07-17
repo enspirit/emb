@@ -3,7 +3,7 @@ import { Flags } from '@oclif/core';
 import { Listr } from 'listr2';
 
 import { BaseCommand } from '@/cli/index.js';
-import { deleteImage, listImages } from '@/docker';
+import { deleteImage, listImages, projectImageTags } from '@/docker';
 
 export default class ImagesDelete extends BaseCommand {
   static description = 'Delete project images.';
@@ -30,15 +30,13 @@ export default class ImagesDelete extends BaseCommand {
       },
     });
 
-    // De-duplicate this (also in images/index.ts)
-    // TODO: move to repo/config abstraction
-    const imageNames = images.reduce((imgs, img) => {
-      const tags = (img.RepoTags || [])?.filter(
-        (tag) => tag.indexOf(context.monorepo.name) === 0,
-      );
-
-      return [...imgs, ...tags];
-    }, [] as Array<string>);
+    const imageNames = images.reduce(
+      (imgs, img) => [
+        ...imgs,
+        ...projectImageTags(img.RepoTags, context.monorepo.name),
+      ],
+      [] as Array<string>,
+    );
 
     const runner = new Listr(
       imageNames.map((img) => {
