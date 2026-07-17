@@ -1,7 +1,9 @@
-import { describe, expect, test } from 'vitest';
+import { createTestSetup, TestSetup } from 'tests/setup/set.context.js';
+import { afterEach, describe, expect, test } from 'vitest';
 
 import {
   aggregateSecrets,
+  collectAllSecrets,
   DiscoveredSecret,
   discoverSecrets,
 } from '@/secrets/SecretDiscovery.js';
@@ -242,6 +244,53 @@ describe('Secrets / SecretDiscovery', () => {
     test('handles empty input', () => {
       const aggregated = aggregateSecrets([]);
       expect(aggregated).toHaveLength(0);
+    });
+  });
+
+  describe('#collectAllSecrets()', () => {
+    let setup: TestSetup;
+
+    afterEach(async () => {
+      await setup?.cleanup();
+    });
+
+    test('discovers and aggregates secrets across monorepo + component config', async () => {
+      setup = await createTestSetup({
+        tempDirPrefix: 'embCollectSecrets',
+        embfile: {
+          project: { name: 'test' },
+          plugins: [],
+          // Monorepo-level reference (vars). Not `env`, which the monorepo
+          // eagerly template-expands at init — discovery reads the raw config.
+          vars: {
+            DB_PASSWORD: '${vault:secret/db#password}',
+          },
+          components: {
+            // Component-level reference (a task's env)
+            api: {
+              tasks: {
+                deploy: {
+                  script: 'echo deploy',
+                  env: {
+                    API_TOKEN: '${vault:secret/api#token}',
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const result = collectAllSecrets(setup.monorepo, new Set(['vault']));
+
+      // The helper must span BOTH config levels — the property both the
+      // `secrets` and `secrets validate` commands rely on.
+      expect(
+        result.some((s) => s.path === 'secret/db' && s.key === 'password'),
+      ).toBe(true);
+      expect(
+        result.some((s) => s.path === 'secret/api' && s.key === 'token'),
+      ).toBe(true);
     });
   });
 });

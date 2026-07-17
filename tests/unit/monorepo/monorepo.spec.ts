@@ -160,5 +160,15 @@ describe('Config - MonorepoConfig', () => {
 
       expect(params.port).to.equal(8080);
     });
+
+    test('carries over the configured task renderer', async () => {
+      // e.g. `emb up --verbose --flavor production`: the verbose renderer is
+      // set on the base repo before flavoring and must survive withFlavor().
+      repo.setTaskRenderer('verbose');
+
+      const production = await repo.withFlavor('production');
+
+      expect(production.taskManager().options?.renderer).to.equal('verbose');
+    });
   });
 });

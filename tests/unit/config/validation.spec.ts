@@ -438,4 +438,43 @@ tasks:
       ).to.deep.equal(['fastlane/key.p8', 'mobile:fastlane/key.p8']);
     });
   });
+
+  describe('missing file', () => {
+    test('validateUserConfig rejects with a friendly "Could not find file" error', async () => {
+      const missing = join(tempDir, 'does-not-exist.yml');
+
+      // Not a raw ENOENT stat error — the friendly message must surface.
+      await expect(validateUserConfig(missing)).rejects.toThrow(
+        /Could not find file/,
+      );
+    });
+
+    test('validateEmbfile rejects with a friendly "Could not find file" error', async () => {
+      const missing = join(tempDir, 'nope', 'Embfile.yml');
+
+      await expect(validateEmbfile(missing)).rejects.toThrow(
+        /Could not find file/,
+      );
+    });
+  });
+
+  describe('empty document', () => {
+    test('validateUserConfig reports an empty .emb.yml clearly (not "/: must be object")', async () => {
+      // Neutral filename: the assertion must match the message, not the path.
+      const blankPath = join(tempDir, 'blank.yml');
+      // Comments-only file: yaml.parse returns null.
+      await writeFile(blankPath, '# nothing here\n');
+
+      await expect(validateUserConfig(blankPath)).rejects.toThrow(
+        /configuration file is empty/i,
+      );
+    });
+
+    test('validateEmbfile still treats an empty file as an empty component', async () => {
+      const blankPath = join(tempDir, 'Embfile.yml');
+      await writeFile(blankPath, '');
+
+      await expect(validateEmbfile(blankPath)).resolves.toEqual({});
+    });
+  });
 });

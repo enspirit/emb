@@ -4,8 +4,7 @@ import { printTable } from '@oclif/table';
 import { FlavoredCommand, TABLE_DEFAULTS } from '@/cli';
 import {
   AggregatedSecret,
-  aggregateSecrets,
-  discoverSecrets,
+  collectAllSecrets,
 } from '@/secrets/SecretDiscovery.js';
 
 export interface SecretInfo {
@@ -32,43 +31,8 @@ export default class SecretsIndex extends FlavoredCommand<typeof SecretsIndex> {
     // Get registered secret providers dynamically
     const secretProviders = new Set(secrets.getProviderNames());
 
-    // Collect secrets from all configuration sources
-    const allSecrets: ReturnType<typeof discoverSecrets> = [];
-
-    // Scan monorepo-level config (env, vars, tasks, defaults, flavors)
-    allSecrets.push(
-      ...discoverSecrets(
-        {
-          env: monorepo.config.env,
-          vars: monorepo.config.vars,
-          tasks: monorepo.config.tasks,
-          defaults: monorepo.config.defaults,
-          flavors: monorepo.config.flavors,
-        },
-        { file: '.emb.yml' },
-        secretProviders,
-      ),
-    );
-
-    // Scan each component's config
-    for (const component of monorepo.components) {
-      allSecrets.push(
-        ...discoverSecrets(
-          {
-            tasks: component.config.tasks,
-            resources: component.config.resources,
-          },
-          {
-            file: `${component.name}/Embfile.yml`,
-            component: component.name,
-          },
-          secretProviders,
-        ),
-      );
-    }
-
-    // Aggregate by unique secret reference
-    const aggregated = aggregateSecrets(allSecrets);
+    // Collect and aggregate secrets from all configuration sources
+    const aggregated = collectAllSecrets(monorepo, secretProviders);
 
     // Convert to output format
     const result: SecretInfo[] = aggregated.map((secret: AggregatedSecret) => ({

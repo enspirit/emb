@@ -58,13 +58,18 @@ export class EMBStore {
   }
 
   join(path: string) {
-    return join(this.path, this.monorepo.currentFlavor, path);
+    // Confine every path to the per-flavor store directory: anchoring at '/'
+    // and normalizing collapses any leading/interspersed '..' segments so they
+    // cannot climb above the flavor root. This must live here (not just in
+    // mkdirp) because writeFile/readFile/stat/streams all build their target
+    // through join() — otherwise mkdirp and the actual file op disagree and a
+    // '..' path escapes the sandbox (or ENOENTs on a mismatched parent).
+    const confined = normalize(join('/', path));
+    return join(this.path, this.monorepo.currentFlavor, confined);
   }
 
   async mkdirp(path: string) {
-    // Avoid getting out of the store by ensuring nothing goes past ../
-    const normalized = normalize(join('/', path));
-    await mkdir(this.join(normalized), { recursive: true });
+    await mkdir(this.join(path), { recursive: true });
   }
 
   async stat(path: string, mustExist = true) {
