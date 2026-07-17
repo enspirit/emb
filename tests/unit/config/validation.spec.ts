@@ -457,4 +457,24 @@ tasks:
       );
     });
   });
+
+  describe('empty document', () => {
+    test('validateUserConfig reports an empty .emb.yml clearly (not "/: must be object")', async () => {
+      // Neutral filename: the assertion must match the message, not the path.
+      const blankPath = join(tempDir, 'blank.yml');
+      // Comments-only file: yaml.parse returns null.
+      await writeFile(blankPath, '# nothing here\n');
+
+      await expect(validateUserConfig(blankPath)).rejects.toThrow(
+        /configuration file is empty/i,
+      );
+    });
+
+    test('validateEmbfile still treats an empty file as an empty component', async () => {
+      const blankPath = join(tempDir, 'Embfile.yml');
+      await writeFile(blankPath, '');
+
+      await expect(validateEmbfile(blankPath)).resolves.toEqual({});
+    });
+  });
 });
