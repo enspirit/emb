@@ -13,6 +13,10 @@ export class TaskManagerFactory<
 > {
   constructor(private renderer: ListrRendererValue = 'default') {}
 
+  getRenderer(): ListrRendererValue {
+    return this.renderer;
+  }
+
   setRenderer(renderer: ListrRendererValue) {
     this.renderer = renderer;
   }

@@ -359,6 +359,11 @@ export class Monorepo {
     // Reuse the base repo's environment snapshot so the flavored installEnv
     // expands against the original environment, not the base-flavor's install.
     repo._originalEnv = this._originalEnv;
+    // Carry over the configured renderer: BaseCommand.init() may have called
+    // setTaskRenderer('verbose') on the base repo before flavoring, and the
+    // fresh Monorepo's factory would otherwise fall back to the default one —
+    // silently dropping --verbose when combined with --flavor.
+    repo.setTaskRenderer(this._managerFactory.getRenderer());
     await repo.installStore();
     await repo.installEnv();
     return repo;
