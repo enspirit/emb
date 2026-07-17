@@ -8,6 +8,7 @@ import {
   PluginConfig,
   ProjectConfig,
   ProjectFlavorConfig,
+  TaskConfig,
 } from '@/config';
 
 export class MonorepoConfig implements EMBConfig {
@@ -59,9 +60,25 @@ export class MonorepoConfig implements EMBConfig {
       flavors: this.flavors,
       plugins: this.plugins,
       project: this.project,
-      tasks: this.tasks,
+      tasks: this.serializableTasks(),
       vars: this.vars,
     });
+  }
+
+  /**
+   * The constructor runs tasks through toIdentifedHash, which stamps each with
+   * synthesized `id`/`name` (and `component`) keys for runtime resolution.
+   * Those are not part of the declarative config — TaskConfig forbids them —
+   * so strip them when serializing, otherwise the output of `emb config print`
+   * fails its own re-validation.
+   */
+  private serializableTasks(): Record<string, TaskConfig> {
+    return Object.fromEntries(
+      Object.entries(this.tasks).map(([key, task]) => {
+        const { component: _c, id: _id, name: _name, ...rest } = task;
+        return [key, rest];
+      }),
+    );
   }
 
   with(overrides: Partial<EMBConfig>): MonorepoConfig {

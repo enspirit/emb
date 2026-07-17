@@ -1,9 +1,21 @@
 import { cwd } from 'node:process';
 import { beforeEach, describe, expect, it, test } from 'vitest';
 
+import { validateUserConfig } from '@/config/validation.js';
 import { MonorepoConfig } from '@/monorepo';
 
 import { CompleteExample } from '../../../fixtures/complete-example.js';
+
+const monorepoConfigWithTopLevelTask = () =>
+  new MonorepoConfig({
+    components: {},
+    project: { name: 'proj', rootDir: '/tmp' },
+    tasks: {
+      status: {
+        script: 'git status',
+      },
+    },
+  });
 
 describe('Config - MonorepoConfig', () => {
   let config: MonorepoConfig;
@@ -105,6 +117,26 @@ describe('Config - MonorepoConfig', () => {
       expect(config.component('frontend')).to.deep.equal(
         CompleteExample.components?.frontend,
       );
+    });
+  });
+
+  describe('#toJSON', () => {
+    test('does not leak synthesized id/name into tasks', () => {
+      const json = monorepoConfigWithTopLevelTask().toJSON();
+
+      // The constructor stamps id/name onto tasks for runtime resolution;
+      // those synthesized keys must not escape through serialization.
+      expect(json.tasks!.status).not.to.have.property('id');
+      expect(json.tasks!.status).not.to.have.property('name');
+      expect(json.tasks!.status.script).to.equal('git status');
+    });
+
+    test('output re-validates cleanly (round-trip through the schema)', async () => {
+      const json = monorepoConfigWithTopLevelTask().toJSON();
+
+      // This is exactly what `emb config print` emits — it must not carry
+      // `unknown property 'id'` and fail its own validation.
+      await expect(validateUserConfig(json)).resolves.toBeDefined();
     });
   });
 
