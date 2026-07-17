@@ -438,4 +438,23 @@ tasks:
       ).to.deep.equal(['fastlane/key.p8', 'mobile:fastlane/key.p8']);
     });
   });
+
+  describe('missing file', () => {
+    test('validateUserConfig rejects with a friendly "Could not find file" error', async () => {
+      const missing = join(tempDir, 'does-not-exist.yml');
+
+      // Not a raw ENOENT stat error — the friendly message must surface.
+      await expect(validateUserConfig(missing)).rejects.toThrow(
+        /Could not find file/,
+      );
+    });
+
+    test('validateEmbfile rejects with a friendly "Could not find file" error', async () => {
+      const missing = join(tempDir, 'nope', 'Embfile.yml');
+
+      await expect(validateEmbfile(missing)).rejects.toThrow(
+        /Could not find file/,
+      );
+    });
+  });
 });

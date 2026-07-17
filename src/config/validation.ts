@@ -31,12 +31,17 @@ export const validateUserConfig = async (
   const file = typeof pathOrObject === 'string' ? pathOrObject : '.emb.yml';
 
   if (typeof pathOrObject === 'string') {
-    if (await stat(pathOrObject)) {
-      const cfgYaml = (await readFile(pathOrObject)).toString();
-      embConfig = yaml.parse(cfgYaml.toString()) as EMBConfig;
-    } else {
+    // stat() resolves to a (truthy) Stats object or rejects — it is never
+    // falsy, so an `if (await stat(...))` else-branch is dead and a missing
+    // file surfaces a raw ENOENT. Catch it to keep the friendly message.
+    try {
+      await stat(pathOrObject);
+    } catch {
       throw new Error(`Could not find file: ${pathOrObject}`);
     }
+
+    const cfgYaml = (await readFile(pathOrObject)).toString();
+    embConfig = yaml.parse(cfgYaml.toString()) as EMBConfig;
   } else {
     embConfig = pathOrObject as EMBConfig;
   }
@@ -54,12 +59,16 @@ export const validateEmbfile = async (pathOrObject: string | unknown) => {
   const file = typeof pathOrObject === 'string' ? pathOrObject : 'Embfile';
 
   if (typeof pathOrObject === 'string') {
-    if (await stat(pathOrObject)) {
-      const cfgYaml = (await readFile(pathOrObject)).toString();
-      component = yaml.parse(cfgYaml.toString()) as ComponentConfig;
-    } else {
+    // See validateUserConfig: stat() never resolves falsy, so catch the
+    // rejection to surface the friendly message instead of a raw ENOENT.
+    try {
+      await stat(pathOrObject);
+    } catch {
       throw new Error(`Could not find file: ${pathOrObject}`);
     }
+
+    const cfgYaml = (await readFile(pathOrObject)).toString();
+    component = yaml.parse(cfgYaml.toString()) as ComponentConfig;
   } else {
     component = pathOrObject as ComponentConfig;
   }
