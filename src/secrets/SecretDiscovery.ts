@@ -1,3 +1,5 @@
+import type { Monorepo } from '@/monorepo';
+
 /**
  * Location where a secret reference was found.
  */
@@ -144,4 +146,57 @@ export function aggregateSecrets(
   }
 
   return [...map.values()];
+}
+
+/**
+ * Discover every secret reference across a whole monorepo — the top-level
+ * config (env, vars, tasks, defaults, flavors) plus each component's config
+ * (tasks, resources) — and aggregate them by unique provider+path+key.
+ *
+ * This is the single source of truth for the `secrets` and `secrets validate`
+ * commands, which previously carried identical copies of this scan.
+ *
+ * @param monorepo - The initialized monorepo to scan
+ * @param secretProviders - Set of registered secret provider names to look for
+ * @returns Aggregated secret references, deduplicated across all locations
+ */
+export function collectAllSecrets(
+  monorepo: Monorepo,
+  secretProviders: Set<string>,
+): AggregatedSecret[] {
+  const discovered: DiscoveredSecret[] = [];
+
+  // Monorepo-level config (env, vars, tasks, defaults, flavors)
+  discovered.push(
+    ...discoverSecrets(
+      {
+        env: monorepo.config.env,
+        vars: monorepo.config.vars,
+        tasks: monorepo.config.tasks,
+        defaults: monorepo.config.defaults,
+        flavors: monorepo.config.flavors,
+      },
+      { file: '.emb.yml' },
+      secretProviders,
+    ),
+  );
+
+  // Each component's config (tasks, resources)
+  for (const component of monorepo.components) {
+    discovered.push(
+      ...discoverSecrets(
+        {
+          tasks: component.config.tasks,
+          resources: component.config.resources,
+        },
+        {
+          file: `${component.name}/Embfile.yml`,
+          component: component.name,
+        },
+        secretProviders,
+      ),
+    );
+  }
+
+  return aggregateSecrets(discovered);
 }
