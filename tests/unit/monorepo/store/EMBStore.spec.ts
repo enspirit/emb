@@ -5,6 +5,15 @@ import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 
 import { EMBStore, Monorepo } from '@/monorepo';
 
+const fileExists = async (p: string): Promise<boolean> => {
+  try {
+    await stat(p);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 describe('Monorepo / Store / EMBStore', () => {
   let tempDir: string;
   let monorepo: Monorepo;
@@ -74,6 +83,18 @@ describe('Monorepo / Store / EMBStore', () => {
       // Default flavor is 'default'
       expect(path).toBe(join(tempDir, '.emb', 'default', 'logs/test.log'));
     });
+
+    test('it confines ".." segments to the flavor directory', () => {
+      const store = new EMBStore(monorepo);
+      const base = join(tempDir, '.emb', 'default');
+
+      // mkdirp already normalizes; join() must agree, otherwise reads/writes
+      // escape the per-flavor sandbox the store documents.
+      expect(store.join('../escape.txt')).toBe(join(base, 'escape.txt'));
+      expect(store.join('../../../etc/passwd')).toBe(
+        join(base, 'etc', 'passwd'),
+      );
+    });
   });
 
   describe('#writeFile() and #readFile()', () => {
@@ -95,6 +116,19 @@ describe('Monorepo / Store / EMBStore', () => {
       const content = await store.readFile('deep/nested/path/file.txt');
 
       expect(content).toBe('nested content');
+    });
+
+    test('writeFile keeps a "../" path inside the flavor directory', async () => {
+      const store = new EMBStore(monorepo);
+      await store.init();
+
+      await store.writeFile('../escape.txt', 'nope');
+
+      // Must land inside <store>/<flavor>/, not escape up to <store>/.
+      const inside = join(tempDir, '.emb', 'default', 'escape.txt');
+      const escaped = join(tempDir, '.emb', 'escape.txt');
+      expect(await fileExists(inside)).toBe(true);
+      expect(await fileExists(escaped)).toBe(false);
     });
 
     test('readFile throws when file does not exist and mustExist is true', async () => {
