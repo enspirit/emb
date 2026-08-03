@@ -3,6 +3,7 @@ import { Args, Flags } from '@oclif/core';
 import { PassThrough } from 'node:stream';
 
 import { KubernetesCommand } from '@/cli';
+import { getKubernetesClient } from '@/kubernetes/client.js';
 import { GetComponentPodOperation } from '@/kubernetes/operations/index.js';
 
 export default class KubernetesLogs extends KubernetesCommand {
@@ -28,7 +29,8 @@ export default class KubernetesLogs extends KubernetesCommand {
 
   public async run(): Promise<void> {
     const { flags, args } = await this.parse(KubernetesLogs);
-    const { monorepo, kubernetes } = this.context;
+    const { monorepo } = this.context;
+    const kubernetes = await getKubernetesClient();
     const namespace = this.resolveNamespace(flags.namespace);
 
     const component = monorepo.component(args.component);

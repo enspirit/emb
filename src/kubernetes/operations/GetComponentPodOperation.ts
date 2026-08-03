@@ -1,7 +1,9 @@
-import { V1Pod } from '@kubernetes/client-node';
+import type { V1Pod } from '@kubernetes/client-node';
+
 import * as z from 'zod';
 
 import { CliError } from '@/errors.js';
+import { getKubernetesClient } from '@/kubernetes/client.js';
 import { Component } from '@/monorepo';
 import { AbstractOperation } from '@/operations';
 
@@ -28,7 +30,8 @@ export class GetComponentPodOperation extends AbstractOperation<
   protected async _run(
     input: z.input<typeof schema>,
   ): Promise<GetComponentPodOutput> {
-    const { kubernetes, monorepo } = this.context;
+    const { monorepo } = this.context;
+    const kubernetes = await getKubernetesClient();
     const { component, namespace } = input;
 
     const k8sConfig = component.config.kubernetes;

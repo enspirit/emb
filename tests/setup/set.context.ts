@@ -7,7 +7,6 @@ import { CompleteExample } from 'tests/fixtures/complete-example.js';
 import { vi } from 'vitest';
 
 import { EMBConfig } from '@/config';
-import { createKubernetesClient } from '@/kubernetes/client.js';
 import { Monorepo, MonorepoConfig } from '@/monorepo';
 
 /**
@@ -45,7 +44,10 @@ export async function createTestContext(
 
   const ctx: EmbContext = {
     docker: overrides.docker ?? vi.mockObject(new Dockerode()),
-    kubernetes: overrides.kubernetes ?? vi.mockObject(createKubernetesClient()),
+    // Left undefined unless a test injects one. Building a real client would
+    // load 14.5MB of Kubernetes SDK into every test file for a shape that only
+    // Kubernetes tests need — and those supply their own mock.
+    kubernetes: overrides.kubernetes,
     monorepo,
     compose,
     secrets: overrides.secrets ?? new SecretManager(),
@@ -131,7 +133,7 @@ export async function createTestSetup(
   // Create context
   const ctx: EmbContext = {
     docker: context.docker ?? vi.mockObject({} as never),
-    kubernetes: context.kubernetes ?? vi.mockObject(createKubernetesClient()),
+    kubernetes: context.kubernetes,
     monorepo,
     compose,
     secrets,

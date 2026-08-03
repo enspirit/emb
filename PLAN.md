@@ -193,26 +193,39 @@ already uses type-only imports, which are erased at compile time).
 **Risk:** low — the accessor stays synchronous, so no call site changes.
 **Measured:** −96 ms (prototype).
 
-### Phase 3 — Lazy Kubernetes client — highest value, do this next
+### Phase 3 — Lazy Kubernetes client — DONE
 
-**After Phase 1 this is the single edge holding 14.5 MB — two thirds of
-everything `emb ps` parses — in the graph.** Originally sequenced third; it
-should be done first.
+`createKubernetesClient()` is gone from `BaseCommand.init()`. `EmbContext.kubernetes`
+is now optional and populated on first use.
 
-Remove `createKubernetesClient()` from `BaseCommand.init()` entirely. It belongs
-in `KubernetesCommand.init()`, which already exists and which every k8s command
-extends.
+**Deviation from the original design.** The plan was to move construction into
+`KubernetesCommand.init()`. That does not cover `RunTasksOperation`'s
+`kubernetes` executor, which runs under `tasks run` — an ordinary
+`FlavoredCommand`. Instead `src/kubernetes/client.ts` exposes:
 
-`@kubernetes/client-node` is ESM, so unlike `dockerode` it cannot be pulled in
-synchronously — hence moving the construction rather than wrapping it in a
-getter. `RunTasksOperation` constructs it on demand in its `kubernetes` executor
-branch instead.
+```ts
+getKubernetesClient(): Promise<KubernetesClient>  // memoised on the context
+createKubernetesClient(): Promise<KubernetesClient>  // always fresh
+```
 
-**Risk:** medium — needs a check that no non-`KubernetesCommand` path reads
-`context.kubernetes`. Integration tests under `tests/integration` cover the k8s
-commands.
+`getKubernetesClient()` returns `context.kubernetes` when already set, so a
+client injected by a test or a plugin wins over building a real one. The seven
+call sites that read `context.kubernetes` now `await` it; all were already in
+async functions.
 
-### Phase 4 — Dynamic import of k8s operations in `RunTasksOperation`
+The import inside is dynamic. Note `require(esm)` *does* work for this package
+on Node 22.22, which would have allowed a synchronous accessor and zero call-site
+changes — but it only landed unflagged in Node 22.12 and `engines` allows
+`>=22.0.0`, so it would break users on 22.0–22.11.
+
+Type-only imports of the SDK (`V1Pod`, `V1Status`) were made explicit with
+`import type` so they cannot silently re-enter the runtime graph.
+
+**Alone, this changed nothing** — 2116 modules before and after. A second route
+was still live, which the single-path import tracer had hidden by only reporting
+the shortest path. Cutting one of two edges to a package cuts nothing.
+
+### Phase 4 — Dynamic import of k8s operations in `RunTasksOperation` — DONE
 
 ```ts
 - import { GetComponentPodOperation, PodExecOperation } from '@/kubernetes/operations/index.js';
@@ -220,9 +233,20 @@ commands.
 + const { GetComponentPodOperation, PodExecOperation } = await import('@/kubernetes/operations/index.js');
 ```
 
-`runKubernetes()` is already `async`, so this is a local change.
+This was the second edge. **Together with Phase 3 it removes
+`@kubernetes/client-node` from the `emb ps` graph entirely: 2116 → 1171 modules,
+21.20 MB → 5.30 MB, and `emb ps` 1683 → 1125 ms.**
 
-**Risk:** low. **Measured:** −74 modules, −700 KB.
+Lesson for the remaining phases: verify with `bench:modules`, not with a path
+trace. A package is only gone when *every* edge to it is cut.
+
+#### Test-suite side effect
+
+`tests/setup/set.context.ts` built a real Kubernetes client purely to give
+`vi.mockObject` a shape. Once the import became dynamic that cost 337 ms per
+call, which pushed 19 tests past their 5 s timeout. The client is now simply
+left undefined — every test that exercises Kubernetes already injects its own
+mock. The unit suite went from 39 s to 21 s as a result.
 
 ### Phase 5 — De-barrel `BaseCommand` and `DockerImageResource`
 
@@ -278,21 +302,30 @@ should resolve it; if not, it needs fixing on its own merits.
 All figures from klaro, `oclif.manifest.json` present, median of 3 batches x 6
 runs. Noise band is ~150 ms.
 
-| | baseline | after Phase 1 |
-| --- | --- | --- |
-| node boot | 101 ms | 94 ms |
-| `emb --version` | 199 ms | 191 ms |
-| `emb tasks` | 1267 ms | 1263 ms |
-| **`emb ps`** | **1683 ms** | **1452 ms** |
-| `docker compose ps` | 429 ms | 448 ms |
-| modules for `emb ps` | 2116 / 21.20 MB | 2116 / 21.20 MB |
+| | baseline | Phase 1 | Phases 3+4 |
+| --- | --- | --- | --- |
+| node boot | 101 ms | 94 ms | 86 ms |
+| `emb --version` | 199 ms | 191 ms | 195 ms |
+| `emb tasks` | 1267 ms | 1263 ms | **922 ms** |
+| **`emb ps`** | **1683 ms** | 1452 ms | **1125 ms** |
+| `docker compose ps` | 429 ms | 448 ms | 407 ms |
+| modules for `emb ps` | 2116 / 21.20 MB | 2116 / 21.20 MB | **1171 / 5.30 MB** |
 
-The 231 ms drop in `emb ps` is **not confidently attributable**. Module counts
-are identical, so nothing stopped being loaded. A plausible mechanism exists —
-26 fewer edges into a `export *` barrel means less ESM re-export linking — but
-the delta is only just outside the noise band and `docker compose ps` moved the
-other way over the same interval. Treat Phase 1 as structurally motivated, not
-as a measured win, and re-check once Phase 3 lands.
+**`emb ps` is down 33% (−558 ms) and parses 75% less JavaScript.** Batch spread
+at Phases 3+4 was tight (1125 / 1135 / 1120), so this one is solid.
+
+The 231 ms Phase 1 drop remains **unattributed** — module counts were identical,
+so nothing stopped being loaded, and it sat only just outside the noise band.
+Phases 3+4 measured from the original baseline regardless, so nothing is
+double-counted here.
+
+Remaining weight in `emb ps`, and which phase takes it:
+
+| package | source | phase |
+| --- | --- | --- |
+| `@grpc/grpc-js` + `ssh2` + `protobufjs` | 1.54 MB | 2 (all three arrive via `dockerode`) |
+| `lodash` (via `graphlib`) | 144 KB | 6 |
+| `zod`, `@oclif/core`, `yaml`, `ajv` | 1.29 MB | genuinely needed |
 
 ## Expected outcome
 

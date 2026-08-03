@@ -3,6 +3,7 @@ import { ListrTask } from 'listr2';
 import * as z from 'zod';
 
 import { getContext } from '@/context.js';
+import { getKubernetesClient } from '@/kubernetes/client.js';
 import { AbstractOperation } from '@/operations';
 
 const schema = z.object({
@@ -60,17 +61,19 @@ export class PodsRestartOperation extends AbstractOperation<
       },
     };
 
-    return this.context.kubernetes.apps.patchNamespacedDeployment(
+    const { apps } = await getKubernetesClient();
+
+    return apps.patchNamespacedDeployment(
       { namespace, name, body },
       setHeaderOptions('Content-Type', PatchStrategy.StrategicMergePatch),
     );
   }
 
   private async listDeployments(namespace: string): Promise<Array<string>> {
-    const { items } =
-      await this.context.kubernetes.apps.listNamespacedDeployment({
-        namespace,
-      });
+    const { apps } = await getKubernetesClient();
+    const { items } = await apps.listNamespacedDeployment({
+      namespace,
+    });
 
     return items.map((i) => i.metadata?.name) as Array<string>;
   }

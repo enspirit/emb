@@ -1,7 +1,8 @@
 import { Flags } from '@oclif/core';
 import { printTable } from '@oclif/table';
 
-import { getContext, KubernetesCommand, TABLE_DEFAULTS } from '@/cli';
+import { KubernetesCommand, TABLE_DEFAULTS } from '@/cli';
+import { getKubernetesClient } from '@/kubernetes/client.js';
 import { timeAgo } from '@/utils/time.js';
 
 export default class KPSCommand extends KubernetesCommand {
@@ -17,7 +18,7 @@ export default class KPSCommand extends KubernetesCommand {
 
   public async run(): Promise<void> {
     const { flags } = await this.parse(KPSCommand);
-    const { kubernetes } = getContext();
+    const kubernetes = await getKubernetesClient();
     const namespace = this.resolveNamespace(flags.namespace);
 
     const { items } = await kubernetes.core.listNamespacedPod({

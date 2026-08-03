@@ -1,7 +1,9 @@
-import { V1Pod } from '@kubernetes/client-node';
+import type { V1Pod } from '@kubernetes/client-node';
+
 import * as z from 'zod';
 
 import { getContext } from '@/context.js';
+import { getKubernetesClient } from '@/kubernetes/client.js';
 import { AbstractOperation } from '@/operations';
 
 const schema = z.object({
@@ -18,7 +20,8 @@ export class GetDeploymentPodsOperation extends AbstractOperation<
   }
 
   protected async _run(input: z.input<typeof schema>): Promise<Array<V1Pod>> {
-    const { kubernetes, monorepo } = getContext();
+    const { monorepo } = getContext();
+    const kubernetes = await getKubernetesClient();
 
     const selectorLabel =
       monorepo.config.defaults?.kubernetes?.selectorLabel ??
