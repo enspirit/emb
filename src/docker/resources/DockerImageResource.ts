@@ -1,6 +1,5 @@
 import type { Ignore } from '@balena/dockerignore';
 
-import { getContext } from '@';
 import * as dockerignoreModule from '@balena/dockerignore';
 import { fdir as Fdir } from 'fdir';
 import { readFile, statfs } from 'node:fs/promises';
@@ -9,6 +8,7 @@ import { join as posixJoin } from 'node:path/posix';
 import { Transform, Writable } from 'node:stream';
 
 import { DockerPublishConfig } from '@/config/schema.js';
+import { getContext } from '@/context.js';
 import { ResourceInfo, SentinelFileBasedBuilder } from '@/monorepo';
 import { OpInput, OpOutput } from '@/operations/index.js';
 

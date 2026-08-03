@@ -1,8 +1,8 @@
-import { getContext } from '@';
 import { PatchStrategy, setHeaderOptions } from '@kubernetes/client-node';
 import { ListrTask } from 'listr2';
 import * as z from 'zod';
 
+import { getContext } from '@/context.js';
 import { AbstractOperation } from '@/operations';
 
 const schema = z.object({

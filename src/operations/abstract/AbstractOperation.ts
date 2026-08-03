@@ -1,6 +1,8 @@
-import { EmbContext, getContext } from '@';
 import * as z from 'zod';
 
+import type { EmbContext } from '@/types.js';
+
+import { getContext } from '@/context.js';
 import { IOperation } from '@/operations';
 
 export type OpInput<A extends AbstractOperation<z.Schema, unknown>> =

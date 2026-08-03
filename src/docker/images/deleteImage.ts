@@ -1,4 +1,4 @@
-import { getContext } from '@';
+import { getContext } from '@/context.js';
 
 export type ImageRemoveOptions = {
   force?: boolean;

@@ -1,7 +1,7 @@
-import { getContext } from '@';
 import { PruneContainersInfo } from 'dockerode';
 
 import { BaseCommand } from '@/cli/abstract/BaseCommand.js';
+import { getContext } from '@/context.js';
 import { PruneContainersOperation } from '@/docker';
 
 export default class ContainersPrune extends BaseCommand {

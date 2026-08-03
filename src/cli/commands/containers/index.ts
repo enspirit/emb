@@ -1,9 +1,9 @@
-import { getContext } from '@';
 import { Flags } from '@oclif/core';
 import { printTable } from '@oclif/table';
 import { ContainerInfo } from 'dockerode';
 
 import { BaseCommand, TABLE_DEFAULTS } from '@/cli';
+import { getContext } from '@/context.js';
 import { ListContainersOperation, shortId } from '@/docker';
 import { timeAgo } from '@/utils';
 

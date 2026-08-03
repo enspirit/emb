@@ -1,9 +1,9 @@
-import { getContext } from '@';
 import { input } from '@inquirer/prompts';
 import { ListrInquirerPromptAdapter } from '@listr2/prompt-adapter-inquirer';
 import { ListrTask } from 'listr2';
 import { PassThrough, Writable } from 'node:stream';
 
+import { getContext } from '@/context.js';
 import { ContainerExecOperation } from '@/docker';
 import {
   GetComponentPodOperation,

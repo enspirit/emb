@@ -1,7 +1,7 @@
-import { getContext } from '@';
 import { V1Pod } from '@kubernetes/client-node';
 import * as z from 'zod';
 
+import { getContext } from '@/context.js';
 import { AbstractOperation } from '@/operations';
 
 const schema = z.object({
