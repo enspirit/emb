@@ -3,6 +3,7 @@ import { join } from 'node:path/posix';
 import { Transform, Writable } from 'node:stream';
 import * as z from 'zod';
 
+import { getDockerClient } from '@/docker/client.js';
 import { getDockerAuthConfig } from '@/docker/credentials.js';
 import { ResourceFactory } from '@/monorepo/resources/ResourceFactory.js';
 import { AbstractOperation } from '@/operations';
@@ -92,7 +93,7 @@ export class PushImagesOperation extends AbstractOperation<
 
     // Retag if necessary
     if (retag || registry) {
-      const dockerImage = await this.context.docker.getImage(fullName);
+      const dockerImage = await getDockerClient().getImage(fullName);
 
       tag = retag || tag;
       imgName = registry ? join(registry, imgName) : imgName;
@@ -108,7 +109,7 @@ export class PushImagesOperation extends AbstractOperation<
 
   private async pushImage(repo: string, tag: string, out?: Writable) {
     const imageRef = `${repo}:${tag}`;
-    const dockerImage = await this.context.docker.getImage(imageRef);
+    const dockerImage = await getDockerClient().getImage(imageRef);
 
     const authconfig = await getDockerAuthConfig(imageRef);
     const stream = await dockerImage.push(authconfig ? { authconfig } : {});
@@ -136,7 +137,7 @@ export class PushImagesOperation extends AbstractOperation<
     stream.pipe(transform).pipe(process.stdout);
 
     await new Promise((resolve, reject) => {
-      this.context.docker.modem.followProgress(stream, (err, data) => {
+      getDockerClient().modem.followProgress(stream, (err, data) => {
         if (err) {
           return reject(err);
         }

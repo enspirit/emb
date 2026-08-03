@@ -1,6 +1,7 @@
 import { ContainerInfo } from 'dockerode';
 import * as z from 'zod';
 
+import { getDockerClient } from '@/docker/client.js';
 import { AbstractOperation } from '@/operations';
 
 /**
@@ -52,7 +53,7 @@ export class ListContainersOperation extends AbstractOperation<
       filters = undefined;
     }
 
-    return this.context.docker.listContainers({
+    return getDockerClient().listContainers({
       all: input?.all,
       filters,
       limit: input?.limit,

@@ -1,6 +1,7 @@
 import { PruneImagesInfo } from 'dockerode';
 import * as z from 'zod';
 
+import { getDockerClient } from '@/docker/client.js';
 import { AbstractOperation } from '@/operations';
 
 /**
@@ -39,7 +40,7 @@ export class PruneImagesOperation extends AbstractOperation<
       filters = undefined;
     }
 
-    return this.context.docker.pruneImages({
+    return getDockerClient().pruneImages({
       filters,
     });
   }

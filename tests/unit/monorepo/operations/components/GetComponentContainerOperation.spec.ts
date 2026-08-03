@@ -33,7 +33,7 @@ describe('Monorepo / Operations / GetComponentContainerOperation', () => {
     await createTestContext();
     context = getContext();
     operation = new GetComponentContainerOperation();
-    listContainers = context.docker.listContainers as Mock;
+    listContainers = context.docker!.listContainers as Mock;
   });
 
   describe('#run()', () => {

@@ -21,7 +21,12 @@ export interface KubernetesClient {
  */
 export interface EmbContext {
   compose: DockerComposeClient;
-  docker: Docker;
+  /**
+   * Absent until something asks for it. Reach it via getDockerClient(), which
+   * populates it on first use — dockerode pulls in ssh2 and @grpc/grpc-js, and
+   * commands that only shell out to docker compose never need any of it.
+   */
+  docker?: Docker;
   /**
    * Absent until something asks for it. Reach it via getKubernetesClient(),
    * which populates it on first use — @kubernetes/client-node is 14.5MB of

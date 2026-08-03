@@ -179,19 +179,34 @@ promoted to the highest-value item on this list.
 
 **Risk:** none. Verified: `npm run test:unit` 678/678 pass, build clean.
 
-### Phase 2 — Lazy Docker client
+### Phase 2 — Lazy Docker client — DONE
 
-Replace the eager `docker: new Dockerode()` in `BaseCommand.init()` with a
-memoising getter on the context object, so `dockerode` is only loaded when a
-command actually touches the Docker Engine API.
+`docker: new Dockerode()` is gone from `BaseCommand.init()`. `EmbContext.docker`
+is optional and `src/docker/client.ts` exposes `getDockerClient()`, mirroring
+Phase 3.
 
 `dockerode` is CommonJS, so `createRequire(import.meta.url)('dockerode')` keeps
-the accessor synchronous and `context.docker` keeps working unchanged at all
-~10 call sites. The `EmbContext` interface shape does not change (`types.ts`
-already uses type-only imports, which are erased at compile time).
+the accessor **synchronous** — no `await`, and the 17 call sites changed shape
+only (`this.context.docker.x` → `getDockerClient().x`).
 
-**Risk:** low — the accessor stays synchronous, so no call site changes.
-**Measured:** −96 ms (prototype).
+**Deviation from the original design.** The plan was a memoising getter on the
+context object, which would have needed no call-site changes at all. That is a
+trap: `BaseCommand.init()` does `setContext({ ...partialContext, monorepo })`,
+and a spread *invokes* getters — silently reintroducing the eager load. Any
+`{...context}` anywhere in the codebase would do the same. An explicit accessor
+cannot be defeated that way, and it matches Phase 3.
+
+`dockerode` brings `ssh2` (592 KB) and `@grpc/grpc-js` (652 KB) with it for
+transports emb never uses, so all three leave together:
+**1171 → 1004 modules, 5.30 MB → 3.53 MB, `emb ps` 1125 → 1046 ms.**
+
+Two type fixes fell out: `retagIfNecessary`/`pushImage` took
+`ReturnType<typeof getContext>['docker']`, which became nullable — now typed
+`Docker` directly; and five specs that read `context.docker.x` needed `!`,
+matching existing test style.
+
+**Verified:** 678/678 unit, integration-features 26 passed, `emb images` and
+`emb containers` both work against the real daemon.
 
 ### Phase 3 — Lazy Kubernetes client — DONE
 
@@ -302,30 +317,39 @@ should resolve it; if not, it needs fixing on its own merits.
 All figures from klaro, `oclif.manifest.json` present, median of 3 batches x 6
 runs. Noise band is ~150 ms.
 
-| | baseline | Phase 1 | Phases 3+4 |
-| --- | --- | --- | --- |
-| node boot | 101 ms | 94 ms | 86 ms |
-| `emb --version` | 199 ms | 191 ms | 195 ms |
-| `emb tasks` | 1267 ms | 1263 ms | **922 ms** |
-| **`emb ps`** | **1683 ms** | 1452 ms | **1125 ms** |
-| `docker compose ps` | 429 ms | 448 ms | 407 ms |
-| modules for `emb ps` | 2116 / 21.20 MB | 2116 / 21.20 MB | **1171 / 5.30 MB** |
+| | baseline | Phase 1 | Phases 3+4 | Phase 2 |
+| --- | --- | --- | --- | --- |
+| node boot | 101 ms | 94 ms | 86 ms | 88 ms |
+| `emb --version` | 199 ms | 191 ms | 195 ms | 204 ms |
+| `emb tasks` | 1267 ms | 1263 ms | 922 ms | **883 ms** |
+| **`emb ps`** | **1683 ms** | 1452 ms | 1125 ms | **1046 ms** |
+| `docker compose ps` | 429 ms | 448 ms | 407 ms | 524 ms |
+| modules for `emb ps` | 2116 / 21.20 MB | 2116 / 21.20 MB | 1171 / 5.30 MB | **1004 / 3.53 MB** |
 
-**`emb ps` is down 33% (−558 ms) and parses 75% less JavaScript.** Batch spread
-at Phases 3+4 was tight (1125 / 1135 / 1120), so this one is solid.
+**`emb ps` is down 38% (−637 ms) and parses 83% less JavaScript.**
+
+Note `docker compose ps` drifted from 429 ms to 524 ms across these runs — the
+machine is not identical between sessions. The module counts are the trustworthy
+figures; wall-clock is directional.
 
 The 231 ms Phase 1 drop remains **unattributed** — module counts were identical,
 so nothing stopped being loaded, and it sat only just outside the noise band.
-Phases 3+4 measured from the original baseline regardless, so nothing is
-double-counted here.
 
 Remaining weight in `emb ps`, and which phase takes it:
 
 | package | source | phase |
 | --- | --- | --- |
-| `@grpc/grpc-js` + `ssh2` + `protobufjs` | 1.54 MB | 2 (all three arrive via `dockerode`) |
-| `lodash` (via `graphlib`) | 144 KB | 6 |
-| `zod`, `@oclif/core`, `yaml`, `ajv` | 1.29 MB | genuinely needed |
+| `zod` | 524 KB | needed (config validation) |
+| `@oclif/core` | 280 KB | framework |
+| `yaml` | 280 KB | needed (config parsing) |
+| `protobufjs` | 255 KB | **5** — via `docker/index.js` → `docker/protobuf` |
+| `execa` | 220 KB | needed (compose subprocess) |
+| `ajv` | 201 KB | needed (schema validation) |
+| `lodash` (via `graphlib`) | 144 KB | **6** |
+
+Only ~400 KB of the remaining 3.53 MB is still removable by the planned phases.
+The rest is genuinely used, which means Phases 5 and 6 are worth appreciably
+less than Phases 2/3/4 were — worth re-scoping before starting them.
 
 ## Expected outcome
 

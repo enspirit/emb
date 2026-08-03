@@ -13,7 +13,7 @@ describe('Docker / ListContainersOperation', () => {
     await createTestContext();
     context = getContext();
     operation = new ListContainersOperation();
-    listContainers = context.docker.listContainers as Mock;
+    listContainers = context.docker!.listContainers as Mock;
   });
 
   describe('when used with no parameters', () => {
