@@ -7,10 +7,8 @@ import {
   setContext,
 } from '@';
 import { Command, Flags } from '@oclif/core';
-import Dockerode from 'dockerode';
 
 import { loadConfig } from '@/config/index.js';
-import { createKubernetesClient } from '@/kubernetes/client.js';
 import { Monorepo } from '@/monorepo/monorepo.js';
 import { SecretManager } from '@/secrets';
 
@@ -55,10 +53,11 @@ export abstract class BaseCommand extends Command {
       // Create SecretManager early so plugins can register providers during init
       const secrets = new SecretManager();
 
-      // Set a partial context before monorepo init so plugins can access secrets
+      // Set a partial context before monorepo init so plugins can access
+      // secrets. No Docker or Kubernetes client here — both are built on first
+      // use by getDockerClient() / getKubernetesClient(), so commands that
+      // never touch those APIs do not pay to load their SDKs.
       const partialContext = {
-        docker: new Dockerode(),
-        kubernetes: createKubernetesClient(),
         secrets,
       };
       setContext(partialContext as EmbContext);

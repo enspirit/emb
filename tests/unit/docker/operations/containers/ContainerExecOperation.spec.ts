@@ -23,7 +23,7 @@ describe('Docker / ContainerExecOperation', () => {
   beforeEach(async () => {
     await createTestContext();
     context = getContext();
-    getContainer = context.docker.getContainer as Mock;
+    getContainer = context.docker!.getContainer as Mock;
 
     // Create mock stream - EventEmitter is needed for Node.js stream mocking.
     // A pipe() spy is added because the raw-TTY exec path pipes the stream

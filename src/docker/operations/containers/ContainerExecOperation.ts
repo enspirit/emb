@@ -2,6 +2,7 @@ import { ExecCreateOptions } from 'dockerode';
 import { Writable } from 'node:stream';
 import * as z from 'zod';
 
+import { getDockerClient } from '@/docker/client.js';
 import { AbstractOperation } from '@/operations';
 
 /**
@@ -37,7 +38,7 @@ export class ContainerExecOperation extends AbstractOperation<
   }
 
   protected async _run(input: z.input<typeof schema>): Promise<void> {
-    const container = await this.context.docker.getContainer(input.container);
+    const container = await getDockerClient().getContainer(input.container);
 
     const envVars = Object.entries(input.env || {}).reduce<Array<string>>(
       (arr, [key, value]) => {

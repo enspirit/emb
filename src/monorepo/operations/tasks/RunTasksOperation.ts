@@ -1,14 +1,10 @@
-import { getContext } from '@';
 import { input } from '@inquirer/prompts';
 import { ListrInquirerPromptAdapter } from '@listr2/prompt-adapter-inquirer';
 import { ListrTask } from 'listr2';
 import { PassThrough, Writable } from 'node:stream';
 
+import { getContext } from '@/context.js';
 import { ContainerExecOperation } from '@/docker';
-import {
-  GetComponentPodOperation,
-  PodExecOperation,
-} from '@/kubernetes/operations/index.js';
 import { resolveNamespace } from '@/kubernetes/utils/index.js';
 import { EMBCollection, findRunOrder, TaskInfo } from '@/monorepo';
 import { IOperation } from '@/operations';
@@ -190,6 +186,11 @@ export class RunTasksOperation implements IOperation<
     out?: Writable,
   ) {
     const { monorepo } = getContext();
+
+    // Loaded on demand: these pull in @kubernetes/client-node, which is 14.5MB
+    // of ESM that no other executor needs.
+    const { GetComponentPodOperation, PodExecOperation } =
+      await import('@/kubernetes/operations/index.js');
 
     const component = monorepo.component(task.component);
     const namespace = resolveNamespace({

@@ -2,6 +2,7 @@ import { Exec } from '@kubernetes/client-node';
 import { Args, Flags } from '@oclif/core';
 
 import { getContext, KubernetesCommand } from '@/cli';
+import { getKubernetesClient } from '@/kubernetes/client.js';
 import { GetComponentPodOperation } from '@/kubernetes/operations/index.js';
 import { enableRawMode } from '@/utils/streams.js';
 
@@ -28,7 +29,8 @@ export default class PodShellCommand extends KubernetesCommand {
 
   public async run(): Promise<void> {
     const { flags, args } = await this.parse(PodShellCommand);
-    const { monorepo, kubernetes } = await getContext();
+    const { monorepo } = getContext();
+    const kubernetes = await getKubernetesClient();
     const namespace = this.resolveNamespace(flags.namespace);
 
     const component = monorepo.component(args.component);

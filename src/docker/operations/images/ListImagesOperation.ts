@@ -1,6 +1,7 @@
 import { ImageInfo } from 'dockerode';
 import * as z from 'zod';
 
+import { getDockerClient } from '@/docker/client.js';
 import { AbstractOperation } from '@/operations';
 
 /**
@@ -45,7 +46,7 @@ export class ListImagesOperation extends AbstractOperation<
       filters = undefined;
     }
 
-    return this.context.docker.listImages({
+    return getDockerClient().listImages({
       all: input?.all,
       filters,
     });

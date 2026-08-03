@@ -1,5 +1,6 @@
-import { getContext } from '@';
 import { PruneImagesInfo } from 'dockerode';
+
+import { getDockerClient } from '@/docker/client.js';
 
 // For some reason it's not typed in dockerode
 export type PruneImagesOptions = {
@@ -10,7 +11,7 @@ export type PruneImagesOptions = {
 export const pruneImages = async (
   opts?: PruneImagesOptions,
 ): Promise<PruneImagesInfo> => {
-  const { docker } = getContext();
+  const docker = getDockerClient();
 
   // The Docker Engine API POST /images/prune only recognises a single
   // `filters` query param (a JSON-encoded map of string arrays). Passing

@@ -1,4 +1,3 @@
-/* eslint-disable n/no-unsupported-features/node-builtins -- fetch is stable in Node 20+ */
 import { DockerComposeClient, SecretManager, setContext } from '@';
 /**
  * Integration tests for HashiCorp Vault secrets.
@@ -13,7 +12,6 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
-import { createKubernetesClient } from '@/kubernetes/client.js';
 import { Monorepo } from '@/monorepo';
 import {
   VaultError,
@@ -216,7 +214,6 @@ describe('Integration / Secrets / Vault', () => {
 
     setContext({
       docker: vi.mockObject({} as never),
-      kubernetes: vi.mockObject(createKubernetesClient()),
       monorepo,
       compose,
       secrets,

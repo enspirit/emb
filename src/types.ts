@@ -1,11 +1,16 @@
+import type { AppsV1Api, CoreV1Api, KubeConfig } from '@kubernetes/client-node';
 import type Docker from 'dockerode';
-
-import { AppsV1Api, CoreV1Api, KubeConfig } from '@kubernetes/client-node';
 
 import { Monorepo } from '@/monorepo';
 import { SecretManager } from '@/secrets';
 
 import { DockerComposeClient } from './docker/index.js';
+
+export interface KubernetesClient {
+  apps: AppsV1Api;
+  config: KubeConfig;
+  core: CoreV1Api;
+}
 
 /**
  * The context is meant to be what all plugins can decorate
@@ -16,12 +21,18 @@ import { DockerComposeClient } from './docker/index.js';
  */
 export interface EmbContext {
   compose: DockerComposeClient;
-  docker: Docker;
-  kubernetes: {
-    config: KubeConfig;
-    apps: AppsV1Api;
-    core: CoreV1Api;
-  };
+  /**
+   * Absent until something asks for it. Reach it via getDockerClient(), which
+   * populates it on first use — dockerode pulls in ssh2 and @grpc/grpc-js, and
+   * commands that only shell out to docker compose never need any of it.
+   */
+  docker?: Docker;
+  /**
+   * Absent until something asks for it. Reach it via getKubernetesClient(),
+   * which populates it on first use — @kubernetes/client-node is 14.5MB of
+   * ESM and most commands never touch Kubernetes.
+   */
+  kubernetes?: KubernetesClient;
   monorepo: Monorepo;
   secrets: SecretManager;
 }

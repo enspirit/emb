@@ -11,7 +11,7 @@ describe('Docker / pruneImages', () => {
   beforeEach(async () => {
     await createTestContext();
     context = getContext();
-    prune = context.docker.pruneImages as Mock;
+    prune = context.docker!.pruneImages as Mock;
     prune.mockResolvedValue({ ImagesDeleted: [], SpaceReclaimed: 0 });
   });
 

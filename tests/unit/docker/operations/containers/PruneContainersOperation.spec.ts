@@ -13,7 +13,7 @@ describe('Docker / PruneContainersOperation', () => {
     await createTestContext();
     context = getContext();
     operation = new PruneContainersOperation();
-    pruneContainers = context.docker.pruneContainers as Mock;
+    pruneContainers = context.docker!.pruneContainers as Mock;
     pruneContainers.mockResolvedValue({
       ContainersDeleted: ['container1', 'container2'],
       SpaceReclaimed: 1024,

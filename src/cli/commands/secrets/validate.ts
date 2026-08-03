@@ -1,8 +1,8 @@
-import { getContext } from '@';
 import { Flags } from '@oclif/core';
 import { printTable } from '@oclif/table';
 
 import { FlavoredCommand, TABLE_DEFAULTS } from '@/cli';
+import { getContext } from '@/context.js';
 import {
   AggregatedSecret,
   collectAllSecrets,

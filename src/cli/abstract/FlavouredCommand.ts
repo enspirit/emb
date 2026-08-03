@@ -1,6 +1,7 @@
-import { getContext, setContext } from '@';
 import { Command, Flags, Interfaces } from '@oclif/core';
 import { JsonPatchError } from 'fast-json-patch';
+
+import { getContext, setContext } from '@/context.js';
 
 import { BaseCommand } from './BaseCommand.js';
 

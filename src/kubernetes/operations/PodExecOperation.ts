@@ -1,8 +1,11 @@
-import { Exec, V1Status } from '@kubernetes/client-node';
+import type { V1Status } from '@kubernetes/client-node';
+
+import { Exec } from '@kubernetes/client-node';
 import { Writable } from 'node:stream';
 import * as z from 'zod';
 
 import { CliError } from '@/errors.js';
+import { getKubernetesClient } from '@/kubernetes/client.js';
 import { AbstractOperation } from '@/operations';
 
 /**
@@ -45,7 +48,7 @@ export class PodExecOperation extends AbstractOperation<typeof schema, void> {
   }
 
   protected async _run(input: z.input<typeof schema>): Promise<void> {
-    const { kubernetes } = this.context;
+    const kubernetes = await getKubernetesClient();
     const exec = new Exec(kubernetes.config);
 
     const isInteractive = input.interactive || input.tty;

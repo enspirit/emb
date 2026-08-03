@@ -1,10 +1,11 @@
-import { getContext } from '@';
 import { ImageInfo, ListImagesOptions } from 'dockerode';
+
+import { getDockerClient } from '@/docker/client.js';
 
 export const listImages = async (
   opts?: ListImagesOptions,
 ): Promise<Array<ImageInfo>> => {
-  const { docker } = getContext();
+  const docker = getDockerClient();
   const images = await docker.listImages({
     ...opts,
   });

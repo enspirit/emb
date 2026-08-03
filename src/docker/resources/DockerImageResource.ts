@@ -1,6 +1,6 @@
 import type { Ignore } from '@balena/dockerignore';
+import type Docker from 'dockerode';
 
-import { getContext } from '@';
 import * as dockerignoreModule from '@balena/dockerignore';
 import { fdir as Fdir } from 'fdir';
 import { readFile, statfs } from 'node:fs/promises';
@@ -9,6 +9,7 @@ import { join as posixJoin } from 'node:path/posix';
 import { Transform, Writable } from 'node:stream';
 
 import { DockerPublishConfig } from '@/config/schema.js';
+import { getDockerClient } from '@/docker/client.js';
 import { ResourceInfo, SentinelFileBasedBuilder } from '@/monorepo';
 import { OpInput, OpOutput } from '@/operations/index.js';
 
@@ -132,8 +133,8 @@ class DockerImageResourceBuilder extends SentinelFileBasedBuilder<
   // removed out-of-band (`docker system prune`). inspect() resolves when the
   // tag exists and rejects otherwise (a rejection is treated as "absent").
   protected async artifactExists(): Promise<boolean> {
-    await getContext()
-      .docker.getImage(await this.getReference())
+    await getDockerClient()
+      .getImage(await this.getReference())
       .inspect();
     return true;
   }
@@ -246,7 +247,7 @@ class DockerImageResourceBuilder extends SentinelFileBasedBuilder<
     _resource: ResourceInfo<DockerImageResourceConfig>,
     out?: Writable,
   ): Promise<void> {
-    const { docker } = getContext();
+    const docker = getDockerClient();
 
     const reference = await this.getReference();
 
@@ -275,7 +276,7 @@ class DockerImageResourceBuilder extends SentinelFileBasedBuilder<
   }
 
   private async retagIfNecessary(
-    docker: ReturnType<typeof getContext>['docker'],
+    docker: Docker,
     fullName: string,
     retag?: string,
     registry?: string,
@@ -299,7 +300,7 @@ class DockerImageResourceBuilder extends SentinelFileBasedBuilder<
   }
 
   private async pushImage(
-    docker: ReturnType<typeof getContext>['docker'],
+    docker: Docker,
     repo: string,
     tag: string,
     out?: Writable,

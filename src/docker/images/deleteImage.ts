@@ -1,4 +1,4 @@
-import { getContext } from '@';
+import { getDockerClient } from '@/docker/client.js';
 
 export type ImageRemoveOptions = {
   force?: boolean;
@@ -9,7 +9,7 @@ export const deleteImage = async (
   name: string,
   opts?: ImageRemoveOptions,
 ): Promise<unknown> => {
-  const { docker } = getContext();
+  const docker = getDockerClient();
   const image = await docker.getImage(name);
 
   return image.remove(opts);

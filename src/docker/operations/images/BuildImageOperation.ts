@@ -5,6 +5,7 @@ import { PassThrough, Writable } from 'node:stream';
 import * as z from 'zod';
 
 import { decodeBuildkitStatusResponse } from '@/docker';
+import { getDockerClient } from '@/docker/client.js';
 import { AbstractOperation } from '@/operations';
 
 /**
@@ -148,7 +149,7 @@ export class BuildImageOperation extends AbstractOperation<
       `logs/docker/build/${input.tag}.log`,
     );
 
-    const stream = await this.context.docker.buildImage(
+    const stream = await getDockerClient().buildImage(
       {
         context: input.context,
         src: [...input.src],
@@ -165,7 +166,7 @@ export class BuildImageOperation extends AbstractOperation<
     );
 
     return new Promise((resolve, reject) => {
-      this.context.docker.modem.followProgress(
+      getDockerClient().modem.followProgress(
         stream,
         (err, _traces) => {
           return err ? reject(err) : resolve();

@@ -1,7 +1,7 @@
-import { getContext } from '@';
 import { printTable } from '@oclif/table';
 
 import { BaseCommand, TABLE_DEFAULTS } from '@/cli';
+import { getContext } from '@/context.js';
 import { TaskInfo } from '@/monorepo';
 
 export default class TasksIndex extends BaseCommand {

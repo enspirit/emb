@@ -1,6 +1,7 @@
-import { getContext } from '@';
 import { Flags } from '@oclif/core';
 import { Listr } from 'listr2';
+
+import { getContext } from '@/context.js';
 
 import { BaseCommand } from '../abstract/BaseCommand.js';
 
