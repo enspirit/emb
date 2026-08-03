@@ -22,6 +22,8 @@
     "emb": "./bin/run.js"
   },
   "scripts": {
+    "bench:startup": "node scripts/bench-startup.mjs",
+    "bench:modules": "node scripts/count-modules.mjs",
     "build": "rimraf dist && npm run build:types && npm run build:ts && npm run copy:proto",
     "copy:proto": "cp -r src/docker/protobuf/*.proto dist/src/docker/protobuf/",
     "build:ts": "tsc -b && tsc-alias",
