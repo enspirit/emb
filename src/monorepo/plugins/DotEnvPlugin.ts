@@ -14,7 +14,12 @@ export class DotEnvPlugin extends AbstractPlugin<Array<string>> {
   constructor(config: Array<string>, monorepo: Monorepo) {
     super(config, monorepo);
     configDotenv({
-      path: this.config.map((p) => this.monorepo.join(p)),
+      // dotenv gives priority to the first file that defines a variable, and
+      // never overrides what is already in process.env. Reverse the list so
+      // that files listed last win over the ones listed before, as with
+      // docker-compose's `env_file`, while the shell environment still wins
+      // over all of them.
+      path: [...this.config].reverse().map((p) => this.monorepo.join(p)),
       quiet: true,
     });
   }
