@@ -81,6 +81,18 @@ plugins:
 
 `dotenv` takes an array of `.env` file paths rather than an object, as shown in the example above.
 
+When a variable is defined in several of those files, the file listed **last** wins, as with docker-compose's `env_file`:
+
+```yaml
+plugins:
+  - name: dotenv
+    config:
+      - .env.commons    # MY_SETTING=from_commons
+      - .env            # MY_SETTING=from_env  -> this one wins
+```
+
+Variables already present in the shell environment are never overwritten, whichever file defines them.
+
 The `vault` plugin's configuration is documented in [Secrets Management](/emb/advanced/secrets/).
 
 Plugin `config` values are template-expanded before the plugin is constructed, so `${vars:...}` and `${env:...}` placeholders work there:

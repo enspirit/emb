@@ -125,6 +125,85 @@ describe('Plugins / DotEnvPlugin', () => {
       });
     });
 
+    test('it lets the last file win when several define the same variable', async () => {
+      // Reported bug: with `config: ['.env.commons', '.env']`, a variable
+      // defined in both takes its value from `.env.commons` (the first file).
+      // Users coming from docker-compose expect the opposite: files listed
+      // later override the ones listed before.
+      const originalValue = process.env.DOTENV_LAST_WINS_VAR;
+      delete process.env.DOTENV_LAST_WINS_VAR;
+
+      await withAProjectLookingLike(
+        {
+          '.env.commons': 'DOTENV_LAST_WINS_VAR=from_commons',
+          '.env': 'DOTENV_LAST_WINS_VAR=from_env',
+        },
+        async (rootDir) => {
+          await repoWithPlugin(rootDir, ['.env.commons', '.env']);
+
+          expect(process.env.DOTENV_LAST_WINS_VAR).toBe('from_env');
+        },
+      );
+
+      if (originalValue === undefined) {
+        delete process.env.DOTENV_LAST_WINS_VAR;
+      } else {
+        process.env.DOTENV_LAST_WINS_VAR = originalValue;
+      }
+    });
+
+    test('it lets the last file win, whatever the order of the files', async () => {
+      // Same as above, with the two files swapped: the value must follow the
+      // configured order, not the file names.
+      const originalValue = process.env.DOTENV_LAST_WINS_REVERSED_VAR;
+      delete process.env.DOTENV_LAST_WINS_REVERSED_VAR;
+
+      await withAProjectLookingLike(
+        {
+          '.env.commons': 'DOTENV_LAST_WINS_REVERSED_VAR=from_commons',
+          '.env': 'DOTENV_LAST_WINS_REVERSED_VAR=from_env',
+        },
+        async (rootDir) => {
+          await repoWithPlugin(rootDir, ['.env', '.env.commons']);
+
+          expect(process.env.DOTENV_LAST_WINS_REVERSED_VAR).toBe(
+            'from_commons',
+          );
+        },
+      );
+
+      if (originalValue === undefined) {
+        delete process.env.DOTENV_LAST_WINS_REVERSED_VAR;
+      } else {
+        process.env.DOTENV_LAST_WINS_REVERSED_VAR = originalValue;
+      }
+    });
+
+    test('it does not override variables already set in the environment', async () => {
+      // Files must never win over the actual shell environment, whatever the
+      // precedence between them.
+      const originalValue = process.env.DOTENV_SHELL_WINS_VAR;
+      process.env.DOTENV_SHELL_WINS_VAR = 'from_shell';
+
+      await withAProjectLookingLike(
+        {
+          '.env.commons': 'DOTENV_SHELL_WINS_VAR=from_commons',
+          '.env': 'DOTENV_SHELL_WINS_VAR=from_env',
+        },
+        async (rootDir) => {
+          await repoWithPlugin(rootDir, ['.env.commons', '.env']);
+
+          expect(process.env.DOTENV_SHELL_WINS_VAR).toBe('from_shell');
+        },
+      );
+
+      if (originalValue === undefined) {
+        delete process.env.DOTENV_SHELL_WINS_VAR;
+      } else {
+        process.env.DOTENV_SHELL_WINS_VAR = originalValue;
+      }
+    });
+
     test('it loads .env before the project env block is expanded', async () => {
       // Regression: previously .env was loaded in the plugin's async init(),
       // which ran AFTER Monorepo.installEnv() expanded the env block. The
