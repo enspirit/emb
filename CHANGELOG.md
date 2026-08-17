@@ -1,6 +1,12 @@
-## Unreleased
+## 0.31.1 - 2026-08-17
 
-Parallel resource builds, plus correctness and security fixes from a full codebase audit.
+* Fix `DotEnvPlugin` file precedence so the last file wins
+  - `dotenv` gives priority to the first file that defines a variable, so `config: ['.env.commons', '.env']` had `.env.commons` shadow `.env`
+  - Files are now parsed in reverse, matching docker-compose `env_file` semantics where later entries override earlier ones. `process.env` still takes precedence over every file
+
+## 0.31.0 - 2026-08-03
+
+Parallel resource builds and a 38% faster CLI startup, plus correctness and security fixes from a full codebase audit.
 
 * Build resources in parallel
   - New `--jobs`/`-j` flag on `emb resources build` and `emb up`: build up to N resources at once, or `auto` (min of CPU count and 4). Dependency order is always respected — a resource starts only once all of its dependencies have succeeded
@@ -8,6 +14,12 @@ Parallel resource builds, plus correctness and security fixes from a full codeba
   - New `defaults.build.concurrency` key in `.emb.yml` (a positive integer or `"auto"`) sets the project-wide default
   - Precedence is `--jobs` > `defaults.build.concurrency` > `1`, so builds stay serial unless you opt in
   - Build failures are now aggregated into a single `BUILD_FAILED` error listing every failed resource and every dependent that was skipped, instead of surfacing only the first builder error. Resources queued behind a dependency render `Waiting for <deps>`
+
+* Speed up CLI startup
+  - The Docker Engine client and the Kubernetes SDK are now built on first use instead of on every command, so commands that never touch them (`emb ps`, `emb tasks`, …) no longer pay for loading them
+  - `emb ps` 1683ms → 1046ms (-38%), `emb tasks` 1267ms → 883ms
+  - 83% less JavaScript parsed at startup: 2116 modules / 21.2MB → 1004 / 3.53MB
+  - Modules that only need `getContext`/`setContext` import them from `src/context.ts` rather than the root barrel, which made the whole codebase reachable from any entry point
 
 * Harden secret handling
   - Values containing `$$`, `` $` ``, `$&`, `$'` (e.g. Vault/1Password passwords) are inserted literally instead of being mangled as `String.replace` patterns
@@ -22,6 +34,7 @@ Parallel resource builds, plus correctness and security fixes from a full codeba
   - A rebuild is forced when the built image was removed out-of-band (e.g. `docker system prune`)
   - Interactive container exec output is no longer garbled (raw TTY streams are piped, not demultiplexed)
   - `emb logs archive` honors the process exit code and flushes the log file — no false success, no truncation
+  - `emb images` and `emb images delete` no longer match another project's tags — the filter anchors on the `<project>/` boundary, so project `foo` stops capturing `foobar/...`
 
 * Fix kubernetes operations
   - `emb kubernetes restart` works when the pod template has no annotations (strategic merge patch, like `kubectl rollout restart`)
@@ -32,10 +45,20 @@ Parallel resource builds, plus correctness and security fixes from a full codeba
   - Flavored env expansion (`VAR: ${env:VAR:-flavor-default}`) is no longer polluted by the base flavor's installed values
   - Non-string flavor JSON-patch values (numbers, booleans, null) are preserved instead of being corrupted to `{}` or crashing
   - Local task output routes through the task renderer and per-task log file (was bypassing both)
+  - `--verbose`/`EMB_VERBOSE` is honored when combined with `--flavor` — the verbose renderer was lost when `withFlavor()` built the flavored monorepo
+
+* Fix configuration loading and store paths
+  - A missing `.emb.yml` reports a friendly error instead of a raw `ENOENT` (the intended message sat behind dead code)
+  - An empty or comments-only config file reports `Configuration file is empty: <file>` instead of the opaque Ajv message `/: must be object`
+  - `emb config print` output passes its own schema — synthesized `id`/`name`/`component` keys no longer leak into `toJSON()`, which made the printed config fail re-validation with `unknown property 'id'`
+  - `EMBStore` confines paths in `join()`, not just `mkdirp()`, so a `../` path can no longer escape the per-flavor directory
 
 * Tooling
   - `npm test` builds before integration tests, so they exercise current sources instead of a stale/missing `dist/`
   - Fixed vitest path resolution so CLI command modules are unit-testable
+  - New `npm run bench:startup` and `npm run bench:modules` harnesses for measuring CLI startup cost and modules parsed
+  - `oclif.manifest.json` is gitignored — `prepack` generates it and `postpack` removes it, so a stale copy can never be committed
+  - Standardised on Node 22 across the repo and re-enabled documentation validation in CI
 
 ## 0.30.2 - 2026-06-10
 
