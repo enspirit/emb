@@ -1,3 +1,4 @@
+import { CommandExecError } from '@';
 import { execa } from 'execa';
 import {
   chmod,
@@ -12,6 +13,17 @@ import { Writable } from 'node:stream';
 import * as z from 'zod';
 
 import { AbstractOperation } from '@/operations';
+
+// Type guard for execa error objects
+function isExecaError(error: unknown): error is {
+  stderr?: string;
+  shortMessage?: string;
+  message: string;
+  exitCode?: number;
+  signal?: NodeJS.Signals;
+} {
+  return error instanceof Error && 'exitCode' in error;
+}
 
 const schema = z.object({
   //
@@ -61,11 +73,20 @@ export class CreateFileOperation extends AbstractOperation<
       await writeFile(input.path, input.content, { mode: 0o600 });
       await chmod(input.path, 0o600);
     } else if (input.script) {
-      await execa(input.script, {
-        all: true,
-        cwd: input.cwd,
-        shell: true,
-      });
+      try {
+        await execa(input.script, {
+          all: true,
+          cwd: input.cwd,
+          shell: true,
+        });
+      } catch (error) {
+        if (isExecaError(error)) {
+          const stderr = error.stderr?.trim();
+          const message = stderr || error.shortMessage || error.message;
+          throw new CommandExecError(message, error.exitCode ?? 1, error.signal);
+        }
+        throw error;
+      }
     } else {
       const fn = await open(input.path, 'a');
       fn.close();
