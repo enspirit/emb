@@ -418,7 +418,7 @@ tasks:
 |----------|------|-------------|
 | `description` | string | Task description |
 | `script` | string | Shell script to execute. Required unless `pre` is set |
-| `pre` | array | Tasks to run before this one. Required if `script` is omitted |
+| `pre` | array | Tasks to run before this one (`name` or `component:name`; a bare name targets the same component's task first). Required if `script` is omitted |
 | `dependencies` | array | Resource refs (`name` or `component:name`) that must be built before this task runs |
 | `executors` | array | Where to run: `local`, `container`, or `kubernetes` |
 | `interactive` | boolean | Requires TTY (default: false) |

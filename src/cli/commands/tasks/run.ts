@@ -48,10 +48,24 @@ export default class RunTask extends BaseCommand {
         allMatching: flags['all-matching'],
       });
     } catch (error) {
+      if (error instanceof AmbiguousReferenceError && error.referencedBy) {
+        throw error.toCliError([
+          `Use a fully qualified reference in the dependencies of \`${error.referencedBy}\`. Eg: \`${error.matches[0]}\``,
+          'Review the list of tasks by running `emb tasks`',
+        ]);
+      }
+
       if (error instanceof AmbiguousReferenceError) {
         throw error.toCliError([
           `Specify just one. Eg: \`emb tasks run ${error.matches[0]}\``,
           'Run the same command with --all-matching / -a',
+          'Review the list of tasks by running `emb tasks`',
+        ]);
+      }
+
+      if (error instanceof UnkownReferenceError && error.referencedBy) {
+        throw error.toCliError([
+          `Fix the dependencies of \`${error.referencedBy}\``,
           'Review the list of tasks by running `emb tasks`',
         ]);
       }

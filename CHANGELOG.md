@@ -1,3 +1,11 @@
+## Unreleased
+
+* Fix task dependency (`pre`) resolution
+  - A short `pre` reference in a component task now targets the task of the same component first (`pre: [setup]` in `api` means `api:setup`, even if `web:setup` exists), falling back to a monorepo-wide lookup. This matches how `dependencies` already resolve resources
+  - `--all-matching`/`-a` only applies to the tasks named on the command line; an ambiguous `pre` reference is always an error instead of silently running every match
+  - Only the dependencies of the selected tasks/resources are resolved, so a broken or ambiguous reference in an unrelated task no longer breaks every `emb run`. Errors now name the item holding the bad reference
+  - `--executor`/`-x` only applies to the tasks named on the command line; prerequisites keep their default executor
+
 ## 0.31.1 - 2026-08-17
 
 * Fix `DotEnvPlugin` file precedence so the last file wins

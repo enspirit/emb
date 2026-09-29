@@ -40,6 +40,8 @@ export class AmbiguousReferenceError extends EMBError {
     msg: string,
     public ref: string,
     public matches: string[],
+    /** id of the item whose dependency list holds the reference, if any */
+    public referencedBy?: string,
   ) {
     super('AMBIGUOUS_REF', msg);
   }
@@ -49,6 +51,8 @@ export class UnkownReferenceError extends EMBError {
   constructor(
     msg: string,
     public ref: string,
+    /** id of the item whose dependency list holds the reference, if any */
+    public referencedBy?: string,
   ) {
     super('UNKNOWN_REF', msg);
   }
