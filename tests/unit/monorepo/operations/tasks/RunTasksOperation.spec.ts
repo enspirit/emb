@@ -7,6 +7,8 @@ import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import {
   ExecutorType,
   RunTasksOperation,
+  TaskWithScript,
+  TaskWithScriptAndComponent,
 } from '../../../../../src/monorepo/operations/tasks/RunTasksOperation.js';
 
 describe('Monorepo / Operations / Tasks / RunTasksOperation', () => {
@@ -233,6 +235,234 @@ describe('Monorepo / Operations / Tasks / RunTasksOperation', () => {
 
       const output = Buffer.concat(chunks).toString('utf8');
       expect(output).toContain('tee-capture-marker');
+    });
+  });
+
+  describe('task dependencies', () => {
+    let depSetup: TestSetup;
+
+    const withEmbfile = async (
+      tasks: Record<string, unknown>,
+      components: Record<string, Record<string, unknown>>,
+    ) => {
+      depSetup = await createTestSetup({
+        tempDirPrefix: 'embRunTasksPreTest',
+        embfile: {
+          project: { name: 'test-tasks' },
+          plugins: [],
+          tasks,
+          components: Object.fromEntries(
+            Object.entries(components).map(([name, cmpTasks]) => [
+              name,
+              { tasks: cmpTasks },
+            ]),
+          ),
+        } as never,
+      });
+      await Promise.all(
+        Object.keys(components).map((name) =>
+          mkdir(join(depSetup.tempDir, name), { recursive: true }),
+        ),
+      );
+    };
+
+    // Records which executor ran each task instead of running it
+    class RecordingRunTasksOperation extends RunTasksOperation {
+      executed: Array<[string, ExecutorType]> = [];
+
+      protected override async runDocker(task: TaskWithScriptAndComponent) {
+        this.executed.push([task.id, ExecutorType.container]);
+        return undefined as never;
+      }
+
+      protected override async runKubernetes(task: TaskWithScriptAndComponent) {
+        this.executed.push([task.id, ExecutorType.kubernetes]);
+        return undefined as never;
+      }
+
+      protected override async runLocal(task: TaskWithScript) {
+        this.executed.push([task.id, ExecutorType.local]);
+        return undefined as never;
+      }
+    }
+
+    afterEach(async () => {
+      await depSetup?.cleanup();
+    });
+
+    test('a short pre reference targets the task of the same component', async () => {
+      await withEmbfile(
+        {},
+        {
+          api: {
+            setup: { script: 'echo api-setup' },
+            test: { script: 'echo api-test', pre: ['setup'] },
+          },
+          web: {
+            setup: { script: 'echo web-setup' },
+            test: { script: 'echo web-test', pre: ['setup'] },
+          },
+        },
+      );
+
+      const result = await new RunTasksOperation().run({
+        tasks: ['api:test'],
+        executor: ExecutorType.local,
+      });
+
+      expect(result.map((t) => t.id)).toEqual(['api:setup', 'api:test']);
+    });
+
+    test('--all-matching does not leak into pre references', async () => {
+      await withEmbfile(
+        {},
+        {
+          api: {
+            setup: { script: 'echo api-setup' },
+            test: { script: 'echo api-test', pre: ['setup'] },
+          },
+          web: {
+            setup: { script: 'echo web-setup' },
+          },
+        },
+      );
+
+      const result = await new RunTasksOperation().run({
+        tasks: ['api:test'],
+        executor: ExecutorType.local,
+        allMatching: true,
+      });
+
+      expect(result.map((t) => t.id)).toEqual(['api:setup', 'api:test']);
+    });
+
+    test('a short pre reference falls back to a monorepo-wide lookup', async () => {
+      await withEmbfile(
+        { lint: { script: 'echo global-lint' } },
+        {
+          api: {
+            test: { script: 'echo api-test', pre: ['lint'] },
+          },
+        },
+      );
+
+      const result = await new RunTasksOperation().run({
+        tasks: ['api:test'],
+        executor: ExecutorType.local,
+      });
+
+      expect(result.map((t) => t.id)).toEqual(['lint', 'api:test']);
+    });
+
+    test('a task referencing its own name targets the global task', async () => {
+      await withEmbfile(
+        { lint: { script: 'echo global-lint' } },
+        {
+          api: {
+            lint: { script: 'echo api-lint', pre: ['lint'] },
+          },
+        },
+      );
+
+      const result = await new RunTasksOperation().run({
+        tasks: ['api:lint'],
+        executor: ExecutorType.local,
+      });
+
+      expect(result.map((t) => t.id)).toEqual(['lint', 'api:lint']);
+    });
+
+    test('an ambiguous pre reference is reported with its owner', async () => {
+      await withEmbfile(
+        { deploy: { script: 'echo deploy', pre: ['setup'] } },
+        {
+          api: { setup: { script: 'echo api-setup' } },
+          web: { setup: { script: 'echo web-setup' } },
+        },
+      );
+
+      await expect(
+        new RunTasksOperation().run({
+          tasks: ['deploy'],
+          executor: ExecutorType.local,
+        }),
+      ).rejects.toThrow(/`deploy` depends on ambiguous reference `setup`/);
+    });
+
+    test('broken pre references in unrelated tasks are ignored', async () => {
+      await withEmbfile(
+        {
+          deploy: { script: 'echo deploy' },
+          broken: { script: 'echo broken', pre: ['nope'] },
+          ambiguous: { script: 'echo ambiguous', pre: ['setup'] },
+        },
+        {
+          api: { setup: { script: 'echo api-setup' } },
+          web: { setup: { script: 'echo web-setup' } },
+        },
+      );
+
+      const result = await new RunTasksOperation().run({
+        tasks: ['deploy'],
+        executor: ExecutorType.local,
+      });
+
+      expect(result.map((t) => t.id)).toEqual(['deploy']);
+    });
+
+    test('--executor only applies to the requested tasks', async () => {
+      await withEmbfile(
+        { lint: { script: 'echo lint' } },
+        {
+          api: {
+            setup: { script: 'echo setup', executors: ['local'] },
+            test: {
+              script: 'echo test',
+              pre: ['setup', 'lint'],
+              executors: ['local', 'container'],
+            },
+          },
+        },
+      );
+
+      const operation = new RecordingRunTasksOperation();
+      await operation.run({
+        tasks: ['api:test'],
+        executor: ExecutorType.container,
+      });
+
+      expect(operation.executed).toEqual([
+        ['api:setup', ExecutorType.local],
+        ['lint', ExecutorType.local],
+        ['api:test', ExecutorType.container],
+      ]);
+    });
+
+    test('--executor applies to a requested task that is also a prerequisite', async () => {
+      await withEmbfile(
+        {},
+        {
+          api: {
+            setup: { script: 'echo setup', executors: ['local', 'container'] },
+            test: {
+              script: 'echo test',
+              pre: ['setup'],
+              executors: ['local', 'container'],
+            },
+          },
+        },
+      );
+
+      const operation = new RecordingRunTasksOperation();
+      await operation.run({
+        tasks: ['api:setup', 'api:test'],
+        executor: ExecutorType.container,
+      });
+
+      expect(operation.executed).toEqual([
+        ['api:setup', ExecutorType.container],
+        ['api:test', ExecutorType.container],
+      ]);
     });
   });
 });

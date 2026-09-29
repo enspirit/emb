@@ -102,7 +102,7 @@ describe('Utils / findRunGraph', () => {
       { id: 'circular:image', name: 'image', deps: ['circular:shared'] },
     ])!;
 
-    expect(() => findRunGraph([], withCircular)).toThrow(
+    expect(() => findRunGraph(['circular:image'], withCircular)).toThrow(
       CircularDependencyError,
     );
   });

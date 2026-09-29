@@ -429,7 +429,7 @@ emb run <TASK...> [OPTIONS]
 - `TASK...` - Task IDs or names to run
 
 **Options:**
-- `-x, --executor <type>` - Force executor: `local`, `container`, or `kubernetes`
+- `-x, --executor <type>` - Force executor for the named tasks (prerequisites keep their default): `local`, `container`, or `kubernetes`
 - `-a, --all-matching` - Run all tasks matching name
 
 **Examples:**

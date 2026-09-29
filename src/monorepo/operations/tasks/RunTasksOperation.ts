@@ -6,7 +6,12 @@ import { PassThrough, Writable } from 'node:stream';
 import { getContext } from '@/context.js';
 import { ContainerExecOperation } from '@/docker';
 import { resolveNamespace } from '@/kubernetes/utils/index.js';
-import { EMBCollection, findRunOrder, TaskInfo } from '@/monorepo';
+import {
+  EMBCollection,
+  findRunOrder,
+  resolveRefSet,
+  TaskInfo,
+} from '@/monorepo';
 import { IOperation } from '@/operations';
 
 import { ExecuteLocalCommandOperation } from '../index.js';
@@ -37,31 +42,63 @@ export class RunTasksOperation implements IOperation<
 > {
   async run(params: RunTasksOperationParams): Promise<Array<TaskInfo>> {
     const { monorepo } = getContext();
-
-    // First ensure the selection is valid (user can use task IDs or names)
-    const collection = new EMBCollection(monorepo.tasks, {
-      idField: 'id',
-      depField: 'pre',
-    });
-
-    const ordered = findRunOrder(params.tasks, collection, {
-      onAmbiguous: params.allMatching ? 'runAll' : 'error',
-    });
-
     const { resources } = monorepo;
-    const qualifyDep = (dep: string, component?: string) => {
-      if (dep.includes(':') || !component) {
-        return dep;
+
+    // A short reference in a component's task/resource list means the
+    // component's own item when there is one (eg. `pre: [setup]` in `api`
+    // targets `api:setup` even if `web:setup` exists); otherwise it is
+    // resolved monorepo-wide.
+    const qualify = (
+      ref: string,
+      knownIds: Set<string>,
+      component?: string,
+      self?: string,
+    ) => {
+      if (ref.includes(':') || !component) {
+        return ref;
       }
 
-      const qualified = `${component}:${dep}`;
-      return resources.some((r) => r.id === qualified) ? qualified : dep;
+      const qualified = `${component}:${ref}`;
+      return qualified !== self && knownIds.has(qualified) ? qualified : ref;
     };
+
+    const allTasks = monorepo.tasks;
+    const taskIds = new Set(allTasks.map((t) => t.id));
+    const resourceIds = new Set(resources.map((r) => r.id));
+
+    // First ensure the selection is valid (user can use task IDs or names)
+    const collection = new EMBCollection(
+      allTasks.map((t) =>
+        t.pre
+          ? {
+              ...t,
+              pre: t.pre.map((ref) => qualify(ref, taskIds, t.component, t.id)),
+            }
+          : t,
+      ),
+      {
+        idField: 'id',
+        depField: 'pre',
+      },
+    );
+
+    const onAmbiguous = params.allMatching ? 'runAll' : 'error';
+    const ordered = findRunOrder(params.tasks, collection, { onAmbiguous });
+
+    // The --executor override only targets the tasks the user asked for;
+    // prerequisites keep running on their own default executor.
+    const requested = new Set(
+      params.tasks.flatMap((ref) =>
+        resolveRefSet(collection, ref, onAmbiguous),
+      ),
+    );
 
     const resourceDeps = [
       ...new Set(
         ordered.flatMap((t) =>
-          (t.dependencies ?? []).map((d) => qualifyDep(d, t.component)),
+          (t.dependencies ?? []).map((d) =>
+            qualify(d, resourceIds, t.component),
+          ),
         ),
       ),
     ];
@@ -91,7 +128,8 @@ export class RunTasksOperation implements IOperation<
             const vars = await monorepo.expand(task.vars || {});
 
             const executor =
-              params.executor ?? (await this.defaultExecutorFor(task));
+              (requested.has(task.id) ? params.executor : undefined) ??
+              (await this.defaultExecutorFor(task));
 
             await this.ensureExecutorValid(executor, task);
 

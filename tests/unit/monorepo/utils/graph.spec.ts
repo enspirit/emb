@@ -1,8 +1,10 @@
 import {
+  AmbiguousReferenceError,
   CircularDependencyError,
   EMBCollection,
   findRunOrder,
   resolveRefSet,
+  UnkownReferenceError,
 } from '@';
 import { beforeEach, describe, expect, it } from 'vitest';
 
@@ -181,7 +183,7 @@ describe('Utils / graph', () => {
         },
       ])!;
 
-      const fn = () => findRunOrder([], withCircular);
+      const fn = () => findRunOrder(['circular:image'], withCircular);
 
       expect(fn).toThrow(/Circular dependencies detected/);
 
@@ -200,6 +202,73 @@ describe('Utils / graph', () => {
           'circular:shared',
         );
       }
+    });
+  });
+
+  describe('dependency resolution', () => {
+    it('only resolves the dependencies of the selection', () => {
+      const withBroken = simpleCollection([
+        { id: 'ok', name: 'ok' },
+        { id: 'unknown', name: 'unknown', deps: ['nope'] },
+        { id: 'ambiguous', name: 'ambiguous', deps: ['test'] },
+        { id: 'a:test', name: 'test' },
+        { id: 'b:test', name: 'test' },
+        { id: 'cycle:a', name: 'a', deps: ['cycle:b'] },
+        { id: 'cycle:b', name: 'b', deps: ['cycle:a'] },
+      ])!;
+
+      expect(findRunOrder(['ok'], withBroken).map((i) => i.id)).toEqual(['ok']);
+    });
+
+    it('names the item holding an unknown dependency', () => {
+      const withUnknown = simpleCollection([
+        { id: 'top', name: 'top', deps: ['mid'] },
+        { id: 'mid', name: 'mid', deps: ['nope'] },
+      ])!;
+
+      try {
+        findRunOrder(['top'], withUnknown);
+        expect.fail('should have thrown');
+      } catch (error) {
+        expect(error).toBeInstanceOf(UnkownReferenceError);
+        expect((error as UnkownReferenceError).referencedBy).toBe('mid');
+        expect((error as Error).message).toMatch(
+          /`mid` depends on unknown reference `nope`/,
+        );
+      }
+    });
+
+    it('rejects ambiguous dependencies even with policy `runAll`', () => {
+      try {
+        findRunOrder(
+          ['ambiguous'],
+          simpleCollection([
+            { id: 'ambiguous', name: 'ambiguous', deps: ['test'] },
+            { id: 'a:test', name: 'test' },
+            { id: 'b:test', name: 'test' },
+          ])!,
+          { onAmbiguous: 'runAll' },
+        );
+        expect.fail('should have thrown');
+      } catch (error) {
+        expect(error).toBeInstanceOf(AmbiguousReferenceError);
+        expect((error as AmbiguousReferenceError).referencedBy).toBe(
+          'ambiguous',
+        );
+        expect((error as AmbiguousReferenceError).matches).toEqual([
+          'a:test',
+          'b:test',
+        ]);
+      }
+    });
+
+    it('still applies policy `runAll` to the selection itself', () => {
+      const list = findRunOrder(['test'], coll, { onAmbiguous: 'runAll' });
+      expect(list.map((i) => i.id).sort()).toEqual([
+        'api:test',
+        'frontend:test',
+        'mobile:test',
+      ]);
     });
   });
 });

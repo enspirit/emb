@@ -1,11 +1,13 @@
 import graphlib from 'graphlib';
 
-import { CircularDependencyError } from '@/errors.js';
+import {
+  AmbiguousReferenceError,
+  CircularDependencyError,
+  UnkownReferenceError,
+} from '@/errors.js';
 
 import { EMBCollection } from './EMBCollection.js';
 import { AmbiguityPolicy, DepList } from './types.js';
-
-/* ----------------- run-order helpers unchanged (for completeness) ---------------- */
 
 export function resolveRefSet<
   T extends Partial<Record<DPK, DepList>> &
@@ -24,30 +26,40 @@ export function resolveRefSet<
   return [col.idOf(col.matches(ref))];
 }
 
-export function collectPredecessorClosure(
-  g: graphlib.Graph,
-  seeds: Iterable<string>,
-): Set<string> {
-  const seen = new Set<string>();
-  const q: string[] = [];
-  for (const s of seeds) {
-    if (!seen.has(s)) {
-      seen.add(s);
-      q.push(s);
+/**
+ * Resolves one entry of `owner`'s dependency list. Dependencies are always
+ * resolved strictly: an ambiguous name is an error (the `runAll` policy only
+ * ever applies to the user's selection), and errors name the item holding
+ * the bad reference.
+ */
+export function resolveDepRef<
+  T extends Partial<Record<DPK, DepList>> &
+    Record<IDK, string> & { name: string },
+  IDK extends keyof T,
+  DPK extends keyof T,
+>(col: EMBCollection<T, IDK, DPK>, owner: string, ref: string): string[] {
+  try {
+    return resolveRefSet(col, ref, 'error');
+  } catch (error) {
+    if (error instanceof AmbiguousReferenceError) {
+      throw new AmbiguousReferenceError(
+        `\`${owner}\` depends on ambiguous reference \`${ref}\` (matches: ${error.matches.join(', ')})`,
+        ref,
+        error.matches,
+        owner,
+      );
     }
-  }
 
-  while (q.length > 0) {
-    const cur = q.shift()!;
-    for (const p of g.predecessors(cur) ?? []) {
-      if (!seen.has(p)) {
-        seen.add(p);
-        q.push(p);
-      }
+    if (error instanceof UnkownReferenceError) {
+      throw new UnkownReferenceError(
+        `\`${owner}\` depends on unknown reference \`${ref}\``,
+        ref,
+        owner,
+      );
     }
-  }
 
-  return seen;
+    throw error;
+  }
 }
 
 export function buildGraph<
@@ -55,7 +67,7 @@ export function buildGraph<
     Record<IDK, string> & { name: string },
   IDK extends keyof T,
   DPK extends keyof T,
->(col: EMBCollection<T, IDK, DPK>, policy: AmbiguityPolicy): graphlib.Graph {
+>(col: EMBCollection<T, IDK, DPK>): graphlib.Graph {
   const g = new graphlib.Graph({ directed: true });
   for (const t of col.all) {
     g.setNode(col.idOf(t));
@@ -64,7 +76,7 @@ export function buildGraph<
   for (const t of col.all) {
     const toId = col.idOf(t);
     for (const ref of col.depsOf(t)) {
-      for (const fromId of resolveRefSet(col, ref, policy)) {
+      for (const fromId of resolveDepRef(col, toId, ref)) {
         g.setEdge(fromId, toId);
       }
     }
@@ -80,10 +92,12 @@ interface RunSubgraph<T> {
 }
 
 /**
- * Shared machinery behind findRunOrder/findRunGraph: build the full graph,
- * reject cycles, expand the selection to its predecessor closure, and return
- * the closure subgraph topsorted (ids), an id->item lookup, and the subgraph
- * itself (so callers can read per-node edges).
+ * Shared machinery behind findRunOrder/findRunGraph: resolve the selection,
+ * walk its dependencies transitively (only the items actually reached are
+ * resolved, so a broken reference elsewhere in the collection is harmless),
+ * reject cycles, and return the closure subgraph topsorted (ids), an
+ * id->item lookup, and the subgraph itself (so callers can read per-node
+ * edges).
  */
 function resolveRunSubgraph<
   T extends Partial<Record<DPK, DepList>> &
@@ -95,14 +109,9 @@ function resolveRunSubgraph<
   collection: EMBCollection<T, IDK, DPK>,
   onAmbiguous: AmbiguityPolicy,
 ): RunSubgraph<T> {
-  const g = buildGraph(collection, onAmbiguous);
-
-  const cycles = graphlib.alg.findCycles(g);
-  if (cycles.length > 0) {
-    throw new CircularDependencyError(
-      `Circular dependencies detected: ${JSON.stringify(cycles)}`,
-      cycles,
-    );
+  const byId = new Map<string, T>();
+  for (const t of collection.all) {
+    byId.set(collection.idOf(t), t);
   }
 
   const selectedIds = new Set<string>();
@@ -116,27 +125,35 @@ function resolveRunSubgraph<
     throw new Error('Selection resolved to no items.');
   }
 
-  const include = collectPredecessorClosure(g, selectedIds.values());
-
   const sub = new graphlib.Graph({ directed: true });
-  for (const id of include) {
+  const queue = [...selectedIds];
+  for (const id of queue) {
     sub.setNode(id);
   }
 
-  for (const id of include) {
-    for (const p of g.predecessors(id) ?? []) {
-      if (include.has(p)) {
-        sub.setEdge(p, id);
+  while (queue.length > 0) {
+    const id = queue.shift()!;
+    for (const ref of collection.depsOf(byId.get(id)!)) {
+      for (const depId of resolveDepRef(collection, id, ref)) {
+        if (!sub.hasNode(depId)) {
+          sub.setNode(depId);
+          queue.push(depId);
+        }
+
+        sub.setEdge(depId, id);
       }
     }
   }
 
-  const ids = graphlib.alg.topsort(sub);
-  const byId = new Map<string, T>();
-  for (const t of collection.all) {
-    byId.set(collection.idOf(t), t);
+  const cycles = graphlib.alg.findCycles(sub);
+  if (cycles.length > 0) {
+    throw new CircularDependencyError(
+      `Circular dependencies detected: ${JSON.stringify(cycles)}`,
+      cycles,
+    );
   }
 
+  const ids = graphlib.alg.topsort(sub);
   return { ids, byId, sub };
 }
 
