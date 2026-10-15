@@ -3,12 +3,20 @@ import { Listr } from 'listr2';
 
 import { BaseCommand } from '@/cli/index.js';
 import { getContext } from '@/context.js';
-import { deleteImage, listImages, projectImageTags } from '@/docker';
+import {
+  deleteImage,
+  filterImageRefsByTag,
+  listImages,
+  projectImageTags,
+} from '@/docker';
 
 export default class ImagesDelete extends BaseCommand {
   static description = 'Delete project images.';
   static enableJsonFlag = true;
-  static examples = ['<%= config.bin %> <%= command.id %>'];
+  static examples = [
+    '<%= config.bin %> <%= command.id %>',
+    '<%= config.bin %> <%= command.id %> --tag MR-42 --tag MR-42-production',
+  ];
   static flags = {
     force: Flags.boolean({
       char: 'f',
@@ -16,6 +24,14 @@ export default class ImagesDelete extends BaseCommand {
       description:
         'Remove the image even if it is being used by stopped containers or has other tags',
       name: 'force',
+      required: false,
+    }),
+    tag: Flags.string({
+      char: 't',
+      description:
+        'Only delete images with this tag (can be repeated). Deletes all project images when omitted',
+      multiple: true,
+      name: 'tag',
       required: false,
     }),
   };
@@ -30,12 +46,11 @@ export default class ImagesDelete extends BaseCommand {
       },
     });
 
-    const imageNames = images.reduce(
-      (imgs, img) => [
-        ...imgs,
-        ...projectImageTags(img.RepoTags, context.monorepo.name),
-      ],
-      [] as Array<string>,
+    const imageNames = filterImageRefsByTag(
+      images.flatMap((img) =>
+        projectImageTags(img.RepoTags, context.monorepo.name),
+      ),
+      flags.tag,
     );
 
     const runner = new Listr(

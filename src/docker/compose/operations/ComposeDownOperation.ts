@@ -13,8 +13,36 @@ const schema = z
       .array(z.string())
       .optional()
       .describe('The list of services to stop and remove'),
+    volumes: z
+      .boolean()
+      .optional()
+      .describe(
+        'Remove named volumes declared in the compose file and anonymous volumes attached to containers',
+      ),
+    removeOrphans: z
+      .boolean()
+      .optional()
+      .describe(
+        'Remove containers for services not defined in the compose file',
+      ),
   })
   .optional();
+
+/**
+ * Build the `docker compose down` command line for the given input.
+ */
+export const composeDownCommand = (
+  input: z.input<typeof schema>,
+): Array<string> => {
+  return [
+    'docker',
+    'compose',
+    'down',
+    ...(input?.volumes ? ['--volumes'] : []),
+    ...(input?.removeOrphans ? ['--remove-orphans'] : []),
+    ...(input?.services || []),
+  ];
+};
 
 export class ComposeDownOperation extends AbstractOperation<
   typeof schema,
@@ -28,11 +56,7 @@ export class ComposeDownOperation extends AbstractOperation<
     const { monorepo } = getContext();
     const manager = monorepo.taskManager();
 
-    const command = ['docker', 'compose', 'down'];
-
-    if (input?.services) {
-      command.push(...input.services);
-    }
+    const command = composeDownCommand(input);
 
     manager.add([
       {

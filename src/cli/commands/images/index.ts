@@ -3,7 +3,7 @@ import { printTable } from '@oclif/table';
 
 import { FlavoredCommand, TABLE_DEFAULTS } from '@/cli';
 import { getContext } from '@/context.js';
-import { listImages, projectImageTags, shortId } from '@/docker';
+import { listImages, parseImageRef, projectImageTags, shortId } from '@/docker';
 import { timeAgo } from '@/utils';
 
 export type ImageInfo = {
@@ -40,23 +40,14 @@ export default class ImagesIndex extends FlavoredCommand<typeof ImagesIndex> {
       },
     });
 
-    const flatten = images.reduce((imgs, img) => {
-      const matches = projectImageTags(img.RepoTags, context.monorepo.name).map(
-        (m) => {
-          const [name, tag] = m.split(':');
-
-          return {
-            created: new Date(img.Created * 1000),
-            imageId: shortId(img.Id),
-            name,
-            size: img.Size,
-            tag,
-          };
-        },
-      );
-
-      return [...imgs, ...matches];
-    }, [] as Array<ImageInfo>);
+    const flatten = images.flatMap((img) =>
+      projectImageTags(img.RepoTags, context.monorepo.name).map((ref) => ({
+        created: new Date(img.Created * 1000),
+        imageId: shortId(img.Id),
+        ...parseImageRef(ref),
+        size: img.Size,
+      })),
+    );
 
     if (!flags.json) {
       printTable({

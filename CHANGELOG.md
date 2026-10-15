@@ -1,3 +1,9 @@
+## Unreleased
+
+* Clean up after CI builds
+  - New `--volumes`/`-v` and `--remove-orphans` flags on `emb down`, passed through to `docker compose down`. In CI, `emb down --volumes --remove-orphans` stops anonymous volumes (postgres data, …) from piling up on build nodes
+  - New repeatable `--tag`/`-t` flag on `emb images delete`: only delete this project's images with that exact tag (e.g. `--tag MR-42 --tag MR-42-production`), keeping `latest` and its layer cache
+
 ## 0.31.1 - 2026-08-17
 
 * Fix `DotEnvPlugin` file precedence so the last file wins
