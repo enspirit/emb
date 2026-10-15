@@ -1,7 +1,7 @@
 import { createTestSetup, TestSetup } from 'tests/setup/set.context.js';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
-import { ComposeDownOperation } from '@/docker';
+import { composeDownCommand, ComposeDownOperation } from '@/docker';
 
 describe('Docker / Compose / Operations / ComposeDownOperation', () => {
   let setup: TestSetup;
@@ -61,6 +61,39 @@ describe('Docker / Compose / Operations / ComposeDownOperation', () => {
       const addCall = (manager.add as ReturnType<typeof vi.fn>).mock.calls[0];
       const tasks = addCall[0];
       expect(tasks[0].title).toBe('Stopping api, web');
+    });
+  });
+
+  describe('composeDownCommand()', () => {
+    test('it is a plain down by default', () => {
+      expect(composeDownCommand({})).to.deep.equal([
+        'docker',
+        'compose',
+        'down',
+      ]);
+    });
+
+    test('it adds --volumes and --remove-orphans before services', () => {
+      expect(
+        composeDownCommand({
+          services: ['api'],
+          volumes: true,
+          removeOrphans: true,
+        }),
+      ).to.deep.equal([
+        'docker',
+        'compose',
+        'down',
+        '--volumes',
+        '--remove-orphans',
+        'api',
+      ]);
+    });
+
+    test('it omits flags explicitly set to false', () => {
+      expect(
+        composeDownCommand({ volumes: false, removeOrphans: false }),
+      ).to.deep.equal(['docker', 'compose', 'down']);
     });
   });
 

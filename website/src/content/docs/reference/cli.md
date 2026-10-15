@@ -118,6 +118,14 @@ emb down [SERVICE...]
 **Arguments:**
 - `SERVICE...` - Optional services to stop and remove (defaults to all)
 
+**Flags:**
+- `-v, --volumes` - Also remove named volumes declared in the compose file and anonymous volumes attached to the containers
+- `--remove-orphans` - Remove containers for services no longer defined in the compose file
+
+```shell
+emb down --volumes --remove-orphans   # Full teardown, e.g. at the end of a CI build
+```
+
 ### emb start
 
 Start existing (already created) project containers without recreating them.
@@ -524,7 +532,8 @@ emb tasks run           # Run tasks (alias: emb run)
 
 ```shell
 emb images              # List images
-emb images delete       # Delete images
+emb images delete       # Delete images (all project images)
+emb images delete -t MR-42 -t MR-42-production  # Only delete images with these tags
 emb images prune        # Prune unused images
 emb images push         # [DEPRECATED] Push images — use `emb resources publish` instead
 ```
